@@ -1,0 +1,564 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["beverage"]
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  // JSON for org-wide lookup values and settings
+  settingsBottleSizes  String @default("[200,355,375,500,700,750,1000,1500]")
+  settingsCaseSizes    String @default("[1,6,12,24]")
+  settingsCategories   String @default("[]")
+  // Standard pour sizes per product type (JSON: { "SPIRIT": 1.5, "WINE": 5, ... } in fl oz)
+  settingsStandardPours String @default("{\"SPIRIT\":1.5,\"WINE\":5,\"BEER\":12,\"NA_BEVERAGE\":8,\"CORDIAL\":1,\"BITTER\":0.04,\"SYRUP\":0.5,\"GROCERY\":1,\"PRODUCE\":1,\"MEAT\":1,\"DAIRY\":1,\"DRY_GOODS\":1,\"OTHER\":1}")
+  // Custom shelf labels (JSON array of strings users can pick from)
+  settingsShelfLabels   String @default("[]")
+  // Ordering: merge all store orders into one cart
+  useMergedOrderCart    Boolean @default(false)
+  // Finans Lab: costing method for inventory valuation ("WAC", "FIFO", "LIFO")
+  costingMethod         String  @default("WAC")
+  // Pricing Hub: tab-level default cost % target (JSON: { "wine-btg": 25, "wine-btb": 32, ... })
+  pricingTabDefaults    String  @default("{\"wine-btg\":25,\"wine-btb\":32,\"spirits\":22,\"beer\":25,\"na\":18}")
+  // Pricing Hub: pour-level cost % targets per tab (JSON: { "wine-btg": { "5oz": 22, "8oz": 25, "btl": 30 }, ... })
+  pourSizeTargets       String  @default("{}")
+  // Pricing Hub: pricing strategy per tab (JSON: { "wine-btb": { "type": "tiered", ... }, ... })
+  pricingStrategies     String  @default("{}")
+  // Pricing Hub: tier configs per tab (JSON array of { minCents, maxCents, targetPct })
+  pricingTiers          String  @default("{}")
+  // Pricing Hub: rounding mode per tab ("none" | "nearest-5" | "nearest-10" | "charm-99")
+  pricingRounding       String  @default("{}")
+  // Finans Lab: employee names excluded from Server KPI scoring (JSON array of names)
+  kpiExcludedEmployees  String  @default("[]")
+  // Finans Lab: employee names shown separately (not in leaderboard). PDR Banquet, Online Ordering, etc.
+  kpiSpecialAccounts    String  @default("[\"PDR Server 1 Banquet\",\"Default Online Ordering\",\"Unknown\"]")
+  // Email settings for sending orders
+  orderEmailFrom        String?
+  orderEmailFromName    String?
+  emailProvider         String  @default("RESEND")
+  emailApiKey           String?
+  emailSmtpHost         String?
+  emailSmtpPort         Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members      Membership[]
+  invitations  Invitation[]
+  categories   Category[]
+  recipes      Recipe[]
+  ingredients  Ingredient[]
+  locations    Location[]
+  storageAreas StorageArea[]
+  inventoryItems InventoryItem[]
+  orderLists   OrderList[]
+  vendors      Vendor[]
+  productSKUs  ProductSKU[]
+  salesSnapshots SalesSnapshot[]
+
+  @@schema("beverage")
+}
+
+// ===== UNITS OF MEASURE =====
+// Global table shared by all orgs. System-seeded with common units.
+// Users can add custom units via settings.
+
+model Unit {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  name        String
+  abbrev      String
+  measureType String                // VOLUME, WEIGHT, COUNT
+  baseFactor  Float                 // conversion factor to base unit (ml for volume, g for weight, 1 for count)
+  canPurchase Boolean @default(true)
+  canRecipe   Boolean @default(true)
+  isActive    Boolean @default(true)
+  isSystem    Boolean @default(true)  // false = user-added
+  sortOrder   Int     @default(0)
+
+  productSKUs ProductSKU[]
+
+  @@schema("beverage")
+}
+
+// ===== PRODUCT SKU =====
+// How a product is purchased from a specific vendor.
+// One product can have many SKUs (different vendors, different pack sizes).
+
+model ProductSKU {
+  id               String   @id @default(cuid())
+  organizationId   String
+  ingredientId     String
+  vendorId         String?
+  name             String            // "Case of 12 × 750ml", "50lb Bag"
+  containerType    String            // bottle, case, bag, box, can, pouch, keg, each
+  unitsPerPack     Int     @default(1)  // bottles per case, bags per box, etc.
+  innerSize        Float             // 750, 1000, 50 etc. (the quantity of the inner unit)
+  innerUnitId      String            // FK to Unit (ml, g, each, etc.)
+  costCents        Int?              // total cost for this SKU
+  isDefault        Boolean @default(false)
+  vendorItemNumber String?           // vendor's item/SKU code
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ingredient   Ingredient   @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  vendor       Vendor?      @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  innerUnit    Unit         @relation(fields: [innerUnitId], references: [id])
+
+  @@schema("beverage")
+}
+
+model Vendor {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reps         VendorRep[]
+  ingredients  Ingredient[]
+  productSKUs  ProductSKU[]
+
+  @@unique([organizationId, name])
+  @@schema("beverage")
+}
+
+model VendorRep {
+  id       String  @id @default(cuid())
+  vendorId String
+  name     String
+  email    String?
+  phone    String?
+  createdAt DateTime @default(now())
+
+  vendor    Vendor              @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  locations VendorRepLocation[]
+
+  @@schema("beverage")
+}
+
+model VendorRepLocation {
+  id          String @id @default(cuid())
+  vendorRepId String
+  locationId  String
+
+  vendorRep VendorRep @relation(fields: [vendorRepId], references: [id], onDelete: Cascade)
+  location  Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([vendorRepId, locationId])
+  @@schema("beverage")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships Membership[]
+
+  @@schema("beverage")
+}
+
+model Membership {
+  id             String   @id @default(cuid())
+  userId         String
+  organizationId String
+  role           String   @default("BARTENDER")
+  permissions    String   @default("{}")
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@schema("beverage")
+}
+
+model Invitation {
+  id             String    @id @default(cuid())
+  organizationId String
+  email          String
+  role           String    @default("BARTENDER")
+  token          String    @unique
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@schema("beverage")
+}
+
+model Category {
+  id                   String  @id @default(cuid())
+  organizationId       String
+  name                 String
+  sortOrder            Int     @default(0)
+  defaultCostTargetPct Float?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  recipes      Recipe[]
+
+  @@unique([organizationId, name])
+  @@schema("beverage")
+}
+
+model Recipe {
+  id             String  @id @default(cuid())
+  organizationId String
+  categoryId     String
+  name           String
+  portionCount   Int     @default(15)
+  dilutionPct    Float   @default(0)
+  glassType      String?
+  iceType        String?
+  garnish        String?
+  pourFromBatch  String?
+  howTo          String?
+  storageType    String  @default("NONE")
+  noBatching     Boolean @default(false)
+  costTargetPct  Float?
+  menuPrice      Float?
+  notes          String?
+  sortOrder      Int     @default(0)
+  isArchived     Boolean @default(false)
+  // Sub-recipe / House-made fields
+  isSubRecipe    Boolean @default(false)   // true = this recipe produces an ingredient
+  yieldAmount    Float?                     // how much this recipe makes (e.g., 12)
+  yieldUnitCode  String?                    // unit code for yield (e.g., "floz", "ml")
+  shelfLifeDays  Int?                       // how long the product lasts
+  prepInstructions String?                  // how to make it
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category            @relation(fields: [categoryId], references: [id])
+  ingredients  RecipeIngredient[]
+  // Link back: which ingredient does this recipe produce?
+  producesIngredient Ingredient?  @relation("SubRecipe")
+  salesMatches       SalesItemSale[] @relation("RecipeSales")
+
+  @@schema("beverage")
+}
+
+model RecipeIngredient {
+  id           String  @id @default(cuid())
+  recipeId     String
+  ingredientId String
+  amount       Float
+  unit         String  @default("OZ")
+  sortOrder    Int     @default(0)
+  isTopOff     Boolean @default(false)
+  notes        String?
+
+  recipe     Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@schema("beverage")
+}
+
+model Ingredient {
+  id                String  @id @default(cuid())
+  organizationId    String
+  name              String
+  type              String  @default("LIQUID")
+  // New fields for the UoM system
+  productType       String?           // SPIRIT, WINE, BEER, NA_BEVERAGE, CORDIAL, BITTER, SYRUP, HOUSE_MADE, GROCERY, PRODUCE, MEAT, DAIRY, DRY_GOODS, PANTRY, PAPER, CLEANING, OTHER
+  baseUnitCode      String?           // "ml", "g", "each" — fundamental unit for recipes/costing
+  countUnitCode     String?           // "bottle", "each", "lb" — what staff counts during inventory
+  isKeyItem         Boolean @default(false)
+  costUpdateMethod  String  @default("MANUAL")  // MANUAL or LAST_RECEIVED
+  // House-made / sub-recipe fields
+  isHouseMade       Boolean @default(false)
+  subRecipeId       String? @unique   // FK to Recipe that produces this ingredient
+  // Legacy fields — kept for backward compatibility during transition
+  bottleCostCents   Int?
+  bottleSizeMl      Int?
+  bottleSizeUnit    String  @default("ml") // "ml", "g", "oz", "lb", "kg", "gal"
+  yieldCount        Int?    // units per container (e.g., 525 cherries in a 3kg can)
+  yieldUnit         String? // "each", "cherry", "leaf", "oz", etc.
+  casePackSize      Int?
+  orderUnit         String  @default("BOTTLE")
+  purchaseCostCents Int?
+  purchaseQty       Float?
+  purchaseUnit      String?
+  vendor            String?
+  vendorId          String?
+  ingredientCategory String?
+  notes             String?
+  onMenu            Boolean @default(true)
+  menuStatus        String  @default("ON_MENU")  // ON_MENU, DATABASE, INACTIVE
+  markedForRemoval  String?  // null, "INACTIVE", or "DATABASE" — pending removal once out of stock
+  isBTG             Boolean @default(false)  // By-The-Glass wine flag
+  isCraftCocktailIngredient Boolean @default(false)  // Used in craft cocktails
+  isWellSpirit      Boolean @default(false)  // Well/house spirit
+  isActive          Boolean @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vendorRef       Vendor?            @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  subRecipe       Recipe?            @relation("SubRecipe", fields: [subRecipeId], references: [id], onDelete: SetNull)
+  recipeIngredients RecipeIngredient[]
+  inventoryItems  InventoryItem[]
+  orderItems      OrderListItem[]
+  productSKUs     ProductSKU[]
+  pricings        IngredientPrice[]
+  salesMatches    SalesItemSale[] @relation("IngredientSales")
+
+  @@unique([organizationId, name])
+  @@schema("beverage")
+}
+
+// Pricing Hub: one row per pour size per ingredient.
+// Example: a BTG wine has 3 rows (5oz, 8oz, 750ml), each with its own menu price.
+// A single-pour spirit has 1 row. Raki can have 4 (single, double, 1/2 btl, full btl).
+model IngredientPrice {
+  id               String  @id @default(cuid())
+  ingredientId     String
+  label            String   // human label: "5oz", "8oz", "btl", "single", "double", "1/2 btl", "full btl"
+  pourMl           Float    // volume per pour in milliliters (used to compute cost)
+  menuPriceCents   Int?     // null = price not set yet
+  costTargetPct    Float?   // per-pour override; null = inherit from tab/category default
+  sortOrder        Int      @default(0)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@unique([ingredientId, label])
+  @@schema("beverage")
+}
+
+model Location {
+  id             String @id @default(cuid())
+  organizationId String
+  name           String
+  sortOrder      Int    @default(0)
+  createdAt      DateTime @default(now())
+
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  storageAreas   StorageArea[]
+  inventoryItems InventoryItem[]
+  orderLists     OrderList[]
+  vendorReps     VendorRepLocation[]
+  salesSnapshots SalesSnapshot[]
+
+  @@unique([organizationId, name])
+  @@schema("beverage")
+}
+
+model StorageArea {
+  id             String @id @default(cuid())
+  organizationId String
+  locationId     String
+  name           String
+  sortOrder      Int    @default(0)
+  createdAt      DateTime @default(now())
+
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location        Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  stockCounts     StockCount[]
+  inventoryItems  InventoryItem[] @relation("StorageArea1")
+  inventoryItems2 InventoryItem[] @relation("StorageArea2")
+
+  @@unique([locationId, name])
+  @@schema("beverage")
+}
+
+model InventoryItem {
+  id             String  @id @default(cuid())
+  organizationId String
+  locationId     String
+  ingredientId   String
+  storageAreaId  String?
+  shelfLocation  String?
+  storageArea2Id String?
+  shelfLocation2 String?
+  isBTG          Boolean @default(false)
+  isCraftCocktailIngredient Boolean @default(false)
+  isWellSpirit   Boolean @default(false)
+  isHalfBottle   Boolean @default(false)
+  isDessertWine  Boolean @default(false)
+  markedForRemoval String?  // null, "INACTIVE", or "DATABASE"
+  parLevel       Float   @default(0)
+  currentStock   Float   @default(0)
+  unit           String  @default("bottle")
+  lastCountedAt  DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location     Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  ingredient   Ingredient   @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  storageArea  StorageArea? @relation("StorageArea1", fields: [storageAreaId], references: [id], onDelete: SetNull)
+  storageArea2 StorageArea? @relation("StorageArea2", fields: [storageArea2Id], references: [id], onDelete: SetNull)
+  stockCounts  StockCount[]
+
+  @@unique([locationId, ingredientId])
+  @@schema("beverage")
+}
+
+model StockCount {
+  id              String   @id @default(cuid())
+  inventoryItemId String
+  storageAreaId   String?
+  count           Float
+  countedAt       DateTime @default(now())
+  countedBy       String?
+
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  storageArea   StorageArea?  @relation(fields: [storageAreaId], references: [id], onDelete: SetNull)
+
+  @@schema("beverage")
+}
+
+model OrderList {
+  id             String   @id @default(cuid())
+  organizationId String
+  locationId     String
+  name           String
+  status         String   @default("DRAFT")
+  notes          String?
+  createdBy      String?
+  createdByName  String?
+  countedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location     Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  items        OrderListItem[]
+
+  @@schema("beverage")
+}
+
+model OrderListItem {
+  id             String  @id @default(cuid())
+  orderListId    String
+  ingredientId   String
+  vendor         String?
+  countedStock   Float?
+  parSnapshot    Float?
+  quantityNeeded Float
+  unit           String  @default("bottle")
+  status         String  @default("PENDING")
+  storageArea    String?
+  notes          String?
+
+  orderList  OrderList  @relation(fields: [orderListId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@schema("beverage")
+}
+
+model OrderEmail {
+  id             String   @id @default(cuid())
+  organizationId String
+  orderListId    String?
+  vendorName     String
+  recipientEmail String
+  recipientName  String?
+  subject        String
+  body           String
+  status         String   @default("DRAFT")  // DRAFT, SENT, FAILED
+  sentAt         DateTime?
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+
+  @@schema("beverage")
+}
+
+// =============================================================================
+// PRICING HUB — SALES DATA LAYER
+// =============================================================================
+// Sales data from POS (Toast) uploaded manually as CSV exports (per-location,
+// per-period). When the Toast API is wired up later, the same tables are
+// populated automatically. UI reads from these tables to show velocity,
+// dormant alerts, annual performance, etc.
+
+model SalesSnapshot {
+  id             String   @id @default(cuid())
+  organizationId String
+  locationId     String?       // null = all locations (aggregated upload)
+  // Period covered by this snapshot
+  periodStart    DateTime       // inclusive (YYYY-MM-DD 00:00)
+  periodEnd      DateTime       // inclusive (YYYY-MM-DD 23:59)
+  // Upload metadata
+  source         String  @default("CSV_UPLOAD")  // "CSV_UPLOAD" | "TOAST_API"
+  sourceFilename String?                         // original folder/file name
+  // Roll-up totals (for quick UI)
+  totalQtySold    Float  @default(0)
+  totalGrossCents Int    @default(0)
+  totalNetCents   Int    @default(0)
+  itemsMatched    Int    @default(0)   // how many PMIX rows matched a DB product
+  itemsUnmatched  Int    @default(0)   // how many rows could not be matched
+  createdAt      DateTime @default(now())
+
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location       Location?       @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  itemSales      SalesItemSale[]
+  groupSales     SalesMenuGroupSale[]
+
+  @@index([organizationId, locationId, periodStart])
+  @@schema("beverage")
+}
+
+model SalesItemSale {
+  id             String   @id @default(cuid())
+  snapshotId     String
+  // Raw Toast row data (so we can reanalyze without re-uploading)
+  rawItemName    String                        // as it appeared in PMIX
+  rawMenu        String?                       // menu heading (DINNER Menu, etc.)
+  rawMenuGroup   String?                       // menu group (HALF BOTTLES, BTG Red, etc.)
+  // Quantities + money (money kept in cents for precision)
+  qtySold        Float
+  avgPriceCents  Int    @default(0)
+  netCents       Int    @default(0)
+  grossCents     Int    @default(0)
+  discountCents  Int    @default(0)
+  voidCents      Int    @default(0)
+  // Matching: a sale can map to an Ingredient (beverages) or a Recipe (cocktails/food)
+  matchedIngredientId String?
+  matchedRecipeId     String?
+  matchConfidence     Float?    // 0-1, how strong the fuzzy match was
+  matchUserConfirmed  Boolean @default(false)
+
+  snapshot            SalesSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  matchedIngredient   Ingredient?   @relation("IngredientSales", fields: [matchedIngredientId], references: [id], onDelete: SetNull)
+  matchedRecipe       Recipe?       @relation("RecipeSales", fields: [matchedRecipeId], references: [id], onDelete: SetNull)
+
+  @@index([snapshotId])
+  @@index([matchedIngredientId])
+  @@index([matchedRecipeId])
+  @@schema("beverage")
+}
+
+model SalesMenuGroupSale {
+  id           String @id @default(cuid())
+  snapshotId   String
+  menu         String?                    // DINNER Menu, BOTTLE WINE, etc.
+  menuGroup    String                      // HALF BOTTLES, BTG Red, etc.
+  qtySold      Float
+  avgPriceCents Int   @default(0)
+  netCents     Int    @default(0)
+
+  snapshot     SalesSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@index([snapshotId, menuGroup])
+  @@schema("beverage")
+}

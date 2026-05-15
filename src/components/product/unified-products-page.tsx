@@ -1,0 +1,3392 @@
+"use client";
+
+import { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { updateProduct, moveProductToDatabase, moveProductToMenu, hardDeleteProduct, toggleMarkForRemoval, toggleProductTag } from "@/lib/actions/products";
+import { saveSingleCount, saveSinglePar, updateProductStorageArea, updateProductShelf, generateOrderFromCart, createStorageArea } from "@/lib/actions/inventory";
+import { generateOrderEmails, sendOrderEmails } from "@/lib/actions/email-orders";
+import { addBottleSize } from "@/lib/actions/settings";
+import type { SubCategory } from "@/lib/category-types";
+import { Mail } from "lucide-react";
+import { useResizableColumns } from "@/hooks/use-resizable-columns";
+import { MenuPricingReadOnly } from "@/components/product/menu-pricing-readonly";
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  MapPin,
+  Package,
+  ShoppingCart,
+  DollarSign,
+  ClipboardList,
+  Undo2,
+  Star,
+  Archive,
+  XCircle,
+  Wine,
+  FlaskConical,
+  GlassWater,
+  Milk,
+  Grape,
+  Maximize2,
+  Minimize2,
+  Zap,
+} from "lucide-react";
+
+interface Product {
+  id: string;
+  name: string;
+  type: string;
+  productType: string | null;
+  vendor: string | null;
+  vendorId: string | null;
+  ingredientCategory: string | null;
+  bottleCostCents: number | null;
+  bottleSizeMl: number | null;
+  bottleSizeUnit: string;
+  yieldCount: number | null;
+  yieldUnit: string | null;
+  casePackSize: number | null;
+  orderUnit: string;
+  onMenu: boolean;
+  menuStatus: string;
+  isKeyItem: boolean;
+  notes: string | null;
+  menuPrice: number | null;
+  costTargetPct: number | null;
+  costUpdateMethod: string;
+  locationIds: string[];
+  locationCount: number;
+  inventory: {
+    id: string;
+    locationId: string;
+    locationName: string;
+    storageArea: string | null;
+    shelfLocation: string | null;
+    storageArea2: string | null;
+    shelfLocation2: string | null;
+    isBTG: boolean;
+    isCraftCocktailIngredient: boolean;
+    isWellSpirit: boolean;
+    isHalfBottle: boolean;
+    isDessertWine: boolean;
+    markedForRemoval: string | null;
+    parLevel: number;
+    currentStock: number;
+    lastCountedAt: string | null;
+    purchasesSinceLastCount: number;
+    orderHistory: { qty: number; date: string; weekNum: number }[];
+  }[];
+}
+
+interface Location {
+  id: string;
+  name: string;
+  storageAreas: { id: string; name: string }[];
+}
+
+interface Vendor {
+  id: string;
+  name: string;
+}
+
+type Mode = "products" | "inventory" | "ordering" | "pricing";
+type SortField = "name" | "size" | "case" | "vendor" | "category" | "area" | "shelf" | "area2" | "shelf2" | "cost" | "pour" | "pourCost" | "suggested";
+type SortDir = "asc" | "desc";
+
+const OZ_TO_ML = 29.5735;
+
+// Case pack size special values (stored as negative numbers so they don't clash with real counts)
+const CASE_BOTTLE_ONLY = -1;  // "Bottle Only"
+const CASE_SINGLE = -2;       // "Single"
+const CASE_KEG = -3;          // "Keg"
+
+function formatCaseSize(n: number | null | undefined): string {
+  if (n === null || n === undefined || n === 0) return "—";
+  if (n === CASE_BOTTLE_ONLY) return "Bottle Only";
+  if (n === CASE_SINGLE) return "Single";
+  if (n === CASE_KEG) return "Keg";
+  return `${n}-Pack`;
+}
+
+// Short unit label for order quantity display
+function orderUnitLabel(casePackSize: number | null | undefined, isCase: boolean): string {
+  if (casePackSize === CASE_KEG) return "keg";
+  return isCase ? "cs" : "btl";
+}
+
+// Friendly labels for container sizes
+// Common weight sizes stored as grams (same field as ml for simplicity)
+const WEIGHT_SIZE_OPTIONS = [
+  { value: 454, label: "1lb (454g)" },
+  { value: 907, label: "2lb (907g)" },
+  { value: 1361, label: "3lb" },
+  { value: 2268, label: "5lb" },
+  { value: 4536, label: "10lb" },
+  { value: 9072, label: "20lb" },
+];
+
+function formatSize(value: number, unit: string): string {
+  if (unit === "g") {
+    if (value >= 1000) return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}kg`;
+    return `${value}g`;
+  }
+  if (unit === "kg") return `${value}kg`;
+  if (unit === "lb") {
+    if (Number.isInteger(value)) return `${value}lb`;
+    return `${value.toFixed(1)}lb`;
+  }
+  if (unit === "gal") return `${value}gal`;
+  if (unit === "solid_oz") return `${value}oz (solid)`;
+  // Default: ml/volume
+  return formatSizeMl(value);
+}
+
+function formatSizeMl(ml: number): string {
+  const NAMED_SIZES: Record<number, string> = {
+    148: "5oz (148ml)",
+    296: "10oz",
+    325: "11oz",
+    330: "330ml (11.16oz)",
+    355: "355ml (12oz)",
+    473: "473ml (16oz)",
+    532: "18oz",
+    562: "19oz",
+    591: "20oz",
+    1893: "64oz",
+    4997: "Mini Keg (1.32gal)",
+    19533: "Sixth Keg (5.16gal)",
+    29337: "Quarter Keg (7.75gal)",
+    58674: "Half Barrel (15.5gal)",
+  };
+  if (NAMED_SIZES[ml]) return NAMED_SIZES[ml];
+  if (ml >= 3785) return `${(ml / 3785).toFixed(2)}gal (${ml}ml)`;
+  if (ml >= 1000) return `${(ml / 1000).toFixed(ml % 1000 === 0 ? 0 : 1)}L`;
+  return `${ml}ml`;
+}
+
+// Categorize size values into groups for dropdown organization
+type SizeGroup = "ml" | "oz" | "weight" | "keg";
+
+function classifySize(ml: number): SizeGroup {
+  // Named keg sizes
+  if ([4997, 19533, 29337, 58674].includes(ml)) return "keg";
+  // Large gallon/keg-like
+  if (ml >= 3785) return "keg";
+  // Named oz sizes (stored as ml equivalent but labeled as oz)
+  // These are oz values: 148 (5oz), 296 (10oz), 325 (11oz), 532 (18oz), 562 (19oz), 591 (20oz), 1893 (64oz)
+  if ([148, 296, 325, 532, 562, 591, 1893].includes(ml)) return "oz";
+  // Named weights (grams/lbs that might be stored as ml field)
+  if ([454, 907, 1361, 2268, 4536, 9072].includes(ml)) return "weight";
+  return "ml";
+}
+
+function sizeGroupOrder(group: SizeGroup): number {
+  return { ml: 1, oz: 2, weight: 3, keg: 4 }[group];
+}
+
+function sortBottleSizes(sizes: number[]): number[] {
+  return [...sizes].sort((a, b) => {
+    const ga = classifySize(a);
+    const gb = classifySize(b);
+    if (ga !== gb) return sizeGroupOrder(ga) - sizeGroupOrder(gb);
+    return a - b;
+  });
+}
+
+export function UnifiedProductsPage({
+  products,
+  locations,
+  vendors,
+  categories,
+  structuredCategories,
+  standardPours,
+  costTargets,
+  bottleSizes,
+  useMergedOrderCart,
+}: {
+  products: Product[];
+  locations: Location[];
+  vendors: Vendor[];
+  categories: string[];
+  structuredCategories: SubCategory[];
+  standardPours: Record<string, number>;
+  costTargets: Record<string, number>;
+  bottleSizes: number[];
+  useMergedOrderCart: boolean;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Scroll preservation — save/restore scroll position across server action re-renders
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const savedScrollPos = useRef<number>(0);
+  const shouldRestoreScroll = useRef<boolean>(false);
+
+  // Save scroll before any edit triggers a re-render
+  function saveScroll() {
+    if (scrollContainerRef.current) {
+      savedScrollPos.current = scrollContainerRef.current.scrollTop;
+      shouldRestoreScroll.current = true;
+    }
+  }
+
+  // Restore scroll after re-render ONLY if saveScroll was explicitly called
+  useLayoutEffect(() => {
+    if (shouldRestoreScroll.current && scrollContainerRef.current) {
+      const target = savedScrollPos.current;
+      if (Math.abs(scrollContainerRef.current.scrollTop - target) > 2) {
+        scrollContainerRef.current.scrollTop = target;
+      }
+      shouldRestoreScroll.current = false;
+    }
+  });
+
+  // Resizable column refs and hooks
+  const orderTableRef = useRef<HTMLTableElement>(null);
+  const productTableRef = useRef<HTMLTableElement>(null);
+  const inventoryTableRef = useRef<HTMLTableElement>(null);
+
+  const orderResize = useResizableColumns({
+    columnCount: 9,
+    defaultWidths: [180, 60, 85, 50, 65, 60, 50, 65, 400],
+    minWidth: 40,
+    tableRef: orderTableRef,
+  });
+
+  const productResize = useResizableColumns({
+    columnCount: 11,
+    defaultWidths: [175, 55, 80, 85, 75, 65, 50, 60, 70, 50, 55],
+    minWidth: 40,
+    tableRef: productTableRef,
+  });
+
+  // Mode from URL
+  const urlMode = searchParams.get("mode") as Mode | null;
+  const [mode, setMode] = useState<Mode>(urlMode || "products");
+
+  // Filters
+  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [vendorFilter, setVendorFilter] = useState(searchParams.get("vendor") || "ALL");
+  const [categoryFilter, setCategoryFilter] = useState(searchParams.get("category") || "ALL");
+  const [locationFilter, setLocationFilter] = useState(searchParams.get("location") || "ALL");
+  const [statusFilter, setStatusFilter] = useState(
+    searchParams.get("status") || "onMenu"
+  );
+  // Sort: stored in URL params for robust navigation persistence (survives router.back())
+  const [sortField, setSortFieldRaw] = useState<SortField>(() => {
+    const f = searchParams.get("sort") as SortField | null;
+    return f || "name";
+  });
+  const [sortDir, setSortDirRaw] = useState<SortDir>(() => {
+    const d = searchParams.get("dir") as SortDir | null;
+    return d || "asc";
+  });
+
+  const updateSortUrl = (field: SortField, dir: SortDir) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (field === "name" && dir === "asc") {
+      params.delete("sort");
+      params.delete("dir");
+    } else {
+      params.set("sort", field);
+      params.set("dir", dir);
+    }
+    const url = `${window.location.pathname}${params.toString() ? "?" + params.toString() : ""}`;
+    window.history.replaceState(null, "", url);
+  };
+
+  const setSortField = (v: SortField) => {
+    setSortFieldRaw(v);
+    updateSortUrl(v, sortDir);
+  };
+  const setSortDir = (v: SortDir | ((prev: SortDir) => SortDir)) => {
+    setSortDirRaw((prev) => {
+      const next = typeof v === "function" ? v(prev) : v;
+      updateSortUrl(sortField, next);
+      return next;
+    });
+  };
+
+  // Restore scroll + highlight from sessionStorage on mount (sort is in URL, no restoration needed)
+  useEffect(() => {
+    try {
+      const savedHighlight = sessionStorage.getItem("meyhouse_productHighlight");
+      if (savedHighlight) setHighlightedRow(savedHighlight);
+      const savedScroll = sessionStorage.getItem("meyhouse_productScroll");
+      if (savedScroll) {
+        const pos = parseInt(savedScroll);
+        if (pos > 0) {
+          // Multiple retries — content height grows as data loads
+          [0, 50, 150, 300, 500, 800, 1200].forEach((delay) => {
+            setTimeout(() => {
+              if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = pos;
+            }, delay);
+          });
+        }
+      }
+    } catch {}
+  }, []);
+
+  // Also restore scroll when the page becomes visible again (e.g. returning via router.back())
+  useEffect(() => {
+    const handler = () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const savedScroll = sessionStorage.getItem("meyhouse_productScroll");
+        if (!savedScroll) return;
+        const pos = parseInt(savedScroll);
+        if (pos > 0 && scrollContainerRef.current) {
+          [0, 50, 200, 500].forEach((delay) => {
+            setTimeout(() => {
+              if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = pos;
+            }, delay);
+          });
+        }
+      } catch {}
+    };
+    document.addEventListener("visibilitychange", handler);
+    window.addEventListener("pageshow", handler);
+    return () => {
+      document.removeEventListener("visibilitychange", handler);
+      window.removeEventListener("pageshow", handler);
+    };
+  }, []);
+
+  // Persist scroll position on scroll (throttled) so it survives navigation
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    const handler = () => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        try { sessionStorage.setItem("meyhouse_productScroll", String(el.scrollTop)); } catch {}
+      }, 150);
+    };
+    el.addEventListener("scroll", handler, { passive: true });
+    return () => {
+      el.removeEventListener("scroll", handler);
+      if (timeout) clearTimeout(timeout);
+    };
+  }, []);
+
+  // Inline editing state
+  // Highlighted row — persisted to sessionStorage for navigation survival
+  const [highlightedRow, setHighlightedRowRaw] = useState<string | null>(null);
+  const setHighlightedRow = (v: string | null) => {
+    setHighlightedRowRaw(v);
+    try {
+      if (v) sessionStorage.setItem("meyhouse_productHighlight", v);
+      else sessionStorage.removeItem("meyhouse_productHighlight");
+    } catch {}
+  };
+
+  // Floating mini edit toolbar (Word-style context popup near clicked row)
+  const [floatingEditProductId, setFloatingEditProductId] = useState<string | null>(null);
+  const [floatingEditPos, setFloatingEditPos] = useState<{ top: number; left: number } | null>(null);
+  const [parDraft, setParDraft] = useState<Record<string, string>>({}); // locationId → par value being edited
+  const [selectedLocationsDraft, setSelectedLocationsDraft] = useState<string[]>([]); // store ids assigned to product
+
+  function openFloatingEdit(productId: string, rowEl: HTMLElement) {
+    const rect = rowEl.getBoundingClientRect();
+    setFloatingEditProductId(productId);
+    // Position: right-aligned to row, just above it
+    setFloatingEditPos({ top: rect.top - 8, left: Math.min(rect.right - 320, window.innerWidth - 340) });
+    // Initialize drafts from current values
+    const product = products.find((p) => p.id === productId);
+    if (product) {
+      const draft: Record<string, string> = {};
+      for (const inv of product.inventory) draft[inv.locationId] = String(inv.parLevel);
+      setParDraft(draft);
+      setSelectedLocationsDraft(product.locationIds);
+    }
+  }
+
+  function closeFloatingEdit() {
+    setFloatingEditProductId(null);
+    setFloatingEditPos(null);
+    setParDraft({});
+    setSelectedLocationsDraft([]);
+  }
+
+  async function saveFloatingParChanges() {
+    const product = products.find((p) => p.id === floatingEditProductId);
+    if (!product) { closeFloatingEdit(); return; }
+    saveScroll();
+
+    // Check if store assignments changed
+    const currentLocIds = new Set(product.locationIds);
+    const newLocIds = new Set(selectedLocationsDraft);
+    const storesChanged = currentLocIds.size !== newLocIds.size
+      || [...currentLocIds].some((id) => !newLocIds.has(id))
+      || [...newLocIds].some((id) => !currentLocIds.has(id));
+
+    // Collect par changes (only for stores still assigned after changes)
+    const parUpdates: { invId: string; par: number }[] = [];
+    for (const inv of product.inventory) {
+      if (!newLocIds.has(inv.locationId)) continue; // skip stores being removed
+      const newVal = parDraft[inv.locationId];
+      if (newVal === undefined) continue;
+      const parsed = parseFloat(newVal);
+      if (!isNaN(parsed) && parsed >= 0 && parsed !== inv.parLevel) {
+        parUpdates.push({ invId: inv.id, par: parsed });
+      }
+    }
+
+    try {
+      // If stores changed, update product with new locationIds (handles add/remove)
+      if (storesChanged) {
+        // Par level for newly-added stores: use average of existing par values (or the value from parDraft)
+        const avgPar = product.inventory.length > 0
+          ? product.inventory.reduce((sum, inv) => sum + inv.parLevel, 0) / product.inventory.length
+          : 0;
+        await updateProduct(product.id, {
+          name: product.name,
+          type: product.type,
+          vendorId: product.vendorId || undefined,
+          ingredientCategory: product.ingredientCategory || undefined,
+          bottleSizeMl: product.bottleSizeMl || undefined,
+          bottleSizeUnit: product.bottleSizeUnit || "ml",
+          yieldCount: product.yieldCount ?? null,
+          yieldUnit: product.yieldUnit ?? null,
+          casePackSize: product.casePackSize || undefined,
+          bottleCostCents: product.bottleCostCents || undefined,
+          locationIds: selectedLocationsDraft,
+          parLevel: avgPar,
+        });
+      }
+      // Apply par updates (for existing stores)
+      await Promise.all(parUpdates.map((u) => saveSinglePar(u.invId, u.par)));
+    } catch (e) {
+      console.error("Floating edit save failed:", e);
+      setMarkerError("Failed to save changes.");
+    }
+    closeFloatingEdit();
+  }
+
+  // Click outside or Escape closes the floating edit
+  useEffect(() => {
+    if (!floatingEditProductId) return;
+    function onClickOutside(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (target.closest("[data-floating-edit]")) return;
+      // Clicking same row that's already highlighted? don't close (user may just click around)
+      saveFloatingParChanges();
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") closeFloatingEdit();
+    }
+    // Delay listener so the current click doesn't immediately close it
+    const t = setTimeout(() => {
+      document.addEventListener("mousedown", onClickOutside);
+    }, 50);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [floatingEditProductId, parDraft]);
+  const [markerError, setMarkerError] = useState<string>("");
+
+  // Custom size entry mode
+  const [customSizeMode, setCustomSizeMode] = useState(false);
+  const [customSizeValue, setCustomSizeValue] = useState("");
+  const [customSizeUnit, setCustomSizeUnit] = useState<string>("ml");
+  const [customSizeProductId, setCustomSizeProductId] = useState<string>("");
+
+  // Custom case input mode
+  const [customCaseMode, setCustomCaseMode] = useState(false);
+  const [customCaseProductId, setCustomCaseProductId] = useState<string>("");
+  const [customCaseValue, setCustomCaseValue] = useState("");
+
+  function saveCustomSize() {
+    const num = parseFloat(customSizeValue);
+    if (isNaN(num) || num <= 0) {
+      setCustomSizeMode(false);
+      setEditingCell(null);
+      return;
+    }
+    // For weight units, store the raw value + unit. For volume, convert to ml.
+    const weightUnits = ["g", "kg", "lb", "solid_oz"];
+    const isWeight = weightUnits.includes(customSizeUnit);
+    let storeValue: number;
+    let storeUnit: string;
+    if (isWeight) {
+      // Store raw value in the unit's base (g for g/kg, raw for lb)
+      if (customSizeUnit === "kg") { storeValue = Math.round(num * 1000); storeUnit = "g"; }
+      else if (customSizeUnit === "lb") { storeValue = Math.round(num * 100) / 100; storeUnit = "lb"; }
+      else if (customSizeUnit === "solid_oz") { storeValue = Math.round(num * 100) / 100; storeUnit = "solid_oz"; }
+      else { storeValue = Math.round(num); storeUnit = "g"; }
+    } else {
+      const toMl: Record<string, number> = { ml: 1, oz: OZ_TO_ML, gal: 3785.41 };
+      storeValue = Math.round(num * (toMl[customSizeUnit] || 1));
+      storeUnit = "ml";
+    }
+    saveScroll();
+    setEditingCell(null);
+    setCustomSizeMode(false);
+    const product = products.find((pr) => pr.id === customSizeProductId);
+    if (product) {
+      if (storeUnit === "ml") addBottleSize(storeValue);
+      updateProduct(customSizeProductId, {
+        name: product.name, type: product.type,
+        vendorId: product.vendorId || undefined,
+        ingredientCategory: product.ingredientCategory || undefined,
+        bottleSizeMl: storeValue,
+        bottleSizeUnit: storeUnit,
+        casePackSize: product.casePackSize || undefined,
+        bottleCostCents: product.bottleCostCents || undefined,
+        locationIds: product.locationIds,
+      });
+    }
+  }
+
+  // Track which pour size index is selected per product (persisted to localStorage)
+  const [selectedPourIdx, setSelectedPourIdxRaw] = useState<Record<string, number>>({});
+  const pourIdxLoaded = useRef(false);
+  useEffect(() => {
+    if (!pourIdxLoaded.current) {
+      pourIdxLoaded.current = true;
+      try {
+        const saved = JSON.parse(localStorage.getItem("meyhouse_selectedPourIdx") || "{}");
+        if (Object.keys(saved).length > 0) setSelectedPourIdxRaw(saved);
+      } catch {}
+    }
+  }, []);
+  function setSelectedPourIdx(val: Record<string, number>) {
+    setSelectedPourIdxRaw(val);
+    try { localStorage.setItem("meyhouse_selectedPourIdx", JSON.stringify(val)); } catch {}
+  }
+  const [pourDropdownOpen, setPourDropdownOpen] = useState<string | null>(null);
+
+  const [editingCell, setEditingCell] = useState<{
+    productId: string;
+    field: string;
+  } | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [removeMenuOpen, setRemoveMenuOpen] = useState<string | null>(null);
+
+  // Inventory mode state
+  const [selectedStoreId, setSelectedStoreId] = useState<string>(
+    searchParams.get("store") || ""
+  );
+  const [inventoryCounts, setInventoryCounts] = useState<
+    Record<string, string>
+  >({});
+  const [savedItems, setSavedItems] = useState<Set<string>>(new Set());
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+    new Set()
+  );
+
+  // Area filter for ordering/inventory modes
+  const [selectedArea, setSelectedArea] = useState<string>("ALL");
+
+  // Ordering/Inventory sort state
+  type OrderSortField = "name" | "size" | "vendor" | "area" | "par" | "count" | "need" | "order";
+  const [orderSortField, setOrderSortField] = useState<OrderSortField>("name");
+  const [orderSortDir, setOrderSortDir] = useState<SortDir>("asc");
+
+  function toggleOrderSort(field: OrderSortField) {
+    if (orderSortField === field) {
+      setOrderSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setOrderSortField(field);
+      setOrderSortDir("asc");
+    }
+  }
+
+  function OrderSortIcon({ field }: { field: OrderSortField }) {
+    if (orderSortField !== field) return <ArrowUpDown className="w-3 h-3 opacity-30" />;
+    return orderSortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
+  }
+
+  function toggleGroup(groupName: string) {
+    const newSet = new Set(collapsedGroups);
+    if (newSet.has(groupName)) newSet.delete(groupName);
+    else newSet.add(groupName);
+    setCollapsedGroups(newSet);
+  }
+
+  // Get inventory items for selected store, grouped by storage area
+  const inventoryForStore = useMemo(() => {
+    if (!selectedStoreId) return [];
+    return products
+      .filter((p) => p.onMenu && p.locationIds.includes(selectedStoreId))
+      .map((p) => {
+        const inv = p.inventory.find(
+          (i) => i.locationId === selectedStoreId
+        );
+        return inv ? { ...p, inv } : null;
+      })
+      .filter((p): p is NonNullable<typeof p> => p !== null)
+      .sort((a, b) => {
+        const aArea = a.inv.storageArea || "zzz_Unassigned";
+        const bArea = b.inv.storageArea || "zzz_Unassigned";
+        if (aArea !== bArea) return aArea.localeCompare(bArea);
+        return a.name.localeCompare(b.name);
+      });
+  }, [products, selectedStoreId]);
+
+  const inventoryGrouped = useMemo(() => {
+    const groups = new Map<
+      string,
+      (typeof inventoryForStore)[number][]
+    >();
+    for (const item of inventoryForStore) {
+      const area = item.inv.storageArea || "Unassigned";
+      if (!groups.has(area)) groups.set(area, []);
+      groups.get(area)!.push(item);
+    }
+    return [...groups.entries()].map(([name, items]) => ({
+      name,
+      items,
+    }));
+  }, [inventoryForStore]);
+
+  // List of area names for filter buttons
+  const areaNames = useMemo(() => inventoryGrouped.map((g) => g.name), [inventoryGrouped]);
+
+  const countedCount = Object.values(inventoryCounts).filter(
+    (v) => v !== ""
+  ).length;
+
+  async function handleCountSave(inventoryItemId: string, value: string) {
+    const count = parseFloat(value);
+    if (isNaN(count) || count < 0) return;
+    saveScroll();
+    await saveSingleCount(inventoryItemId, count);
+    setSavedItems((prev) => new Set(prev).add(inventoryItemId));
+  }
+
+  async function handleParSave(inventoryItemId: string, value: string) {
+    const par = parseFloat(value);
+    if (isNaN(par) || par < 0) return;
+    saveScroll();
+    await saveSinglePar(inventoryItemId, par);
+  }
+
+  // ===== ORDERING MODE STATE =====
+  // Load counts + overrides from localStorage so they persist across page navigation
+  const [orderCounts, setOrderCountsRaw] = useState<Record<string, string>>({});
+  const [showCart, setShowCart] = useState(false);
+  const [cartExpanded, setCartExpanded] = useState(false);
+  const [cartOverrides, setCartOverridesRaw] = useState<
+    Record<string, { orderQty?: number; orderUnit?: string; locationId?: string; locationName?: string }>
+  >({});
+  const [editingCartItem, setEditingCartItem] = useState<string | null>(null);
+  const cartLoaded = useRef(false);
+  useEffect(() => {
+    if (!cartLoaded.current) {
+      cartLoaded.current = true;
+      try {
+        const counts = JSON.parse(localStorage.getItem("meyhouse_orderCounts") || "{}");
+        if (Object.keys(counts).length > 0) setOrderCountsRaw(counts);
+      } catch {}
+      try {
+        const overrides = JSON.parse(localStorage.getItem("meyhouse_cartOverrides") || "{}");
+        if (Object.keys(overrides).length > 0) setCartOverridesRaw(overrides);
+      } catch {}
+    }
+  }, []);
+
+  // Wrapper functions that save to localStorage on every change
+  function setOrderCounts(val: Record<string, string> | ((prev: Record<string, string>) => Record<string, string>)) {
+    setOrderCountsRaw((prev) => {
+      const next = typeof val === "function" ? val(prev) : val;
+      try { localStorage.setItem("meyhouse_orderCounts", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }
+  function setCartOverrides(val: Record<string, { orderQty?: number; orderUnit?: string; locationId?: string; locationName?: string }>) {
+    setCartOverridesRaw(val);
+    try { localStorage.setItem("meyhouse_cartOverrides", JSON.stringify(val)); } catch {}
+  }
+
+  // Flat sorted list of inventory items (for ordering/inventory — no group headers)
+  const flatInventoryItems = useMemo(() => {
+    let items: (typeof inventoryForStore)[number][];
+    if (selectedArea === "ALL") {
+      items = [...inventoryForStore];
+    } else {
+      items = inventoryForStore.filter(
+        (i) => (i.inv.storageArea || "Unassigned") === selectedArea
+      );
+    }
+    const dir = orderSortDir === "asc" ? 1 : -1;
+    items.sort((a, b) => {
+      switch (orderSortField) {
+        case "name":
+          return a.name.localeCompare(b.name) * dir;
+        case "size":
+          return ((a.bottleSizeMl || 0) - (b.bottleSizeMl || 0)) * dir;
+        case "vendor":
+          return (a.vendor || "").localeCompare(b.vendor || "") * dir;
+        case "area":
+          return (a.inv.storageArea || "").localeCompare(b.inv.storageArea || "") * dir;
+        case "par":
+          return (a.inv.parLevel - b.inv.parLevel) * dir;
+        case "count": {
+          const aC = parseFloat(orderCounts[a.inv.id] ?? "") || 0;
+          const bC = parseFloat(orderCounts[b.inv.id] ?? "") || 0;
+          return (aC - bC) * dir;
+        }
+        case "need": {
+          const aCnt = orderCounts[a.inv.id] !== undefined && orderCounts[a.inv.id] !== "" ? parseFloat(orderCounts[a.inv.id]) || 0 : null;
+          const bCnt = orderCounts[b.inv.id] !== undefined && orderCounts[b.inv.id] !== "" ? parseFloat(orderCounts[b.inv.id]) || 0 : null;
+          const aN = aCnt !== null ? Math.max(0, a.inv.parLevel - aCnt) : -1;
+          const bN = bCnt !== null ? Math.max(0, b.inv.parLevel - bCnt) : -1;
+          return (aN - bN) * dir;
+        }
+        case "order": {
+          const getOQ = (item: typeof a) => {
+            const cv = orderCounts[item.inv.id] ?? "";
+            if (cv === "") return -1;
+            const counted = parseFloat(cv) || 0;
+            const needed = Math.max(0, item.inv.parLevel - counted);
+            if (needed <= 0) return 0;
+            const cps = item.casePackSize || 0;
+            const isCase = cps > 1;
+            const casePack = isCase ? cps : 1;
+            return isCase ? Math.ceil(needed / casePack) : Math.ceil(needed);
+          };
+          return (getOQ(a) - getOQ(b)) * dir;
+        }
+        default:
+          return a.name.localeCompare(b.name) * dir;
+      }
+    });
+    return items;
+  }, [inventoryForStore, selectedArea, orderSortField, orderSortDir, orderCounts]);
+
+  // Cart items: auto-calculated from orderCounts where count < par
+  interface CartItem {
+    productId: string;
+    productName: string;
+    vendor: string;
+    locationId: string;
+    locationName: string;
+    parLevel: number;
+    counted: number;
+    needed: number;
+    orderQty: number;
+    orderUnit: string;
+    casePackSize: number;
+    bottleCostCents: number | null;
+  }
+
+  const cartItems = useMemo<CartItem[]>(() => {
+    const items: CartItem[] = [];
+
+    // In merged mode: scan ALL stores' inventory items for counts below par
+    // In single mode: only scan the currently selected store
+    const productsToScan = useMergedOrderCart
+      ? products.filter((p) => p.onMenu && p.inventory.length > 0)
+      : (selectedStoreId ? inventoryForStore : []);
+
+    for (const p of productsToScan) {
+      // In merged mode, check each store this product is at
+      const invEntries = useMergedOrderCart
+        ? p.inventory
+        : ((p as any).inv ? [(p as any).inv] : p.inventory.filter((i: any) => i.locationId === selectedStoreId));
+
+      for (const inv of invEntries) {
+        const countVal = orderCounts[inv.id];
+        if (countVal === undefined || countVal === "") continue;
+        const counted = parseFloat(countVal) || 0;
+        const needed = inv.parLevel - counted;
+        if (needed <= 0) continue;
+
+        const cps = p.casePackSize || 0;
+        const isCase = cps > 1;
+        const casePack = isCase ? cps : 1;
+        const orderQty = isCase ? Math.ceil(needed / casePack) : Math.ceil(needed);
+
+        const loc = locations.find((l) => l.id === inv.locationId);
+        items.push({
+          productId: p.id,
+          productName: p.name,
+          vendor: p.vendor || "No Vendor",
+          locationId: inv.locationId,
+          locationName: loc?.name?.replace("Meyhouse ", "") || "",
+          parLevel: inv.parLevel,
+          counted,
+          needed,
+          orderQty,
+          orderUnit: isCase ? "case" : "bottle",
+          casePackSize: casePack,
+          bottleCostCents: p.bottleCostCents,
+        });
+      }
+    }
+    // Apply cart overrides
+    return items.map((item) => {
+      const key = `${item.productId}_${item.locationId}`;
+      const override = cartOverrides[key];
+      if (!override) return item;
+      return {
+        ...item,
+        orderQty: override.orderQty ?? item.orderQty,
+        orderUnit: override.orderUnit ?? item.orderUnit,
+        locationId: override.locationId ?? item.locationId,
+        locationName: override.locationName ?? item.locationName,
+      };
+    });
+  }, [products, inventoryForStore, orderCounts, selectedStoreId, locations, useMergedOrderCart, cartOverrides]);
+
+  // Group cart by vendor → then by store
+  const cartGrouped = useMemo(() => {
+    const map = new Map<string, CartItem[]>();
+    for (const item of cartItems) {
+      if (!map.has(item.vendor)) map.set(item.vendor, []);
+      map.get(item.vendor)!.push(item);
+    }
+    return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
+  }, [cartItems]);
+
+  const cartTotal = cartItems.reduce((sum, item) => {
+    if (!item.bottleCostCents) return sum;
+    const unitCost = item.orderUnit === "case"
+      ? item.bottleCostCents * item.casePackSize
+      : item.bottleCostCents;
+    return sum + (unitCost * item.orderQty) / 100;
+  }, 0);
+
+  function removeFromCart(productId: string, locationId?: string) {
+    const newCounts = { ...orderCounts };
+    // Find the product across ALL locations (not just selected store)
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+    // If locationId provided, remove only that store's entry; otherwise remove all locations
+    const invs = locationId
+      ? product.inventory.filter((i) => i.locationId === locationId)
+      : product.inventory;
+    for (const inv of invs) {
+      // Set count to par so "need" becomes 0 → item drops from cart
+      newCounts[inv.id] = inv.parLevel.toString();
+    }
+    setOrderCounts(newCounts);
+  }
+
+
+  const [generatingOrder, setGeneratingOrder] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState<{ id: string; count: number } | null>(null);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [emailPreviews, setEmailPreviews] = useState<any[]>([]);
+  const [sendingEmails, setSendingEmails] = useState(false);
+  const [emailResult, setEmailResult] = useState<any>(null);
+
+  async function handleGenerateOrder() {
+    if (cartItems.length === 0) return;
+    setGeneratingOrder(true);
+    setOrderSuccess(null);
+
+    // Group cart items by location — create one order per store
+    const byLocation = new Map<string, CartItem[]>();
+    for (const ci of cartItems) {
+      if (!byLocation.has(ci.locationId)) byLocation.set(ci.locationId, []);
+      byLocation.get(ci.locationId)!.push(ci);
+    }
+
+    let totalItems = 0;
+    let lastOrderId = "";
+
+    for (const [locationId, locationItems] of byLocation) {
+      // Find inventory item IDs for this location's items
+      const items = locationItems.map((ci) => {
+        const product = products.find((p) => p.id === ci.productId);
+        const inv = product?.inventory.find((i) => i.locationId === locationId);
+        return {
+          ingredientId: ci.productId,
+          inventoryItemId: inv?.id || "",
+          countedStock: ci.counted,
+          parLevel: ci.parLevel,
+          quantityNeeded: ci.orderQty,
+          unit: ci.orderUnit,
+          vendor: ci.vendor === "No Vendor" ? null : ci.vendor,
+        };
+      }).filter((i) => i.inventoryItemId);
+
+      if (items.length === 0) continue;
+
+      const result = await generateOrderFromCart({
+        locationId,
+        items,
+        createdByName: "Owner",
+        notes: undefined,
+      });
+
+      if (result?.success) {
+        totalItems += result.itemCount;
+        lastOrderId = result.orderListId;
+      }
+    }
+
+    setGeneratingOrder(false);
+
+    if (totalItems > 0) {
+      setOrderSuccess({ id: lastOrderId, count: totalItems });
+      // Don't clear cart — let user review and clear manually
+    }
+  }
+
+  async function handleEmailPreview() {
+    const items = cartItems.map((ci) => ({
+      productName: ci.productName,
+      vendor: ci.vendor,
+      locationName: ci.locationName,
+      orderQty: ci.orderQty,
+      orderUnit: ci.orderUnit,
+      bottleSizeMl: ci.bottleCostCents ? null : null, // We don't have this on CartItem directly
+      casePackSize: ci.casePackSize,
+    }));
+    const result = await generateOrderEmails(items);
+    setEmailPreviews(result.emails);
+    setShowEmailPreview(true);
+    setEmailResult(null);
+  }
+
+  async function handleSendEmails() {
+    setSendingEmails(true);
+    const result = await sendOrderEmails(emailPreviews);
+    setSendingEmails(false);
+    setEmailResult(result);
+  }
+
+  function handleClearCart() {
+    setOrderCounts({});
+    setCartOverrides({});
+    setOrderSuccess(null);
+    try {
+      localStorage.removeItem("meyhouse_orderCounts");
+      localStorage.removeItem("meyhouse_cartOverrides");
+    } catch {}
+  }
+
+  // Get order history helper
+  function getHistoryLine(p: typeof inventoryForStore[number]): {
+    weekly: number[];
+    weeklyAvg: number;
+    monthlyAvg: number;
+  } {
+    const history = p.inv.orderHistory || [];
+    // Build weekly buckets (0 = this week, 1 = last week, etc.)
+    const weekly = [0, 0, 0, 0, 0, 0, 0, 0];
+    for (const h of history) {
+      if (h.weekNum >= 0 && h.weekNum < 8) {
+        weekly[h.weekNum] += h.qty;
+      }
+    }
+    const total = weekly.reduce((s, w) => s + w, 0);
+    const weeklyAvg = total / 8;
+    const monthlyAvg = weeklyAvg * 4.33;
+    return { weekly: weekly.reverse(), weeklyAvg, monthlyAvg };
+  }
+
+  // Derived
+  const allVendors = useMemo(
+    () =>
+      [...new Set(products.map((p) => p.vendor).filter(Boolean))].sort() as string[],
+    [products]
+  );
+
+  // Build a lookup map: category name → structured data
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, SubCategory>();
+    for (const cat of structuredCategories) {
+      map.set(cat.name, cat);
+    }
+    return map;
+  }, [structuredCategories]);
+
+  // (Weight sizes handled via Custom size option in dropdown)
+
+  // Build parent name set for fallback checks
+  const parentNames = useMemo(() => {
+    const names = new Set<string>();
+    // Parent categories that have NONE serving style shouldn't show pour sizes
+    // We infer from sub-categories: if a parent name matches the ingredientCategory, treat as NONE
+    return names;
+  }, []);
+
+  // Pour cost calculation — now uses structured categories
+  function getCategoryData(p: Product): SubCategory | null {
+    if (!p.ingredientCategory) return null;
+    const sub = categoryMap.get(p.ingredientCategory);
+    if (sub) return sub;
+    // Fallback: if category name matches a parent name, create a virtual sub with NONE
+    // This handles products still assigned to "Grocery" instead of "Grocery - Canned"
+    const NON_POUR_PARENTS = ["Grocery", "Produce", "Meat & Seafood", "Dairy", "Dry Goods", "Other"];
+    if (NON_POUR_PARENTS.includes(p.ingredientCategory)) {
+      return { name: p.ingredientCategory, parent: p.ingredientCategory, servingStyle: "NONE", pourSizes: [] };
+    }
+    return null;
+  }
+
+  function getPourSize(p: Product): number {
+    // 1. Check structured category pour sizes
+    const catData = getCategoryData(p);
+    if (catData) {
+      if (catData.servingStyle === "BTB" || catData.servingStyle === "NONE") return 0;
+      if (catData.pourSizes.length > 0) {
+        // Use first non-zero pour size as the primary (convert to oz)
+        const primary = catData.pourSizes.find((ps) => (ps.amount ?? (ps as any).oz ?? 0) > 0);
+        if (primary) {
+          const amt = primary.amount ?? (primary as any).oz ?? 0;
+          const unit = primary.unit || "oz";
+          if (unit === "ml") return Math.round((amt / OZ_TO_ML) * 100) / 100;
+          return amt; // oz, dash, etc.
+        }
+      }
+    }
+    // 2. Fallback to old standardPours by productType
+    if (p.productType) return standardPours[p.productType] ?? 1.5;
+    return 1.5;
+  }
+
+  function getPourCostCents(p: Product): number {
+    if (!p.bottleCostCents || !p.bottleSizeMl) return 0;
+    const catData = getCategoryData(p);
+    // BTB items: no pour cost — they're sold by the bottle
+    if (catData?.servingStyle === "BTB") return 0;
+    const bottleSizeOz = p.bottleSizeMl / OZ_TO_ML;
+    if (bottleSizeOz <= 0) return 0;
+    const costPerOz = p.bottleCostCents / bottleSizeOz;
+    const pourOz = getPourSize(p);
+    return Math.round(costPerOz * pourOz);
+  }
+
+  // Calculate pour cost for a specific pour size entry
+  function getPourCostForSize(p: Product, ps: { amount?: number; oz?: number; unit?: string }): number {
+    if (!p.bottleCostCents || !p.bottleSizeMl) return 0;
+    const amt = ps.amount ?? (ps as any).oz ?? 0;
+    if (amt === 0) return p.bottleCostCents; // full container = bottle cost
+    const unit = ps.unit || "oz";
+    let pourOzVal = amt;
+    if (unit === "ml") pourOzVal = amt / OZ_TO_ML;
+    else if (unit === "dash") pourOzVal = amt * (1 / OZ_TO_ML); // ~1ml per dash
+    const bottleSizeOz = p.bottleSizeMl / OZ_TO_ML;
+    if (bottleSizeOz <= 0) return 0;
+    const costPerOz = p.bottleCostCents / bottleSizeOz;
+    return Math.round(costPerOz * pourOzVal);
+  }
+
+  function getSuggestedForCost(pourCostCents: number, p: Product): number {
+    if (pourCostCents <= 0) return 0;
+    const targetPct =
+      p.costTargetPct ||
+      (p.ingredientCategory ? costTargets[p.ingredientCategory] : null) ||
+      20;
+    if (targetPct <= 0) return 0;
+    const raw = pourCostCents / (targetPct / 100);
+    return Math.round(raw / 50) * 50;
+  }
+
+  function getSuggestedPriceCents(p: Product): number {
+    const catData = getCategoryData(p);
+    // BTB items: suggest price from bottle cost
+    if (catData?.servingStyle === "BTB") {
+      if (!p.bottleCostCents) return 0;
+      const targetPct =
+        p.costTargetPct ||
+        (p.ingredientCategory ? costTargets[p.ingredientCategory] : null) ||
+        20;
+      if (targetPct <= 0) return 0;
+      const raw = p.bottleCostCents / (targetPct / 100);
+      return Math.round(raw / 50) * 50;
+    }
+    const pourCost = getPourCostCents(p);
+    if (pourCost <= 0) return 0;
+    // Use product-level override, then category target, then default 20%
+    const targetPct =
+      p.costTargetPct ||
+      (p.ingredientCategory ? costTargets[p.ingredientCategory] : null) ||
+      20;
+    if (targetPct <= 0) return 0;
+    const raw = pourCost / (targetPct / 100);
+    return Math.round(raw / 50) * 50; // round to nearest $0.50
+  }
+
+  // Filter + Sort
+  const filtered = useMemo(() => {
+    return products
+      .filter((p) => {
+        // Status filter
+        if (statusFilter === "onMenu" && p.menuStatus !== "ON_MENU") return false;
+        if (statusFilter === "database" && p.menuStatus !== "DATABASE") return false;
+        if (statusFilter === "inactive" && p.menuStatus !== "INACTIVE") return false;
+        // Search
+        if (search && !p.name.toLowerCase().includes(search.toLowerCase()))
+          return false;
+        // Vendor
+        if (vendorFilter !== "ALL" && p.vendor !== vendorFilter) return false;
+        // Category
+        if (
+          categoryFilter !== "ALL" &&
+          p.ingredientCategory !== categoryFilter
+        )
+          return false;
+        // Location
+        if (
+          locationFilter !== "ALL" &&
+          !p.locationIds.includes(locationFilter)
+        )
+          return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const dir = sortDir === "asc" ? 1 : -1;
+        switch (sortField) {
+          case "name":
+            return a.name.localeCompare(b.name) * dir;
+          case "vendor":
+            return (a.vendor || "").localeCompare(b.vendor || "") * dir;
+          case "category":
+            return (a.ingredientCategory || "").localeCompare(
+              b.ingredientCategory || ""
+            ) * dir;
+          case "size":
+            return ((a.bottleSizeMl || 0) - (b.bottleSizeMl || 0)) * dir;
+          case "case":
+            return ((a.casePackSize || 0) - (b.casePackSize || 0)) * dir;
+          case "area": {
+            const aInv = locationFilter === "ALL" ? a.inventory[0] : a.inventory.find((i) => i.locationId === locationFilter) || a.inventory[0];
+            const bInv = locationFilter === "ALL" ? b.inventory[0] : b.inventory.find((i) => i.locationId === locationFilter) || b.inventory[0];
+            return (aInv?.storageArea || "").localeCompare(bInv?.storageArea || "") * dir;
+          }
+          case "shelf": {
+            const aInv2 = locationFilter === "ALL" ? a.inventory[0] : a.inventory.find((i) => i.locationId === locationFilter) || a.inventory[0];
+            const bInv2 = locationFilter === "ALL" ? b.inventory[0] : b.inventory.find((i) => i.locationId === locationFilter) || b.inventory[0];
+            return (aInv2?.shelfLocation || "").localeCompare(bInv2?.shelfLocation || "", undefined, { numeric: true }) * dir;
+          }
+          case "area2": {
+            const aI = locationFilter === "ALL" ? a.inventory[0] : a.inventory.find((i) => i.locationId === locationFilter) || a.inventory[0];
+            const bI = locationFilter === "ALL" ? b.inventory[0] : b.inventory.find((i) => i.locationId === locationFilter) || b.inventory[0];
+            return (aI?.storageArea2 || "").localeCompare(bI?.storageArea2 || "") * dir;
+          }
+          case "shelf2": {
+            const aI = locationFilter === "ALL" ? a.inventory[0] : a.inventory.find((i) => i.locationId === locationFilter) || a.inventory[0];
+            const bI = locationFilter === "ALL" ? b.inventory[0] : b.inventory.find((i) => i.locationId === locationFilter) || b.inventory[0];
+            return (aI?.shelfLocation2 || "").localeCompare(bI?.shelfLocation2 || "", undefined, { numeric: true }) * dir;
+          }
+          case "cost":
+            return ((a.bottleCostCents || 0) - (b.bottleCostCents || 0)) * dir;
+          case "pour":
+            return (getPourSize(a) - getPourSize(b)) * dir;
+          case "pourCost":
+            return (getPourCostCents(a) - getPourCostCents(b)) * dir;
+          case "suggested":
+            return (getSuggestedPriceCents(a) - getSuggestedPriceCents(b)) * dir;
+          default:
+            return 0;
+        }
+      });
+  }, [
+    products,
+    search,
+    vendorFilter,
+    categoryFilter,
+    locationFilter,
+    statusFilter,
+    sortField,
+    sortDir,
+  ]);
+
+  function toggleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+  }
+
+  function SortIcon({ field }: { field: SortField }) {
+    if (sortField !== field)
+      return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+    return sortDir === "asc" ? (
+      <ArrowUp className="w-3 h-3 text-amber-600" />
+    ) : (
+      <ArrowDown className="w-3 h-3 text-amber-600" />
+    );
+  }
+
+  function formatCents(cents: number): string {
+    return `$${(cents / 100).toFixed(2)}`;
+  }
+
+  // Inline edit handlers
+  function startEdit(productId: string, field: string, currentValue: string) {
+    saveScroll();
+    setEditingCell({ productId, field });
+    setEditValue(currentValue);
+    // Restore scroll on next frame (after autoFocus triggers browser scroll-into-view)
+    requestAnimationFrame(() => {
+      if (scrollContainerRef.current && savedScrollPos.current > 0) {
+        scrollContainerRef.current.scrollTop = savedScrollPos.current;
+      }
+    });
+  }
+
+  async function saveEdit(productId: string, field: string) {
+    const newValue = editValue; // capture BEFORE any state changes
+    saveScroll();
+    setEditingCell(null);
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
+    const data: any = {
+      name: product.name,
+      type: product.type,
+      vendorId: product.vendorId || undefined,
+      ingredientCategory: product.ingredientCategory || undefined,
+      bottleSizeMl: product.bottleSizeMl || undefined,
+      bottleSizeUnit: product.bottleSizeUnit || "ml",
+      yieldCount: product.yieldCount ?? null,
+      yieldUnit: product.yieldUnit ?? null,
+      casePackSize: product.casePackSize || undefined,
+      bottleCostCents: product.bottleCostCents || undefined,
+      locationIds: product.locationIds,
+    };
+
+    if (field === "bottleCost") {
+      data.bottleCostCents = newValue
+        ? Math.round(parseFloat(newValue) * 100)
+        : undefined;
+    } else if (field === "vendor") {
+      data.vendorId = newValue || undefined;
+    } else if (field === "category") {
+      data.ingredientCategory = newValue || undefined;
+    } else if (field === "name") {
+      if (!newValue.trim()) { setMarkerError("Name cannot be empty"); return; }
+      data.name = newValue;
+    } else if (field === "bottleSize") {
+      data.bottleSizeMl = newValue ? parseInt(newValue) : undefined;
+    } else if (field === "casePack") {
+      const n = newValue ? parseInt(newValue) : 0;
+      // Allow negative special values (CASE_BOTTLE_ONLY=-1, CASE_SINGLE=-2, CASE_KEG=-3) and positive pack sizes
+      data.casePackSize = (n !== 0 && !isNaN(n)) ? n : undefined;
+    } else if (field === "yield") {
+      const n = newValue ? parseInt(newValue) : null;
+      data.yieldCount = (n && n > 0) ? n : null;
+      data.yieldUnit = (n && n > 0) ? "each" : null;
+    } else if (field === "location") {
+      try { await updateProductStorageArea(productId, newValue, locationFilter !== "ALL" ? locationFilter : undefined, 1); }
+      catch (e) { console.error("updateProductStorageArea failed:", e); setMarkerError("Failed to save area"); }
+      return;
+    } else if (field === "shelf") {
+      try { await updateProductShelf(productId, newValue, locationFilter !== "ALL" ? locationFilter : undefined, 1); }
+      catch (e) { console.error("updateProductShelf failed:", e); setMarkerError("Failed to save shelf"); }
+      return;
+    } else if (field === "location2") {
+      try { await updateProductStorageArea(productId, newValue, locationFilter !== "ALL" ? locationFilter : undefined, 2); }
+      catch (e) { console.error("updateProductStorageArea2 failed:", e); setMarkerError("Failed to save area 2"); }
+      return;
+    } else if (field === "shelf2") {
+      try { await updateProductShelf(productId, newValue, locationFilter !== "ALL" ? locationFilter : undefined, 2); }
+      catch (e) { console.error("updateProductShelf2 failed:", e); setMarkerError("Failed to save shelf 2"); }
+      return;
+    }
+
+    try {
+      await updateProduct(productId, data);
+    } catch (e) {
+      console.error("updateProduct failed for field:", field, "data:", data, "error:", e);
+      const msg = (e as Error)?.message || "";
+      // If it's our pre-check error with a clear message, show it
+      if (msg.includes("already exists")) {
+        setMarkerError(msg);
+      } else if (msg.includes("Unique constraint") && msg.includes("name")) {
+        setMarkerError(`A product named "${data.name}" already exists (may be inactive or in database). Rename or delete the existing product first.`);
+      } else {
+        setMarkerError(`Failed to save ${field}. Check console for details.`);
+      }
+    }
+  }
+
+  function handleKeyDown(
+    e: React.KeyboardEvent,
+    productId: string,
+    field: string
+  ) {
+    if (e.key === "Enter") {
+      saveEdit(productId, field);
+    } else if (e.key === "Escape") {
+      setEditingCell(null);
+    }
+  }
+
+  // Switch mode and update URL
+  function switchMode(newMode: Mode) {
+    setMode(newMode);
+    const params = new URLSearchParams(searchParams.toString());
+    if (newMode === "products") {
+      params.delete("mode");
+    } else {
+      params.set("mode", newMode);
+    }
+    const qs = params.toString();
+    router.replace(`/dashboard/products${qs ? `?${qs}` : ""}`, {
+      scroll: false,
+    });
+  }
+
+  return (
+    <div className="flex flex-col h-screen overflow-hidden">
+      {/* Sticky top section: header + tabs + filters */}
+      <div className="flex-shrink-0 p-4 lg:px-8 lg:pt-8 lg:pb-0">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Product Hub</h1>
+          <p className="text-stone-500 text-sm">
+            {filtered.length} of {products.length} products
+            {locations.length > 0 && ` across ${locations.length} locations`}
+          </p>
+        </div>
+
+        {/* Marker toolbar — only in products mode */}
+        {mode === "products" && (() => {
+          const selected = highlightedRow ? products.find((p) => p.id === highlightedRow) : null;
+          const isStorePicked = locationFilter !== "ALL";
+          // Get inventory for selected store on selected product
+          const selectedInv = selected && isStorePicked
+            ? selected.inventory.find((i) => i.locationId === locationFilter) || null
+            : null;
+
+          // Tag handler — requires a specific store (per-store tags like BTG, Craft, Well, Half, Dessert)
+          const handleMarkerClick = async (fn: () => Promise<unknown>) => {
+            setMarkerError("");
+            if (!selected) {
+              setMarkerError("Click a product row first.");
+              return;
+            }
+            if (!isStorePicked) {
+              setMarkerError("Select a specific store from the Location filter first. Tags are per-store.");
+              return;
+            }
+            if (!selectedInv) {
+              setMarkerError("This product is not assigned to the selected store.");
+              return;
+            }
+            saveScroll();
+            try {
+              await fn();
+            } catch (e) {
+              setMarkerError("Failed to save. Try again.");
+              console.error("Marker toggle error:", e);
+            }
+          };
+
+          // Removal handler — Database/Delete can work on single store or ALL stores
+          const handleRemovalClick = async (target: "DATABASE" | "INACTIVE") => {
+            setMarkerError("");
+            if (!selected) {
+              setMarkerError("Click a product row first.");
+              return;
+            }
+            saveScroll();
+            try {
+              if (isStorePicked) {
+                // Toggle just for this store
+                const currentlyMarked = selectedInv?.markedForRemoval === target;
+                await toggleMarkForRemoval(selected.id, locationFilter, currentlyMarked ? null : target);
+              } else {
+                // All Locations — check if ALL stores already have this marker
+                const allMarked = selected.inventory.length > 0 && selected.inventory.every((inv) => inv.markedForRemoval === target);
+                const newTarget = allMarked ? null : target;
+                // Apply to every store the product exists in
+                for (const inv of selected.inventory) {
+                  await toggleMarkForRemoval(selected.id, inv.locationId, newTarget);
+                }
+              }
+            } catch (e) {
+              setMarkerError("Failed to save. Try again.");
+              console.error("Removal toggle error:", e);
+            }
+          };
+
+          const disabled = !isStorePicked;
+          // Database/Delete buttons are never "disabled by store selection" — they work on All Locations too
+          const removalDisabled = !selected;
+          const btnBase = "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors border text-[10px] font-medium whitespace-nowrap";
+          const disabledBtn = "bg-stone-50 border-stone-200 text-stone-300 cursor-not-allowed";
+
+          // For Database/Delete in All Locations mode: show active if ALL stores have the marker
+          const allMarkedDB = selected && selected.inventory.length > 0 && selected.inventory.every((inv) => inv.markedForRemoval === "DATABASE");
+          const allMarkedDel = selected && selected.inventory.length > 0 && selected.inventory.every((inv) => inv.markedForRemoval === "INACTIVE");
+          const dbActive = isStorePicked ? selectedInv?.markedForRemoval === "DATABASE" : !!allMarkedDB;
+          const delActive = isStorePicked ? selectedInv?.markedForRemoval === "INACTIVE" : !!allMarkedDel;
+          const removalBtnStyle = (color: string, active: boolean) => {
+            if (removalDisabled) return disabledBtn;
+            return active ? COLOR_STYLES[color].active : COLOR_STYLES[color].idle;
+          };
+
+          // Each icon has a persistent color (matches row highlight color). Active state = fuller background.
+          const COLOR_STYLES: Record<string, { idle: string; active: string }> = {
+            yellow:  { idle: "bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100",     active: "bg-yellow-600 border-yellow-700 text-white shadow-sm" },
+            red:     { idle: "bg-red-50 border-red-200 text-red-700 hover:bg-red-100",                active: "bg-red-600 border-red-700 text-white shadow-sm" },
+            purple:  { idle: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100",    active: "bg-purple-600 border-purple-700 text-white shadow-sm" },
+            teal:    { idle: "bg-teal-50 border-teal-200 text-teal-700 hover:bg-teal-100",            active: "bg-teal-600 border-teal-700 text-white shadow-sm" },
+            blue:    { idle: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100",            active: "bg-blue-600 border-blue-700 text-white shadow-sm" },
+            orange:  { idle: "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100",    active: "bg-orange-600 border-orange-700 text-white shadow-sm" },
+            emerald: { idle: "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100", active: "bg-emerald-600 border-emerald-700 text-white shadow-sm" },
+          };
+          const btnStyle = (color: string, active: boolean) => {
+            if (disabled) return disabledBtn;
+            return active ? COLOR_STYLES[color].active : COLOR_STYLES[color].idle;
+          };
+
+          const currentStoreName = isStorePicked
+            ? (locations.find((l) => l.id === locationFilter)?.name?.replace("Meyhouse ", "") || "this store")
+            : "";
+          const disabledTitle = "Select a specific store first (per-store tags)";
+
+          return (
+            <div className="flex items-center gap-2">
+              {/* Database — yellow (works in All Locations too) */}
+              <button
+                onClick={() => handleRemovalClick("DATABASE")}
+                className={`${btnBase} ${removalBtnStyle("yellow", dbActive)}`}
+                title={removalDisabled ? "Click a product row first" : (isStorePicked
+                  ? (dbActive ? `Unmark for ${currentStoreName}` : `Mark "${selected?.name}" for Database at ${currentStoreName}`)
+                  : (dbActive ? `Unmark from all stores` : `Mark "${selected?.name}" for Database at ALL stores`))}
+              >
+                <Archive className="w-4 h-4" />
+                <span>Database</span>
+              </button>
+              {/* Delete — red (works in All Locations too) */}
+              <button
+                onClick={() => handleRemovalClick("INACTIVE")}
+                className={`${btnBase} ${removalBtnStyle("red", delActive)}`}
+                title={removalDisabled ? "Click a product row first" : (isStorePicked
+                  ? (delActive ? `Unmark for ${currentStoreName}` : `Mark "${selected?.name}" to permanently delete at ${currentStoreName}`)
+                  : (delActive ? `Unmark from all stores` : `Mark "${selected?.name}" for deletion at ALL stores`))}
+              >
+                <XCircle className="w-4 h-4" />
+                <span>Delete</span>
+              </button>
+              {/* BTG Wine — purple */}
+              <button
+                onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "btg", !selectedInv?.isBTG))}
+                className={`${btnBase} ${btnStyle("purple", !!selectedInv?.isBTG)}`}
+                title={disabled ? disabledTitle : (selected ? (selectedInv?.isBTG ? `Unmark BTG for ${currentStoreName}` : `Tag "${selected.name}" as BTG Wine at ${currentStoreName}`) : "Click a product row first")}
+              >
+                <Wine className="w-4 h-4" />
+                <span>BTG Wine</span>
+              </button>
+              {/* Craft Cocktail — teal */}
+              <button
+                onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "craft", !selectedInv?.isCraftCocktailIngredient))}
+                className={`${btnBase} ${btnStyle("teal", !!selectedInv?.isCraftCocktailIngredient)}`}
+                title={disabled ? disabledTitle : (selected ? (selectedInv?.isCraftCocktailIngredient ? `Unmark Craft for ${currentStoreName}` : `Tag "${selected.name}" as Craft Cocktail at ${currentStoreName}`) : "Click a product row first")}
+              >
+                <FlaskConical className="w-4 h-4" />
+                <span>Craft Cocktail</span>
+              </button>
+              {/* Well Spirit — blue */}
+              <button
+                onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "well", !selectedInv?.isWellSpirit))}
+                className={`${btnBase} ${btnStyle("blue", !!selectedInv?.isWellSpirit)}`}
+                title={disabled ? disabledTitle : (selected ? (selectedInv?.isWellSpirit ? `Unmark Well for ${currentStoreName}` : `Tag "${selected.name}" as Well Spirit at ${currentStoreName}`) : "Click a product row first")}
+              >
+                <GlassWater className="w-4 h-4" />
+                <span>Well Spirit</span>
+              </button>
+              {/* Half Bottle — orange */}
+              <button
+                onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "half", !selectedInv?.isHalfBottle))}
+                className={`${btnBase} ${btnStyle("orange", !!selectedInv?.isHalfBottle)}`}
+                title={disabled ? disabledTitle : (selected ? (selectedInv?.isHalfBottle ? `Unmark Half Bottle for ${currentStoreName}` : `Tag "${selected.name}" as Half Bottle at ${currentStoreName}`) : "Click a product row first")}
+              >
+                <Milk className="w-4 h-4" />
+                <span>Half Bottle</span>
+              </button>
+              {/* Dessert Wine — emerald */}
+              <button
+                onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "dessert", !selectedInv?.isDessertWine))}
+                className={`${btnBase} ${btnStyle("emerald", !!selectedInv?.isDessertWine)}`}
+                title={disabled ? disabledTitle : (selected ? (selectedInv?.isDessertWine ? `Unmark Dessert Wine for ${currentStoreName}` : `Tag "${selected.name}" as Dessert Wine at ${currentStoreName}`) : "Click a product row first")}
+              >
+                <Grape className="w-4 h-4" />
+                <span>Dessert Wine</span>
+              </button>
+            </div>
+          );
+        })()}
+
+        <Link
+          href="/dashboard/products/new"
+          className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Add Product
+        </Link>
+      </div>
+
+      {markerError && mode === "products" && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded-lg text-xs mb-3">{markerError}</div>
+      )}
+
+      {/* Mode tabs */}
+      <div className="flex gap-1 bg-stone-100 rounded-lg p-1 mb-4">
+        {[
+          { key: "ordering" as Mode, label: "Ordering", icon: ShoppingCart },
+          { key: "inventory" as Mode, label: "Inventory Management", icon: ClipboardList },
+          { key: "products" as Mode, label: "Full Product List", icon: Package },
+          { key: "pricing" as Mode, label: "Menu Pricing Tool", icon: DollarSign },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => switchMode(tab.key)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors flex-1 justify-center ${
+              mode === tab.key
+                ? "bg-white text-amber-600 shadow-sm"
+                : "text-stone-500 hover:text-stone-900"
+            }`}
+          >
+            <tab.icon className="w-4 h-4" />
+            <span className="hidden sm:inline">{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
+        <div className="relative col-span-2 sm:col-span-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+        >
+          <option value="onMenu">On Menu</option>
+          <option value="database">Product Database</option>
+          <option value="inactive">Inactive (cleanup)</option>
+          <option value="all">All Products</option>
+        </select>
+        <select
+          value={vendorFilter}
+          onChange={(e) => setVendorFilter(e.target.value)}
+          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+        >
+          <option value="ALL">All Vendors</option>
+          {allVendors.map((v) => (
+            <option key={v} value={v}>{v}</option>
+          ))}
+        </select>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+        >
+          <option value="ALL">All Categories</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+        <select
+          value={locationFilter}
+          onChange={(e) => setLocationFilter(e.target.value)}
+          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+        >
+          <option value="ALL">All Locations</option>
+          {locations.map((l) => (
+            <option key={l.id} value={l.id}>{l.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Store selector + Area buttons — pinned for Ordering & Inventory modes */}
+      {(mode === "ordering" || mode === "inventory") && (
+        <div className="bg-white border border-stone-200 rounded-xl p-3 mt-1">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <MapPin className="w-5 h-5 text-amber-600" />
+              <select
+                value={selectedStoreId}
+                onChange={(e) => {
+                  setSelectedStoreId(e.target.value);
+                  setSelectedArea("ALL");
+                  if (mode === "inventory") {
+                    setInventoryCounts({});
+                    setSavedItems(new Set());
+                  }
+                }}
+                className="px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+              >
+                <option value="">— Select a store —</option>
+                {locations.map((l) => (
+                  <option key={l.id} value={l.id}>{l.name}</option>
+                ))}
+              </select>
+              {mode === "inventory" && selectedStoreId && (
+                <div className="flex items-center gap-3 text-xs">
+                  <span className="text-stone-500">{inventoryForStore.length} items</span>
+                  <span className="text-amber-600 font-medium">{countedCount} counted</span>
+                  <span className="text-green-600 font-medium">{savedItems.size} saved</span>
+                </div>
+              )}
+              {mode === "inventory" && selectedStoreId && (
+                <div className="text-xs text-stone-500">
+                  {new Date().toLocaleDateString()}
+                </div>
+              )}
+            </div>
+            {mode === "ordering" && selectedStoreId && (
+              <button
+                onClick={() => setShowCart(!showCart)}
+                className="flex items-center gap-2 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors relative"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                {useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
+                    {cartItems.length}
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
+          {/* Area filter buttons */}
+          {selectedStoreId && areaNames.length > 0 && (
+            <div className="flex gap-1.5 mt-3 flex-wrap">
+              <button
+                onClick={() => setSelectedArea("ALL")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  selectedArea === "ALL"
+                    ? "bg-amber-600 text-white"
+                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                }`}
+              >
+                All Areas
+              </button>
+              {areaNames.map((area) => (
+                <button
+                  key={area}
+                  onClick={() => setSelectedArea(area)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    selectedArea === area
+                      ? "bg-amber-600 text-white"
+                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                  }`}
+                >
+                  {area}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      </div>{/* end sticky top section */}
+
+      {/* Scrollable table area — fills remaining height */}
+      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-auto px-4 lg:px-8 pb-4">
+
+      {/* === MODE 1: PRODUCTS TABLE === */}
+      {mode === "products" && (
+        <div className="bg-white border border-stone-200 rounded-xl">
+          <div>
+            <table className="w-full min-w-[1500px] text-xs table-fixed">
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-stone-50 border-b border-stone-200 text-[10px] text-stone-500 uppercase font-medium">
+                  <th className="text-left px-2 py-2 w-[15%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("name")}>
+                    <span className="flex items-center gap-1 whitespace-nowrap">Product <SortIcon field="name" /></span>
+                  </th>
+                  <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("size")}>
+                    <span className="flex items-center gap-1 whitespace-nowrap">Size <SortIcon field="size" /></span>
+                  </th>
+                  <th className="text-center px-2 py-2 w-[4%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("case")}>
+                    <span className="flex items-center justify-center gap-1 whitespace-nowrap">Case <SortIcon field="case" /></span>
+                  </th>
+                  <th className="text-right px-2 py-2 w-[6%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("cost")}>
+                    <span className="flex items-center justify-end gap-1 whitespace-nowrap">Bottle $ <SortIcon field="cost" /></span>
+                  </th>
+                  <th className="text-left px-2 py-2 w-[8%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("category")}>
+                    <span className="flex items-center gap-1 whitespace-nowrap">Category <SortIcon field="category" /></span>
+                  </th>
+                  <th className="text-left px-2 py-2 w-[7%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("vendor")}>
+                    <span className="flex items-center gap-1 whitespace-nowrap">Vendor <SortIcon field="vendor" /></span>
+                  </th>
+                  <th className="text-left px-2 py-2 w-[6%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("area")}>
+                    <span className="flex items-center gap-1 whitespace-nowrap">Area 1 <SortIcon field="area" /></span>
+                  </th>
+                  <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("shelf")}>
+                    <span className="flex items-center gap-1 whitespace-nowrap">Shelf 1 <SortIcon field="shelf" /></span>
+                  </th>
+                  <th className="text-left px-2 py-2 w-[6%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("area2")}>
+                    <span className="flex items-center gap-1 whitespace-nowrap">Area 2 <SortIcon field="area2" /></span>
+                  </th>
+                  <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("shelf2")}>
+                    <span className="flex items-center gap-1 whitespace-nowrap">Shelf 2 <SortIcon field="shelf2" /></span>
+                  </th>
+                  <th className="text-center px-2 py-2 w-[6%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("pour")}>
+                    <span className="flex items-center justify-center gap-1 whitespace-nowrap">Pour <SortIcon field="pour" /></span>
+                  </th>
+                  <th className="text-right px-2 py-2 w-[6%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("pourCost")}>
+                    <span className="flex items-center justify-end gap-1 whitespace-nowrap">Pour $ <SortIcon field="pourCost" /></span>
+                  </th>
+                  <th className="text-right px-2 py-2 w-[7%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("suggested")}>
+                    <span className="flex items-center justify-end gap-1 whitespace-nowrap">Suggested <SortIcon field="suggested" /></span>
+                  </th>
+                  <th className="text-center px-2 py-2 w-[5%]"><span className="whitespace-nowrap">Stores</span></th>
+                  <th className="text-right px-2 py-2 w-[5%]"><span className="whitespace-nowrap">Actions</span></th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-stone-100">
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={14} className="p-8 text-center text-stone-500">No products match your filters</td></tr>
+                ) : (
+                  filtered.map((p) => {
+                    const catData = getCategoryData(p);
+                    const isBTB = catData?.servingStyle === "BTB";
+                    const pourOz = getPourSize(p);
+                    const pourCost = getPourCostCents(p);
+                    const suggested = getSuggestedPriceCents(p);
+                    const isEd = (field: string) => editingCell?.productId === p.id && editingCell?.field === field;
+                    // Get inventory for selected location, or first if "All"
+                    const isAllLocations = locationFilter === "ALL";
+                    const activeInv = isAllLocations
+                      ? p.inventory[0]
+                      : p.inventory.find((inv) => inv.locationId === locationFilter) || p.inventory[0];
+                    const storageArea = activeInv?.storageArea || null;
+                    const storeCount = p.inventory.length;
+
+                    return (
+                      <tr key={p.id}
+                        onClick={(e) => {
+                          if ((e.target as HTMLElement).closest("input, select, button, a, [data-floating-edit]")) return;
+                          // Clicking a row only toggles highlight — the floating editor
+                          // now opens from the explicit ⚡ button at the left of the row.
+                          const willHighlight = highlightedRow !== p.id;
+                          setHighlightedRow(willHighlight ? p.id : null);
+                          if (!willHighlight) closeFloatingEdit();
+                        }}
+                        className={`hover:bg-stone-50/50 cursor-pointer transition-colors ${(() => {
+                          if (highlightedRow === p.id) return "!bg-amber-50 ring-1 ring-amber-200";
+                          // Determine which inventory to use for markers
+                          const relevantInvs = isAllLocations ? p.inventory : (activeInv ? [activeInv] : []);
+                          const anyInactive = relevantInvs.some((i) => i.markedForRemoval === "INACTIVE");
+                          const anyDB = relevantInvs.some((i) => i.markedForRemoval === "DATABASE");
+                          const anyBTG = relevantInvs.some((i) => i.isBTG);
+                          const anyCraft = relevantInvs.some((i) => i.isCraftCocktailIngredient);
+                          const anyWell = relevantInvs.some((i) => i.isWellSpirit);
+                          const anyHalf = relevantInvs.some((i) => i.isHalfBottle);
+                          const anyDessert = relevantInvs.some((i) => i.isDessertWine);
+                          if (anyInactive) return "bg-red-50/60";
+                          if (anyDB) return "bg-yellow-50/80";
+                          if (anyBTG) return "bg-purple-50/70";
+                          if (anyCraft) return "bg-teal-50/70";
+                          if (anyWell) return "bg-blue-50/70";
+                          if (anyHalf) return "bg-orange-50/70";
+                          if (anyDessert) return "bg-emerald-50/70";
+                          return "";
+                        })()}`}>
+                        {/* Product Name — click to edit */}
+                        <td className="px-2 py-2">
+                          {isEd("name") ? (
+                            <input
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveEdit(p.id, "name")}
+                              onKeyDown={(e) => handleKeyDown(e, p.id, "name")}
+                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-xs focus:outline-none"
+                              autoFocus
+                            />
+                          ) : (() => {
+                            const relevantInvs = isAllLocations ? p.inventory : (activeInv ? [activeInv] : []);
+                            const anyInactive = relevantInvs.some((i) => i.markedForRemoval === "INACTIVE");
+                            const anyDB = relevantInvs.some((i) => i.markedForRemoval === "DATABASE");
+                            const anyBTG = relevantInvs.some((i) => i.isBTG);
+                            const anyCraft = relevantInvs.some((i) => i.isCraftCocktailIngredient);
+                            const anyWell = relevantInvs.some((i) => i.isWellSpirit);
+                            const anyHalf = relevantInvs.some((i) => i.isHalfBottle);
+                            const anyDessert = relevantInvs.some((i) => i.isDessertWine);
+                            // For All Locations, show which stores have which markers in tooltip
+                            const storeBadgeSuffix = (pred: (i: Product["inventory"][number]) => boolean) => {
+                              if (!isAllLocations) return "";
+                              const stores = p.inventory.filter(pred).map((i) => i.locationName.replace("Meyhouse ", ""));
+                              return stores.length > 0 ? ` (${stores.join(", ")})` : "";
+                            };
+                            return (
+                              <span className="inline-flex items-center gap-1.5 min-w-0">
+                                {/* ⚡ Quick Edit button — visible per row, at the left so no horizontal scrolling is needed */}
+                                <button
+                                  data-floating-edit
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const rowEl = (e.currentTarget as HTMLElement).closest("tr");
+                                    if (!rowEl) return;
+                                    // Toggle highlight + open/close popup
+                                    if (floatingEditProductId === p.id) {
+                                      closeFloatingEdit();
+                                      setHighlightedRow(null);
+                                    } else {
+                                      setHighlightedRow(p.id);
+                                      openFloatingEdit(p.id, rowEl as HTMLElement);
+                                    }
+                                  }}
+                                  className={`flex-shrink-0 p-1 rounded transition-colors ${
+                                    floatingEditProductId === p.id
+                                      ? "bg-amber-500 text-white"
+                                      : "text-stone-300 hover:text-amber-600 hover:bg-amber-50"
+                                  }`}
+                                  title="Quick edit par levels & store assignments"
+                                >
+                                  <Zap className="w-3.5 h-3.5" />
+                                </button>
+                                <span
+                                  className="font-medium text-xs cursor-pointer hover:text-amber-600 truncate"
+                                  onClick={() => startEdit(p.id, "name", p.name)}
+                                >
+                                {p.isKeyItem && <Star className="w-3 h-3 text-amber-500 fill-amber-500 inline mr-1" />}
+                                {p.name}
+                                {p.menuStatus === "DATABASE" && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded ml-1">database</span>}
+                                {p.menuStatus === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1">inactive</span>}
+                                {anyDB && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded ml-1" title={`Marked for Database${storeBadgeSuffix((i) => i.markedForRemoval === "DATABASE")}`}>→ DB</span>}
+                                {anyInactive && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1" title={`Marked to Delete${storeBadgeSuffix((i) => i.markedForRemoval === "INACTIVE")}`}>→ ✕</span>}
+                                {anyBTG && <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded ml-1" title={`BTG Wine${storeBadgeSuffix((i) => i.isBTG)}`}>BTG</span>}
+                                {anyCraft && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded ml-1" title={`Craft Cocktail${storeBadgeSuffix((i) => i.isCraftCocktailIngredient)}`}>CC</span>}
+                                {anyWell && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded ml-1" title={`Well Spirit${storeBadgeSuffix((i) => i.isWellSpirit)}`}>Well</span>}
+                                {anyHalf && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded ml-1" title={`Half Bottle${storeBadgeSuffix((i) => i.isHalfBottle)}`}>½</span>}
+                                {anyDessert && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded ml-1" title={`Dessert Wine${storeBadgeSuffix((i) => i.isDessertWine)}`}>🍇</span>}
+                                </span>
+                              </span>
+                            );
+                          })()}
+                        </td>
+
+                        {/* Size — click to edit (dropdown + custom entry) */}
+                        <td className="px-2 py-2">
+                          {isEd("bottleSize") ? (
+                            customSizeMode && customSizeProductId === p.id ? (
+                              <div className="flex items-center gap-1" onBlur={(e) => {
+                                if (!e.currentTarget.contains(e.relatedTarget as Node)) saveCustomSize();
+                              }}>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={customSizeValue}
+                                  onChange={(e) => setCustomSizeValue(e.target.value)}
+                                  placeholder="Size"
+                                  className="w-14 px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") saveCustomSize();
+                                    if (e.key === "Escape") { setCustomSizeMode(false); setEditingCell(null); }
+                                  }}
+                                />
+                                <select value={customSizeUnit} onChange={(e) => setCustomSizeUnit(e.target.value)}
+                                  className="px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none">
+                                  <option value="ml">ml</option>
+                                  <option value="oz">fl oz</option>
+                                  <option value="gal">gallon</option>
+                                  <option value="solid_oz">solid oz</option>
+                                  <option value="lb">lb</option>
+                                  <option value="g">gram</option>
+                                  <option value="kg">kg</option>
+                                </select>
+                                <button onClick={saveCustomSize}
+                                  className="px-1.5 py-0.5 bg-amber-600 text-white rounded text-[10px] font-medium hover:bg-amber-500">
+                                  ✓
+                                </button>
+                              </div>
+                            ) : (
+                            <select
+                              value={editValue}
+                              onChange={(e) => {
+                                if (e.target.value === "__custom__") {
+                                  setCustomSizeMode(true);
+                                  setCustomSizeProductId(p.id);
+                                  setCustomSizeValue("");
+                                  setCustomSizeUnit("ml");
+                                  return;
+                                }
+                                const newVal = e.target.value;
+                                const newSize = newVal ? Number(newVal) : undefined;
+                                saveScroll();
+                                setEditValue(newVal);
+                                setEditingCell(null);
+                                const product = products.find((pr) => pr.id === p.id);
+                                if (product) {
+                                  updateProduct(p.id, {
+                                    name: product.name, type: product.type,
+                                    vendorId: product.vendorId || undefined,
+                                    ingredientCategory: product.ingredientCategory || undefined,
+                                    bottleSizeMl: newSize,
+                                    bottleSizeUnit: "ml",
+                                    yieldCount: product.yieldCount ?? null,
+                                    yieldUnit: product.yieldUnit ?? null,
+                                    casePackSize: product.casePackSize || undefined,
+                                    bottleCostCents: product.bottleCostCents || undefined,
+                                    locationIds: product.locationIds,
+                                  });
+                                }
+                              }}
+                              onBlur={() => setEditingCell(null)}
+                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              autoFocus
+                            >
+                              <option value="">—</option>
+                              {(() => {
+                                const sorted = sortBottleSizes(bottleSizes);
+                                const groups: Record<SizeGroup, number[]> = { ml: [], oz: [], weight: [], keg: [] };
+                                sorted.forEach((s) => groups[classifySize(s)].push(s));
+                                const labels: Record<SizeGroup, string> = { ml: "Milliliters", oz: "Ounces", weight: "Weight", keg: "Kegs / Large" };
+                                return (["ml", "oz", "weight", "keg"] as SizeGroup[]).map((g) =>
+                                  groups[g].length > 0 ? (
+                                    <optgroup key={g} label={labels[g]}>
+                                      {groups[g].map((s) => (
+                                        <option key={s} value={s}>{formatSizeMl(s)}</option>
+                                      ))}
+                                    </optgroup>
+                                  ) : null
+                                );
+                              })()}
+                              <option value="__custom__">Custom size...</option>
+                            </select>
+                            )
+                          ) : (
+                            <span
+                              className="text-[10px] text-stone-500 cursor-pointer hover:text-amber-600"
+                              onClick={() => startEdit(p.id, "bottleSize", p.bottleSizeMl?.toString() || "")}
+                            >
+                              {p.bottleSizeMl ? formatSize(p.bottleSizeMl, p.bottleSizeUnit) : "—"}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Case pack size — dropdown */}
+                        <td className="px-2 py-2 text-center">
+                          {customCaseMode && customCaseProductId === p.id ? (
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                step="1"
+                                min="1"
+                                value={customCaseValue}
+                                onChange={(e) => setCustomCaseValue(e.target.value)}
+                                placeholder="Qty"
+                                autoFocus
+                                className="w-14 px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] text-center focus:outline-none"
+                                onKeyDown={async (e) => {
+                                  if (e.key === "Enter") {
+                                    const n = parseInt(customCaseValue);
+                                    if (n > 0) {
+                                      saveScroll();
+                                      setEditValue(n.toString());
+                                      await saveEdit(p.id, "casePack");
+                                    }
+                                    setCustomCaseMode(false);
+                                    setCustomCaseValue("");
+                                  }
+                                  if (e.key === "Escape") { setCustomCaseMode(false); setCustomCaseValue(""); }
+                                }}
+                                onBlur={async () => {
+                                  const n = parseInt(customCaseValue);
+                                  if (n > 0) {
+                                    saveScroll();
+                                    setEditValue(n.toString());
+                                    await saveEdit(p.id, "casePack");
+                                  }
+                                  setCustomCaseMode(false);
+                                  setCustomCaseValue("");
+                                }}
+                              />
+                            </div>
+                          ) : isEd("casePack") ? (
+                            <select
+                              value={editValue}
+                              autoFocus
+                              onChange={async (e) => {
+                                const val = e.target.value;
+                                // Capture scroll position BEFORE any state update
+                                const currentScroll = scrollContainerRef.current?.scrollTop || 0;
+                                savedScrollPos.current = currentScroll;
+                                shouldRestoreScroll.current = true;
+
+                                if (val === "__custom__") {
+                                  setCustomCaseMode(true);
+                                  setCustomCaseProductId(p.id);
+                                  setCustomCaseValue("");
+                                  setEditingCell(null);
+                                  return;
+                                }
+                                setEditValue(val);
+                                setEditingCell(null);
+                                const product = products.find((pr) => pr.id === p.id);
+                                if (product) {
+                                  await updateProduct(p.id, {
+                                    name: product.name, type: product.type,
+                                    vendorId: product.vendorId || undefined,
+                                    ingredientCategory: product.ingredientCategory || undefined,
+                                    bottleSizeMl: product.bottleSizeMl || undefined,
+                                    bottleSizeUnit: product.bottleSizeUnit || "ml",
+                                    yieldCount: product.yieldCount ?? null,
+                                    yieldUnit: product.yieldUnit ?? null,
+                                    casePackSize: val ? parseInt(val) : undefined,
+                                    bottleCostCents: product.bottleCostCents || undefined,
+                                    locationIds: product.locationIds,
+                                  });
+                                  // Extra scroll restores after server refresh
+                                  [0, 50, 150, 300].forEach((delay) => {
+                                    setTimeout(() => {
+                                      if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = currentScroll;
+                                    }, delay);
+                                  });
+                                }
+                              }}
+                              onBlur={() => setEditingCell(null)}
+                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                            >
+                              <option value="">—</option>
+                              <option value={CASE_BOTTLE_ONLY}>Bottle Only</option>
+                              <option value={CASE_SINGLE}>Single</option>
+                              <option value={CASE_KEG}>Keg</option>
+                              <option value="2">2-Pack</option>
+                              <option value="3">3-Pack</option>
+                              <option value="4">4-Pack</option>
+                              <option value="6">6-Pack</option>
+                              <option value="12">12-Pack</option>
+                              <option value="15">15-Pack</option>
+                              <option value="20">20-Pack</option>
+                              <option value="24">24-Pack</option>
+                              <option value="48">48-Pack</option>
+                              <option value="__custom__">Custom...</option>
+                            </select>
+                          ) : (
+                            <span
+                              className="text-[10px] text-stone-500 cursor-pointer hover:text-amber-600 whitespace-nowrap"
+                              onClick={() => startEdit(p.id, "casePack", p.casePackSize?.toString() || "")}
+                            >
+                              {formatCaseSize(p.casePackSize)}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Bottle Cost — click to edit */}
+                        <td className="px-2 py-2 text-right">
+                          {isEd("bottleCost") ? (
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveEdit(p.id, "bottleCost")}
+                              onKeyDown={(e) => handleKeyDown(e, p.id, "bottleCost")}
+                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-xs text-right focus:outline-none"
+                              autoFocus
+                            />
+                          ) : (
+                            <span
+                              className={`text-xs cursor-pointer hover:text-amber-600 ${p.bottleCostCents ? "text-stone-900" : "text-stone-400"}`}
+                              onClick={() => startEdit(p.id, "bottleCost", p.bottleCostCents ? (p.bottleCostCents / 100).toFixed(2) : "")}
+                            >
+                              {p.bottleCostCents ? formatCents(p.bottleCostCents) : "—"}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Category — click to edit */}
+                        <td className="px-2 py-2">
+                          {isEd("category") ? (
+                            <select
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveEdit(p.id, "category")}
+                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              autoFocus
+                            >
+                              <option value="">—</option>
+                              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                          ) : (
+                            <span
+                              className="text-[10px] text-stone-700 cursor-pointer hover:text-amber-600 block truncate"
+                              onClick={() => startEdit(p.id, "category", p.ingredientCategory || "")}
+                            >
+                              {p.ingredientCategory || "—"}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Vendor — click to edit */}
+                        <td className="px-2 py-2">
+                          {isEd("vendor") ? (
+                            <select
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveEdit(p.id, "vendor")}
+                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              autoFocus
+                            >
+                              <option value="">—</option>
+                              {vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                            </select>
+                          ) : (
+                            <span
+                              className="text-[10px] text-stone-700 cursor-pointer hover:text-amber-600 block truncate"
+                              onClick={() => startEdit(p.id, "vendor", p.vendorId || "")}
+                            >
+                              {p.vendor || "—"}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Location / Storage Area */}
+                        <td className="px-2 py-2">
+                          {isAllLocations ? (
+                            <span className="text-[10px] text-stone-400" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.storageArea || "—"}`).join("\n")}>
+                              {storeCount > 0 ? `${storeCount} ${storeCount === 1 ? "store" : "stores"}` : "—"}
+                            </span>
+                          ) : isEd("location") ? (
+                            <select
+                              value={editValue}
+                              onChange={async (e) => {
+                                const val = e.target.value;
+                                if (val === "__custom__") {
+                                  const name = prompt(`New storage area for ${locations.find((l) => l.id === locationFilter)?.name || "this store"}:`);
+                                  if (name?.trim()) {
+                                    const res = await createStorageArea(locationFilter, name.trim());
+                                    if (!res.error) {
+                                      saveScroll();
+                                      setEditingCell(null);
+                                      await updateProductStorageArea(p.id, name.trim(), locationFilter, 1);
+                                    }
+                                  } else {
+                                    setEditingCell(null);
+                                  }
+                                  return;
+                                }
+                                saveScroll();
+                                setEditValue(val);
+                                setEditingCell(null);
+                                await updateProductStorageArea(p.id, val, locationFilter, 1);
+                              }}
+                              onBlur={() => setEditingCell(null)}
+                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              autoFocus
+                            >
+                              <option value="">—</option>
+                              {(locations.find((l) => l.id === locationFilter)?.storageAreas || []).map((sa) => (
+                                <option key={sa.id} value={sa.name}>{sa.name}</option>
+                              ))}
+                              <option value="__custom__">+ Custom area...</option>
+                            </select>
+                          ) : (
+                            <span
+                              className="text-[10px] text-stone-600 cursor-pointer hover:text-amber-600 block truncate"
+                              onClick={() => startEdit(p.id, "location", storageArea || "")}
+                            >
+                              {storageArea || "—"}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Shelf 1 */}
+                        <td className="px-2 py-2">
+                          {isAllLocations ? (
+                            <span className="text-[10px] text-stone-400" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.shelfLocation || "—"}`).join("\n")}>
+                              {storeCount > 0 ? `${storeCount} ${storeCount === 1 ? "store" : "stores"}` : "—"}
+                            </span>
+                          ) : isEd("shelf") ? (
+                            <input
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveEdit(p.id, "shelf")}
+                              onKeyDown={(e) => handleKeyDown(e, p.id, "shelf")}
+                              placeholder="e.g. 5/3"
+                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              autoFocus
+                            />
+                          ) : (
+                            <span
+                              className="text-[10px] text-stone-500 cursor-pointer hover:text-amber-600 block"
+                              onClick={() => startEdit(p.id, "shelf", activeInv?.shelfLocation || "")}
+                            >
+                              {activeInv?.shelfLocation || "—"}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Area 2 */}
+                        <td className="px-2 py-2">
+                          {isAllLocations ? (
+                            <span className="text-[10px] text-stone-400" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.storageArea2 || "—"}`).join("\n")}>
+                              {storeCount > 0 ? `${storeCount} ${storeCount === 1 ? "store" : "stores"}` : "—"}
+                            </span>
+                          ) : isEd("location2") ? (
+                            <select
+                              value={editValue}
+                              onChange={async (e) => {
+                                const val = e.target.value;
+                                if (val === "__custom__") {
+                                  const name = prompt(`New storage area for ${locations.find((l) => l.id === locationFilter)?.name || "this store"}:`);
+                                  if (name?.trim()) {
+                                    const res = await createStorageArea(locationFilter, name.trim());
+                                    if (!res.error) {
+                                      saveScroll();
+                                      setEditingCell(null);
+                                      await updateProductStorageArea(p.id, name.trim(), locationFilter, 2);
+                                    }
+                                  } else {
+                                    setEditingCell(null);
+                                  }
+                                  return;
+                                }
+                                saveScroll();
+                                setEditValue(val);
+                                setEditingCell(null);
+                                await updateProductStorageArea(p.id, val, locationFilter, 2);
+                              }}
+                              onBlur={() => setEditingCell(null)}
+                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              autoFocus
+                            >
+                              <option value="">—</option>
+                              {(locations.find((l) => l.id === locationFilter)?.storageAreas || []).map((sa) => (
+                                <option key={sa.id} value={sa.name}>{sa.name}</option>
+                              ))}
+                              <option value="__custom__">+ Custom area...</option>
+                            </select>
+                          ) : (
+                            <span
+                              className="text-[10px] text-stone-600 cursor-pointer hover:text-amber-600 block truncate"
+                              onClick={() => startEdit(p.id, "location2", activeInv?.storageArea2 || "")}
+                            >
+                              {activeInv?.storageArea2 || "—"}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Shelf 2 */}
+                        <td className="px-2 py-2">
+                          {isAllLocations ? (
+                            <span className="text-[10px] text-stone-400" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.shelfLocation2 || "—"}`).join("\n")}>
+                              {storeCount > 0 ? `${storeCount} ${storeCount === 1 ? "store" : "stores"}` : "—"}
+                            </span>
+                          ) : isEd("shelf2") ? (
+                            <input
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveEdit(p.id, "shelf2")}
+                              onKeyDown={(e) => handleKeyDown(e, p.id, "shelf2")}
+                              placeholder="e.g. 3/1"
+                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              autoFocus
+                            />
+                          ) : (
+                            <span
+                              className="text-[10px] text-stone-500 cursor-pointer hover:text-amber-600 block"
+                              onClick={() => startEdit(p.id, "shelf2", activeInv?.shelfLocation2 || "")}
+                            >
+                              {activeInv?.shelfLocation2 || "—"}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Pour Size — clickable dropdown for multi-pour */}
+                        <td className="px-2 py-2 text-center text-xs text-stone-500 relative">
+                          {(() => {
+                            if (isBTB) return <span className="text-blue-600 font-medium">BTB</span>;
+                            if (catData?.servingStyle === "NONE") {
+                              // Yield editable for grocery/food items
+                              if (isEd("yield")) {
+                                return (
+                                  <input
+                                    type="number"
+                                    step="1"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    onBlur={() => saveEdit(p.id, "yield")}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") saveEdit(p.id, "yield");
+                                      if (e.key === "Escape") setEditingCell(null);
+                                    }}
+                                    placeholder="Qty"
+                                    className="w-16 px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-xs text-center focus:outline-none"
+                                    autoFocus
+                                  />
+                                );
+                              }
+                              return (
+                                <span
+                                  className="text-xs cursor-pointer hover:text-amber-600"
+                                  onClick={() => startEdit(p.id, "yield", p.yieldCount?.toString() || "")}
+                                  title="Click to set yield (units per container)"
+                                >
+                                  {p.yieldCount ? (
+                                    <span className="text-stone-700">{p.yieldCount} each</span>
+                                  ) : (
+                                    <span className="text-stone-400">each →</span>
+                                  )}
+                                </span>
+                              );
+                            }
+                            const pours = catData?.pourSizes || [];
+                            const validPours = pours.filter((ps) => {
+                              const amt = ps.amount ?? (ps as any).oz ?? 0;
+                              return amt > 0 || ps.label.toLowerCase().includes("full");
+                            });
+                            if (validPours.length === 0) {
+                              return pourOz > 0 ? `${Number.isInteger(pourOz) ? pourOz : pourOz.toFixed(2)}oz` : "—";
+                            }
+                            const selIdx = selectedPourIdx[p.id] ?? 0;
+                            const sel = validPours[selIdx] || validPours[0];
+                            const amt = sel.amount ?? (sel as any).oz ?? 0;
+                            const u = sel.unit || "oz";
+                            const label = amt === 0 ? sel.label : `${Number.isInteger(amt) ? amt : parseFloat(amt.toFixed(2))}${u}`;
+                            const isMulti = validPours.length > 1;
+                            const isOpen = pourDropdownOpen === p.id;
+
+                            return (
+                              <div className="relative inline-block">
+                                <button
+                                  onClick={() => isMulti && setPourDropdownOpen(isOpen ? null : p.id)}
+                                  className={`px-1.5 py-0.5 rounded text-xs font-medium transition-colors ${
+                                    isMulti
+                                      ? "bg-amber-100 text-amber-700 border border-amber-300 cursor-pointer hover:bg-amber-200"
+                                      : "text-stone-500 cursor-default"
+                                  }`}
+                                  title={isMulti ? validPours.map((ps) => {
+                                    const a = ps.amount ?? (ps as any).oz ?? 0;
+                                    return a === 0 ? ps.label : `${ps.label}: ${a}${ps.unit || "oz"}`;
+                                  }).join("\n") : undefined}
+                                >
+                                  {label}
+                                  {isMulti && <span className="text-amber-400 ml-0.5">▾</span>}
+                                </button>
+                                {isOpen && (
+                                  <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setPourDropdownOpen(null)} />
+                                    <div className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-stone-200 rounded-lg shadow-lg py-1 min-w-[140px]">
+                                      {validPours.map((ps, i) => {
+                                        const a = ps.amount ?? (ps as any).oz ?? 0;
+                                        const uu = ps.unit || "oz";
+                                        const cost = getPourCostForSize(p, ps);
+                                        return (
+                                          <button
+                                            key={i}
+                                            onClick={() => {
+                                              setSelectedPourIdx({ ...selectedPourIdx, [p.id]: i });
+                                              setPourDropdownOpen(null);
+                                            }}
+                                            className={`w-full text-left px-3 py-1.5 text-xs hover:bg-amber-50 flex items-center justify-between gap-3 ${
+                                              i === (selIdx || 0) ? "bg-amber-50 font-medium" : ""
+                                            }`}
+                                          >
+                                            <span>{ps.label} {a > 0 ? `(${a}${uu})` : ""}</span>
+                                            <span className="text-amber-600">{cost > 0 ? formatCents(cost) : "—"}</span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </td>
+
+                        {/* Pour Cost — reactive to selected pour OR cost-per-unit for yield items */}
+                        <td className="px-2 py-2 text-right">
+                          {(() => {
+                            // Yield-based cost for NONE serving style items
+                            if (catData?.servingStyle === "NONE") {
+                              if (p.yieldCount && p.yieldCount > 0 && p.bottleCostCents) {
+                                const perUnit = Math.round(p.bottleCostCents / p.yieldCount);
+                                return (
+                                  <span className="text-xs text-amber-600" title={`${formatCents(p.bottleCostCents)} \u00f7 ${p.yieldCount} = ${formatCents(perUnit)} per ${p.yieldUnit || "unit"}`}>
+                                    {formatCents(perUnit)}
+                                  </span>
+                                );
+                              }
+                              return <span className="text-xs text-stone-400">—</span>;
+                            }
+                            const pours = catData?.pourSizes || [];
+                            const validPours = pours.filter((ps) => {
+                              const amt = ps.amount ?? (ps as any).oz ?? 0;
+                              return amt > 0 || ps.label.toLowerCase().includes("full");
+                            });
+                            let cost = pourCost;
+                            if (validPours.length > 0) {
+                              const selIdx = selectedPourIdx[p.id] ?? 0;
+                              const sel = validPours[selIdx] || validPours[0];
+                              cost = getPourCostForSize(p, sel);
+                            }
+                            const isMulti = validPours.length > 1;
+                            return (
+                              <span
+                                className={`text-xs ${cost > 0 ? "text-amber-600" : "text-stone-400"} ${isMulti ? "cursor-help" : ""}`}
+                                title={isMulti ? validPours.map((ps) => {
+                                  const a = ps.amount ?? (ps as any).oz ?? 0;
+                                  const c = getPourCostForSize(p, ps);
+                                  return `${ps.label}${a > 0 ? ` (${a}${ps.unit || "oz"})` : ""}: ${c > 0 ? formatCents(c) : "—"}`;
+                                }).join("\n") : undefined}
+                              >
+                                {cost > 0 ? formatCents(cost) : "—"}
+                              </span>
+                            );
+                          })()}
+                        </td>
+
+                        {/* Suggested Price — reactive to selected pour */}
+                        <td className="px-2 py-2 text-right">
+                          {(() => {
+                            const pours = catData?.pourSizes || [];
+                            const validPours = pours.filter((ps) => {
+                              const amt = ps.amount ?? (ps as any).oz ?? 0;
+                              return amt > 0 || ps.label.toLowerCase().includes("full");
+                            });
+                            let sug = suggested;
+                            if (validPours.length > 0) {
+                              const selIdx = selectedPourIdx[p.id] ?? 0;
+                              const sel = validPours[selIdx] || validPours[0];
+                              const cost = getPourCostForSize(p, sel);
+                              sug = getSuggestedForCost(cost, p);
+                            }
+                            return (
+                              <span className={`text-xs ${sug > 0 ? "text-green-600" : "text-stone-400"}`}>
+                                {sug > 0 ? formatCents(sug) : "—"}
+                              </span>
+                            );
+                          })()}
+                        </td>
+
+                        {/* Stores */}
+                        <td className="px-2 py-2 text-center">
+                          <span className="text-xs text-stone-600">{p.locationCount}/{locations.length}</span>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-2 py-2 text-right">
+                          <div className="flex items-center justify-end gap-0.5">
+                            <Link
+                              href={`/dashboard/products/${p.id}/edit`}
+                              className="p-1 text-stone-400 hover:text-amber-600 transition-colors"
+                              title="Edit full details"
+                              onClick={() => {
+                                // Save current scroll + highlight RIGHT BEFORE navigation
+                                try {
+                                  if (scrollContainerRef.current) {
+                                    sessionStorage.setItem("meyhouse_productScroll", String(scrollContainerRef.current.scrollTop));
+                                  }
+                                  sessionStorage.setItem("meyhouse_productHighlight", p.id);
+                                } catch {}
+                                setHighlightedRowRaw(p.id);
+                              }}
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </Link>
+                            {p.menuStatus === "ON_MENU" ? (
+                              <div className="relative">
+                                <button
+                                  onClick={() => setRemoveMenuOpen(removeMenuOpen === p.id ? null : p.id)}
+                                  className="p-1 text-stone-400 hover:text-red-600 transition-colors"
+                                  title="Remove from menu"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                                {removeMenuOpen === p.id && (
+                                  <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setRemoveMenuOpen(null)} />
+                                    <div className="absolute right-0 top-7 bg-white border border-stone-200 rounded-lg shadow-lg z-50 w-52 py-1">
+                                      <button
+                                        onClick={async () => {
+                                          await moveProductToDatabase(p.id);
+                                          setRemoveMenuOpen(null);
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-xs hover:bg-stone-50 transition-colors"
+                                      >
+                                        <p className="font-medium text-stone-900">Move to Product Database</p>
+                                        <p className="text-[10px] text-stone-500">Tasted but not on menu yet</p>
+                                      </button>
+                                      <button
+                                        onClick={async () => {
+                                          if (!confirm(`Permanently delete "${p.name}"? This cannot be undone.`)) return;
+                                          await hardDeleteProduct(p.id);
+                                          setRemoveMenuOpen(null);
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-xs hover:bg-red-50 transition-colors"
+                                      >
+                                        <p className="font-medium text-red-600">Permanently Delete</p>
+                                        <p className="text-[10px] text-stone-500">Removes from database — cannot be undone</p>
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            ) : (
+                              <button
+                                onClick={async () => {
+                                  await moveProductToMenu(p.id);
+                                }}
+                                className="p-1 text-stone-400 hover:text-green-600 transition-colors"
+                                title="Restore to menu"
+                              >
+                                <Undo2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Floating mini edit toolbar (Word-style popup) — quick Par-per-store editing + store selection */}
+      {mode === "products" && floatingEditProductId && floatingEditPos && (() => {
+        const product = products.find((p) => p.id === floatingEditProductId);
+        if (!product) return null;
+        const toggleStore = (locId: string) => {
+          setSelectedLocationsDraft((prev) =>
+            prev.includes(locId) ? prev.filter((id) => id !== locId) : [...prev, locId]
+          );
+        };
+        return (
+          <div
+            data-floating-edit
+            className="fixed z-50 bg-white border border-stone-200 rounded-xl shadow-xl p-3 w-[340px]"
+            style={{
+              top: `${Math.max(10, floatingEditPos.top - 220)}px`,
+              left: `${Math.max(10, floatingEditPos.left)}px`,
+            }}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-stone-800 truncate pr-2">{product.name}</p>
+              <button onClick={closeFloatingEdit} className="text-stone-400 hover:text-stone-700 text-sm leading-none" title="Close">✕</button>
+            </div>
+
+            {/* Available at stores */}
+            <div className="mb-3">
+              <p className="text-[10px] uppercase text-stone-400 font-medium mb-1">Available at Stores</p>
+              <div className="flex flex-wrap gap-1">
+                {locations.map((loc) => {
+                  const isSelected = selectedLocationsDraft.includes(loc.id);
+                  const shortName = loc.name.replace("Meyhouse ", "");
+                  return (
+                    <button
+                      key={loc.id}
+                      onClick={() => toggleStore(loc.id)}
+                      className={`px-2 py-1 rounded-md text-[10px] font-medium border transition-colors ${
+                        isSelected
+                          ? "bg-amber-100 border-amber-400 text-amber-800"
+                          : "bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100"
+                      }`}
+                    >
+                      {isSelected && "✓ "}{shortName}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Par per store */}
+            <div className="space-y-1.5 mb-2">
+              <p className="text-[10px] uppercase text-stone-400 font-medium">Par Level per Store</p>
+              {selectedLocationsDraft.length === 0 ? (
+                <p className="text-xs text-stone-400 italic">No stores selected</p>
+              ) : (
+                selectedLocationsDraft.map((locId) => {
+                  const loc = locations.find((l) => l.id === locId);
+                  if (!loc) return null;
+                  const inv = product.inventory.find((i) => i.locationId === locId);
+                  const isNew = !inv;
+                  return (
+                    <div key={locId} className="flex items-center justify-between gap-2">
+                      <label className="text-xs text-stone-600 truncate flex-1">
+                        {loc.name.replace("Meyhouse ", "")}
+                        {isNew && <span className="text-[9px] text-amber-600 ml-1">(new)</span>}
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={parDraft[locId] ?? ""}
+                        onChange={(e) => setParDraft({ ...parDraft, [locId]: e.target.value })}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") { e.preventDefault(); saveFloatingParChanges(); }
+                          if (e.key === "Escape") closeFloatingEdit();
+                        }}
+                        placeholder="0"
+                        className="w-16 px-2 py-1 bg-stone-50 border border-stone-300 rounded text-xs text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+              <button
+                onClick={saveFloatingParChanges}
+                className="flex-1 px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-medium"
+              >
+                Save
+              </button>
+              <Link
+                href={`/dashboard/products/${product.id}/edit`}
+                onClick={() => {
+                  try {
+                    if (scrollContainerRef.current) {
+                      sessionStorage.setItem("meyhouse_productScroll", String(scrollContainerRef.current.scrollTop));
+                    }
+                    sessionStorage.setItem("meyhouse_productHighlight", product.id);
+                  } catch {}
+                }}
+                className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-medium"
+              >
+                Edit Full Details
+              </Link>
+            </div>
+            <p className="text-[10px] text-stone-400 mt-1.5 text-center">Press Enter to save · Esc to cancel</p>
+          </div>
+        );
+      })()}
+
+      {/* === MODE 2: INVENTORY (R365-style Variance Review) === */}
+      {mode === "inventory" && (
+        <div>
+
+          {!selectedStoreId ? (
+            <div className="bg-white border border-stone-200 rounded-xl p-8 text-center">
+              <ClipboardList className="w-10 h-10 text-stone-300 mx-auto mb-3" />
+              <h2 className="text-lg font-semibold mb-1">Select a store to start counting</h2>
+              <p className="text-sm text-stone-500">Pick a location above, then walk through each storage area.</p>
+            </div>
+          ) : (
+            <div className="bg-white border border-stone-200 rounded-xl">
+                          <table className="w-full min-w-[1100px] text-xs table-fixed">
+                            <thead className="sticky top-0 z-10">
+                              <tr className="bg-stone-50 border-b border-stone-200 text-[10px] text-stone-500 uppercase font-medium">
+                                <th className="text-left px-2 py-2 w-[17%] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("name")}>
+                                  <span className="flex items-center gap-1">Item <OrderSortIcon field="name" /></span>
+                                </th>
+                                <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("size")}>
+                                  <span className="flex items-center gap-1">Size <OrderSortIcon field="size" /></span>
+                                </th>
+                                <th className="text-left px-2 py-2 w-[7%] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("vendor")}>
+                                  <span className="flex items-center gap-1">Vendor <OrderSortIcon field="vendor" /></span>
+                                </th>
+                                <th className="text-right px-2 py-2 w-[6%]">Cost</th>
+                                <th className="text-right px-2 py-2 w-[6%]">Previous</th>
+                                <th className="text-right px-2 py-2 w-[7%]">Purchases</th>
+                                <th className="text-right px-2 py-2 w-[6%]">Transfers</th>
+                                <th className="text-center px-2 py-2 w-[7%] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("count")}>
+                                  <span className="flex items-center justify-center gap-1">Count <OrderSortIcon field="count" /></span>
+                                </th>
+                                <th className="text-right px-2 py-2 w-[7%]">Actual Usage</th>
+                                <th className="text-right px-2 py-2 w-[7%]">Theoretical</th>
+                                <th className="text-right px-2 py-2 w-[5%]">Waste</th>
+                                <th className="text-right px-2 py-2 w-[7%]">Variance</th>
+                                <th className="text-right px-2 py-2 w-[6%]">Var $</th>
+                                <th className="text-right px-2 py-2 w-[7%]">Efficiency</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-stone-100">
+                              {flatInventoryItems.map((item) => {
+                                const countVal = inventoryCounts[item.inv.id] ?? "";
+                                const hasCount = countVal !== "";
+                                const countNum = hasCount ? parseFloat(countVal) || 0 : null;
+                                const isSaved = savedItems.has(item.inv.id);
+
+                                const prev = item.inv.currentStock;
+                                const purchased = item.inv.purchasesSinceLastCount;
+                                const transfers = 0;
+                                const expected = prev + purchased + transfers;
+                                const actualUsage = countNum !== null ? expected - countNum : null;
+                                const theoretical = 0;
+                                const waste = 0;
+                                const variance = actualUsage !== null ? actualUsage - theoretical - waste : null;
+                                const varianceDollars = variance !== null && item.bottleCostCents
+                                  ? (variance * item.bottleCostCents) / 100
+                                  : null;
+                                const efficiency = actualUsage !== null && actualUsage > 0 && theoretical > 0
+                                  ? (theoretical / actualUsage) * 100
+                                  : null;
+
+                                const invMarkerColor =
+                                  item.inv.markedForRemoval === "INACTIVE" ? "bg-red-50/60" :
+                                  item.inv.markedForRemoval === "DATABASE" ? "bg-yellow-50/80" :
+                                  item.inv.isBTG ? "bg-purple-50/70" :
+                                  item.inv.isCraftCocktailIngredient ? "bg-teal-50/70" :
+                                  item.inv.isWellSpirit ? "bg-blue-50/70" :
+                                  item.inv.isHalfBottle ? "bg-orange-50/70" :
+                                  item.inv.isDessertWine ? "bg-emerald-50/70" :
+                                  "";
+                                return (
+                                  <tr
+                                    key={item.inv.id}
+                                    onClick={(e) => {
+                                      if ((e.target as HTMLElement).closest("input, select, button, a")) return;
+                                      setHighlightedRow(highlightedRow === item.inv.id ? null : item.inv.id);
+                                    }}
+                                    className={`hover:bg-stone-50/50 cursor-pointer transition-colors ${
+                                      highlightedRow === item.inv.id ? "!bg-amber-50 ring-1 ring-amber-200" :
+                                      isSaved ? "bg-green-50/50" : hasCount ? "bg-amber-50/30" :
+                                      invMarkerColor
+                                    }`}
+                                  >
+                                    <td className="px-2 py-2">
+                                      <p className="font-medium whitespace-nowrap">
+                                        {item.name}
+                                        {item.inv.markedForRemoval === "DATABASE" && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded ml-1" title="Marked for Database">→ DB</span>}
+                                        {item.inv.markedForRemoval === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1" title="Marked to Delete">→ ✕</span>}
+                                        {item.inv.isBTG && <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded ml-1" title="BTG Wine">BTG</span>}
+                                        {item.inv.isCraftCocktailIngredient && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded ml-1" title="Craft Cocktail">CC</span>}
+                                        {item.inv.isWellSpirit && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded ml-1" title="Well Spirit">Well</span>}
+                                        {item.inv.isHalfBottle && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded ml-1" title="Half Bottle">½</span>}
+                                {item.inv.isDessertWine && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded ml-1" title="Dessert Wine">🍇</span>}
+                                        {item.inv.isDessertWine && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded ml-1" title="Dessert Wine">🍇</span>}
+                                      </p>
+                                    </td>
+                                    <td className="px-2 py-2 text-stone-500 text-[10px]">
+                                      {item.bottleSizeMl ? formatSize(item.bottleSizeMl, item.bottleSizeUnit || "ml") : "—"}
+                                    </td>
+                                    <td className="px-2 py-2 text-stone-500 text-[10px] truncate max-w-[70px]">
+                                      {item.vendor || "—"}
+                                    </td>
+                                    <td className="px-2 py-2 text-right text-stone-600">
+                                      {item.bottleCostCents ? `$${(item.bottleCostCents / 100).toFixed(2)}` : "—"}
+                                    </td>
+                                    <td className="px-2 py-2 text-right text-blue-600">
+                                      {prev.toFixed(prev % 1 === 0 ? 0 : 2)}
+                                    </td>
+                                    <td className="px-2 py-2 text-right text-stone-600">
+                                      {purchased > 0 ? purchased.toFixed(purchased % 1 === 0 ? 0 : 2) : "0.00"}
+                                    </td>
+                                    <td className="px-2 py-2 text-right text-stone-400">0.00</td>
+                                    <td className="px-2 py-2 text-center">
+                                      <input
+                                        type="number"
+                                        step="0.01"
+                                        inputMode="decimal"
+                                        value={countVal}
+                                        onChange={(e) => setInventoryCounts({ ...inventoryCounts, [item.inv.id]: e.target.value })}
+                                        onBlur={(e) => { if (e.target.value !== "") handleCountSave(item.inv.id, e.target.value); }}
+                                        placeholder="—"
+                                        className={`w-16 px-1.5 py-1 border rounded text-xs text-center font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                          isSaved ? "bg-green-100 border-green-400" : "bg-white border-stone-300"
+                                        }`}
+                                      />
+                                      {isSaved && <span className="text-[9px] text-green-600 block">✓</span>}
+                                    </td>
+                                    <td className="px-2 py-2 text-right">
+                                      {actualUsage !== null ? (
+                                        <span className={actualUsage < 0 ? "text-red-600" : "text-stone-700"}>
+                                          {actualUsage < 0 ? `(${Math.abs(actualUsage).toFixed(2)})` : actualUsage.toFixed(2)}
+                                        </span>
+                                      ) : <span className="text-stone-400">—</span>}
+                                    </td>
+                                    <td className="px-2 py-2 text-right text-stone-400">0.00</td>
+                                    <td className="px-2 py-2 text-right text-stone-400">0.00</td>
+                                    <td className="px-2 py-2 text-right">
+                                      {variance !== null ? (
+                                        <span className={`font-medium ${variance !== 0 ? "text-red-600" : "text-stone-500"}`}>
+                                          {variance !== 0 ? (variance > 0 ? variance.toFixed(2) : `(${Math.abs(variance).toFixed(2)})`) : "0.00"}
+                                        </span>
+                                      ) : <span className="text-stone-400">—</span>}
+                                    </td>
+                                    <td className="px-2 py-2 text-right">
+                                      {varianceDollars !== null ? (
+                                        <span className={`font-medium ${varianceDollars !== 0 ? "text-red-600" : "text-stone-500"}`}>
+                                          {varianceDollars !== 0 ? (varianceDollars > 0 ? `$${varianceDollars.toFixed(2)}` : `($${Math.abs(varianceDollars).toFixed(2)})`) : "$0.00"}
+                                        </span>
+                                      ) : <span className="text-stone-400">—</span>}
+                                    </td>
+                                    <td className="px-2 py-2 text-right text-stone-400">
+                                      {efficiency !== null ? `${efficiency.toFixed(1)}%` : "0.00%"}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {mode === "ordering" && (
+        <div className="flex gap-3">
+          {/* Main ordering table */}
+          <div className={`flex-1 min-w-0 transition-all duration-200 ${cartExpanded ? "hidden" : ""}`}>
+
+            {!selectedStoreId ? (
+              <div className="bg-white border border-stone-200 rounded-xl p-8 text-center">
+                <ShoppingCart className="w-10 h-10 text-stone-300 mx-auto mb-3" />
+                <h2 className="text-lg font-semibold mb-1">Select a store to start ordering</h2>
+                <p className="text-sm text-stone-500">Pick a location, count what you have, and the system auto-generates your order.</p>
+              </div>
+            ) : (
+              <div className="bg-white border border-stone-200 rounded-xl">
+                  <table ref={orderTableRef} className="w-full min-w-[980px] text-xs">
+                    <thead className="sticky top-0 z-10">
+                      <tr className="bg-stone-50 border-b border-stone-200 text-[10px] text-stone-500 uppercase font-medium">
+                        <th className="text-left px-2 py-2 cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("name")}>
+                          <span className="flex items-center gap-1">Product <OrderSortIcon field="name" /></span>
+                        </th>
+                        <th className="text-left px-2 py-2 w-[55px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("size")}>
+                          <span className="flex items-center gap-1">Size <OrderSortIcon field="size" /></span>
+                        </th>
+                        <th className="text-center px-2 py-2 w-[70px]">
+                          <span className="whitespace-nowrap">Case</span>
+                        </th>
+                        <th className="text-left px-2 py-2 w-[75px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("vendor")}>
+                          <span className="flex items-center gap-1">Vendor <OrderSortIcon field="vendor" /></span>
+                        </th>
+                        <th className="text-right px-2 py-2 w-[45px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("par")}>
+                          <span className="flex items-center justify-end gap-1">Par <OrderSortIcon field="par" /></span>
+                        </th>
+                        <th className="text-right px-2 py-2 w-[55px]">Last</th>
+                        <th className="text-center px-2 py-2 w-[55px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("count")}>
+                          <span className="flex items-center justify-center gap-1">Count <OrderSortIcon field="count" /></span>
+                        </th>
+                        <th className="text-right px-2 py-2 w-[45px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("need")}>
+                          <span className="flex items-center justify-end gap-1">Need <OrderSortIcon field="need" /></span>
+                        </th>
+                        <th className="text-center px-2 py-2 w-[70px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("order")}>
+                          <span className="flex items-center justify-center gap-1">Order <OrderSortIcon field="order" /></span>
+                        </th>
+                        <th className="text-left px-2 py-2">8-Week History</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {flatInventoryItems.map((item) => {
+                        const countVal = orderCounts[item.inv.id] ?? "";
+                        const hasCount = countVal !== "";
+                        const counted = hasCount ? parseFloat(countVal) || 0 : null;
+                        const needed = counted !== null ? Math.max(0, item.inv.parLevel - counted) : null;
+                        // Case size decides how to order:
+                        //   positive number (6, 12, 24) → order by CASE (need ÷ case_size, rounded up)
+                        //   negative (Bottle Only, Single, Keg) or 0 → order by UNIT (bottle/keg count)
+                        const cps = item.casePackSize || 0;
+                        const isCase = cps > 1;
+                        const casePack = isCase ? cps : 1;
+                        const orderQty = needed !== null && needed > 0
+                          ? (isCase ? Math.ceil(needed / casePack) : Math.ceil(needed))
+                          : 0;
+                        const history = getHistoryLine(item);
+                        const isEd = (field: string) => editingCell?.productId === item.id && editingCell?.field === field;
+
+                        const ordMarkerColor =
+                          item.inv.markedForRemoval === "INACTIVE" ? "bg-red-50/60" :
+                          item.inv.markedForRemoval === "DATABASE" ? "bg-yellow-50/80" :
+                          item.inv.isBTG ? "bg-purple-50/70" :
+                          item.inv.isCraftCocktailIngredient ? "bg-teal-50/70" :
+                          item.inv.isWellSpirit ? "bg-blue-50/70" :
+                          item.inv.isHalfBottle ? "bg-orange-50/70" :
+                          "";
+                        return (
+                          <tr key={item.inv.id}
+                            onClick={(e) => {
+                              if ((e.target as HTMLElement).closest("input, select, button, a")) return;
+                              setHighlightedRow(highlightedRow === item.inv.id ? null : item.inv.id);
+                            }}
+                            className={`hover:bg-stone-50/50 cursor-pointer transition-colors ${
+                              highlightedRow === item.inv.id ? "!bg-amber-50 ring-1 ring-amber-200" :
+                              hasCount && needed && needed > 0 ? "bg-amber-50/30" :
+                              ordMarkerColor
+                            }`}>
+                            {/* Product name */}
+                            <td className="px-2 py-2">
+                              <p className="font-medium text-xs whitespace-nowrap">
+                                {item.name}
+                                {item.inv.markedForRemoval === "DATABASE" && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded ml-1" title="Marked for Database">→ DB</span>}
+                                {item.inv.markedForRemoval === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1" title="Marked to Delete">→ ✕</span>}
+                                {item.inv.isBTG && <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded ml-1" title="BTG Wine">BTG</span>}
+                                {item.inv.isCraftCocktailIngredient && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded ml-1" title="Craft Cocktail">CC</span>}
+                                {item.inv.isWellSpirit && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded ml-1" title="Well Spirit">Well</span>}
+                                {item.inv.isHalfBottle && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded ml-1" title="Half Bottle">½</span>}
+                                {item.inv.isDessertWine && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded ml-1" title="Dessert Wine">🍇</span>}
+                              </p>
+                            </td>
+                            {/* Size — click to edit */}
+                            <td className="px-2 py-2">
+                              {isEd("bottleSize") ? (
+                                <select
+                                  value={editValue}
+                                  onChange={(e) => {
+                                    saveScroll();
+                                    setEditValue(e.target.value);
+                                    setEditingCell(null);
+                                    const product = products.find((pr) => pr.id === item.id);
+                                    if (product) {
+                                      updateProduct(item.id, {
+                                        name: product.name,
+                                        type: product.type,
+                                        vendorId: product.vendorId || undefined,
+                                        ingredientCategory: product.ingredientCategory || undefined,
+                                        bottleSizeMl: e.target.value ? Number(e.target.value) : undefined,
+                                        bottleSizeUnit: "ml",
+                                        yieldCount: product.yieldCount ?? null,
+                                        yieldUnit: product.yieldUnit ?? null,
+                                        casePackSize: product.casePackSize || undefined,
+                                        bottleCostCents: product.bottleCostCents || undefined,
+                                        locationIds: product.locationIds,
+                                      });
+                                    }
+                                  }}
+                                  onBlur={() => setEditingCell(null)}
+                                  className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                                  autoFocus
+                                >
+                                  <option value="">—</option>
+                                  {(() => {
+                                    const sorted = sortBottleSizes(bottleSizes);
+                                    const groups: Record<SizeGroup, number[]> = { ml: [], oz: [], weight: [], keg: [] };
+                                    sorted.forEach((s) => groups[classifySize(s)].push(s));
+                                    const labels: Record<SizeGroup, string> = { ml: "Milliliters", oz: "Ounces", weight: "Weight", keg: "Kegs / Large" };
+                                    return (["ml", "oz", "weight", "keg"] as SizeGroup[]).map((g) =>
+                                      groups[g].length > 0 ? (
+                                        <optgroup key={g} label={labels[g]}>
+                                          {groups[g].map((s) => (
+                                            <option key={s} value={s}>{formatSizeMl(s)}</option>
+                                          ))}
+                                        </optgroup>
+                                      ) : null
+                                    );
+                                  })()}
+                                </select>
+                              ) : (
+                                <span
+                                  className="text-[10px] text-stone-500 cursor-pointer hover:text-amber-600"
+                                  onClick={() => startEdit(item.id, "bottleSize", item.bottleSizeMl?.toString() || "")}
+                                >
+                                  {item.bottleSizeMl ? formatSize(item.bottleSizeMl, item.bottleSizeUnit || "ml") : "—"}
+                                </span>
+                              )}
+                            </td>
+                            {/* Case size (read-only) */}
+                            <td className="px-2 py-2 text-center text-[10px] text-stone-500 whitespace-nowrap">
+                              {formatCaseSize(item.casePackSize)}
+                            </td>
+                            {/* Vendor — click to edit */}
+                            <td className="px-2 py-2">
+                              {isEd("vendor") ? (
+                                <select
+                                  value={editValue}
+                                  onChange={(e) => setEditValue(e.target.value)}
+                                  onBlur={() => saveEdit(item.id, "vendor")}
+                                  className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                                  autoFocus
+                                >
+                                  <option value="">—</option>
+                                  {vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                                </select>
+                              ) : (
+                                <span
+                                  className="text-[10px] text-stone-600 cursor-pointer hover:text-amber-600 truncate block"
+                                  onClick={() => startEdit(item.id, "vendor", item.vendorId || "")}
+                                >
+                                  {item.vendor || "—"}
+                                </span>
+                              )}
+                            </td>
+                            {/* Par — click to edit */}
+                            <td className="px-2 py-2 text-right">
+                              {isEd("par") ? (
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={editValue}
+                                  onChange={(e) => setEditValue(e.target.value)}
+                                  onBlur={() => {
+                                    handleParSave(item.inv.id, editValue);
+                                    setEditingCell(null);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") { handleParSave(item.inv.id, editValue); setEditingCell(null); }
+                                    if (e.key === "Escape") setEditingCell(null);
+                                  }}
+                                  className="w-12 px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-xs text-right focus:outline-none"
+                                  autoFocus
+                                />
+                              ) : (
+                                <span
+                                  className="text-xs text-stone-700 cursor-pointer hover:text-amber-600"
+                                  onClick={() => startEdit(item.id, "par", item.inv.parLevel.toString())}
+                                >
+                                  {item.inv.parLevel}
+                                </span>
+                              )}
+                            </td>
+                            {/* Last Count */}
+                            <td className="px-2 py-2 text-right text-xs text-stone-400">{item.inv.currentStock}</td>
+                            {/* Count input */}
+                            <td className="px-2 py-2 text-center">
+                              <input
+                                type="number"
+                                step="0.01"
+                                inputMode="decimal"
+                                value={countVal}
+                                onChange={(e) => setOrderCounts({ ...orderCounts, [item.inv.id]: e.target.value })}
+                                placeholder="—"
+                                className="w-14 px-1 py-1 border border-stone-300 rounded text-xs text-center font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                              />
+                            </td>
+                            {/* Need */}
+                            <td className="px-2 py-2 text-right">
+                              {needed !== null && needed > 0 ? (
+                                <span className="text-xs text-amber-600 font-medium">{needed}</span>
+                              ) : needed !== null ? (
+                                <span className="text-xs text-green-600">✓</span>
+                              ) : <span className="text-xs text-stone-400">—</span>}
+                            </td>
+                            {/* Order — click to edit qty + case/bottle */}
+                            <td className="px-2 py-2 text-center">
+                              {isEd("orderQty") ? (
+                                <div className="flex items-center gap-1 justify-center">
+                                  <input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    value={editValue.split(":")[0] || ""}
+                                    onChange={(e) => {
+                                      const unit = editValue.split(":")[1] || (isCase ? "cs" : "btl");
+                                      setEditValue(`${e.target.value}:${unit}`);
+                                    }}
+                                    className="w-10 px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-xs text-center focus:outline-none"
+                                    autoFocus
+                                  />
+                                  <select
+                                    value={editValue.split(":")[1] || (isCase ? "cs" : "btl")}
+                                    onChange={(e) => {
+                                      const qty = editValue.split(":")[0] || "0";
+                                      setEditValue(`${qty}:${e.target.value}`);
+                                    }}
+                                    onBlur={() => setEditingCell(null)}
+                                    className="px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                                  >
+                                    <option value="btl">btl</option>
+                                    <option value="cs">case</option>
+                                  </select>
+                                </div>
+                              ) : orderQty > 0 ? (
+                                <span
+                                  className="text-xs text-amber-700 font-bold cursor-pointer hover:text-amber-900"
+                                  onClick={() => startEdit(item.id, "orderQty", `${orderQty}:${orderUnitLabel(item.casePackSize, isCase)}`)}
+                                >
+                                  {orderQty} {orderUnitLabel(item.casePackSize, isCase)}
+                                </span>
+                              ) : <span className="text-xs text-stone-400">—</span>}
+                            </td>
+                            {/* 8-Week History */}
+                            <td className="px-2 py-2">
+                              <div className="flex items-center gap-2 text-[10px] text-stone-500">
+                                <span className="text-stone-400">Last 8:</span>
+                                <span className="font-mono">{history.weekly.join("·")}</span>
+                                <span className="text-stone-300">|</span>
+                                <span>Wk: <span className="text-stone-700">{history.weeklyAvg.toFixed(1)}</span></span>
+                                <span className="text-stone-300">|</span>
+                                <span>Mo: <span className="text-stone-700">{history.monthlyAvg.toFixed(1)}</span></span>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+              </div>
+            )}
+          </div>
+
+          {/* ===== ORDER CART SIDEBAR ===== */}
+          {showCart && (
+            <div className={`${cartExpanded ? "flex-1" : "w-[260px]"} flex-shrink-0 sticky top-2 self-start max-h-[calc(100vh-12rem)] bg-white border border-stone-200 rounded-xl shadow-lg flex flex-col transition-all duration-200 z-20`}>
+              <div className="p-4 border-b border-stone-200 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-amber-600" />
+                  <h2 className="font-bold">{useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}</h2>
+                  <span className="text-xs text-stone-500">({cartItems.length})</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCartExpanded(!cartExpanded)}
+                    className="text-stone-400 hover:text-amber-600 p-1 transition-colors"
+                    title={cartExpanded ? "Collapse cart" : "Expand cart full width"}
+                  >
+                    {cartExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                  </button>
+                  <button
+                    onClick={() => { setShowCart(false); setCartExpanded(false); }}
+                    className="text-stone-400 hover:text-stone-700 text-lg"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-3">
+                {cartItems.length === 0 ? (
+                  <div className="text-center py-8 text-stone-400 text-sm">
+                    <ShoppingCart className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <p>Cart is empty</p>
+                    <p className="text-xs mt-1">Enter counts below par to add items</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {cartGrouped.map(([vendor, vendorItems]) => {
+                      // Sub-group by store within each vendor
+                      const byStore = new Map<string, CartItem[]>();
+                      for (const ci of vendorItems) {
+                        const key = ci.locationName || "Unknown";
+                        if (!byStore.has(key)) byStore.set(key, []);
+                        byStore.get(key)!.push(ci);
+                      }
+                      return (
+                        <div key={vendor}>
+                          <div className="flex items-center gap-1 mb-1">
+                            <span className="text-xs font-bold text-stone-700 uppercase">{vendor}</span>
+                            <span className="text-xs text-stone-400">({vendorItems.length})</span>
+                          </div>
+                          {[...byStore.entries()].map(([storeName, storeItems]) => (
+                            <div key={storeName} className="mb-2">
+                              {useMergedOrderCart && (
+                                <p className="text-xs text-amber-700 font-bold ml-1 mb-0.5">{storeName}</p>
+                              )}
+                              <div className="space-y-1">
+                                {storeItems.map((ci, idx) => {
+                                  const cartKey = `${ci.productId}_${ci.locationId}`;
+                                  const isEditingThis = editingCartItem === cartKey;
+                                  return (
+                                  <div key={`${ci.productId}-${ci.locationId}-${idx}`} className="bg-stone-50 rounded px-2 py-1.5 text-xs">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex-1 min-w-0 mr-2">
+                                        <p className="truncate font-medium">{ci.productName}</p>
+                                        <p className="text-[10px] text-stone-500">
+                                          Par {ci.parLevel} · Had {ci.counted}
+                                        </p>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        {/* Editable qty + unit */}
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          step="1"
+                                          value={ci.orderQty}
+                                          onChange={(e) => {
+                                            const val = parseInt(e.target.value) || 1;
+                                            setCartOverrides({ ...cartOverrides, [cartKey]: { ...cartOverrides[cartKey], orderQty: val } });
+                                          }}
+                                          className="w-8 px-0.5 py-0.5 border border-stone-300 rounded text-[10px] text-center font-bold focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                        />
+                                        <select
+                                          value={ci.orderUnit}
+                                          onChange={(e) => {
+                                            setCartOverrides({ ...cartOverrides, [cartKey]: { ...cartOverrides[cartKey], orderUnit: e.target.value } });
+                                          }}
+                                          className="px-0.5 py-0.5 border border-stone-300 rounded text-[10px] focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                        >
+                                          <option value="bottle">btl</option>
+                                          <option value="case">case</option>
+                                        </select>
+                                        <button
+                                          onClick={() => removeFromCart(ci.productId, ci.locationId)}
+                                          className="ml-0.5 text-stone-400 hover:text-red-500"
+                                          title="Remove from cart"
+                                        >
+                                          ✕
+                                        </button>
+                                      </div>
+                                    </div>
+                                    {/* Store reassignment — click store name to change */}
+                                    {useMergedOrderCart && (
+                                      <div className="mt-1 flex items-center gap-1">
+                                        <span className="text-[9px] text-stone-400">Store:</span>
+                                        <select
+                                          value={ci.locationId}
+                                          onChange={(e) => {
+                                            const newLoc = locations.find((l) => l.id === e.target.value);
+                                            setCartOverrides({
+                                              ...cartOverrides,
+                                              [cartKey]: {
+                                                ...cartOverrides[cartKey],
+                                                locationId: e.target.value,
+                                                locationName: newLoc?.name?.replace("Meyhouse ", "") || "",
+                                              },
+                                            });
+                                          }}
+                                          className="text-[9px] px-1 py-0 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white"
+                                        >
+                                          {locations.map((l) => (
+                                            <option key={l.id} value={l.id}>
+                                              {l.name.replace("Meyhouse ", "")}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                    )}
+                                  </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {cartItems.length > 0 && (
+                <div className="p-4 border-t border-stone-200 bg-stone-50">
+                  <div className="flex justify-between text-sm mb-3">
+                    <span className="text-stone-600">Total: {cartItems.length} items</span>
+                    <span className="font-bold text-amber-700">
+                      {cartTotal > 0 ? `$${cartTotal.toFixed(2)}` : "—"}
+                    </span>
+                  </div>
+                  {orderSuccess && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-3 py-2 mb-2 text-xs">
+                      ✓ Order created — {orderSuccess.count} items saved
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleGenerateOrder}
+                      disabled={generatingOrder || cartItems.length === 0}
+                      className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                    >
+                      {generatingOrder ? "Saving..." : orderSuccess ? "Save Again" : "Generate Order"}
+                    </button>
+                    <button
+                      onClick={() => window.print()}
+                      className="px-3 py-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-xs transition-colors"
+                    >
+                      Print
+                    </button>
+                  </div>
+                  <button
+                    onClick={handleEmailPreview}
+                    className="w-full mt-2 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Mail className="w-3 h-3" />
+                    Email Orders to Vendors
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm("Clear all items from the cart? This will reset all counts.")) {
+                        handleClearCart();
+                      }
+                    }}
+                    className="w-full mt-2 py-2 bg-stone-100 hover:bg-red-50 hover:text-red-600 text-stone-600 rounded-lg text-xs transition-colors"
+                  >
+                    Clear All Items
+                  </button>
+                </div>
+              )}
+
+              {/* Email Preview Modal */}
+              {showEmailPreview && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="fixed inset-0 bg-black/40" onClick={() => setShowEmailPreview(false)} />
+                  <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto m-4 z-50">
+                    <div className="sticky top-0 bg-white border-b border-stone-200 p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-5 h-5 text-blue-600" />
+                        <h2 className="font-bold text-lg">Email Preview</h2>
+                        <span className="text-xs text-stone-500">
+                          ({emailPreviews.length} vendor{emailPreviews.length !== 1 ? "s" : ""})
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setShowEmailPreview(false)}
+                        className="text-stone-400 hover:text-stone-700 text-xl"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="p-4 space-y-4">
+                      {emailResult && (
+                        <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm">
+                          {emailResult.results.map((r: any, i: number) => (
+                            <p key={i}>
+                              {r.status === "SENT" ? "✓" : r.status === "DRAFT" ? "📝" : "✕"}{" "}
+                              <strong>{r.vendor}</strong>: {r.status}
+                              {r.error && <span className="text-red-600"> — {r.error}</span>}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+
+                      {emailPreviews.map((email, i) => (
+                        <div key={i} className="border border-stone-200 rounded-lg overflow-hidden">
+                          <div className="bg-stone-50 px-4 py-3 border-b border-stone-200">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold text-sm">{email.vendor}</p>
+                                <p className="text-xs text-stone-500">
+                                  To: {email.recipientEmail || <span className="text-red-500">No email set — add in Vendors</span>}
+                                  {email.recipientName && ` (${email.recipientName})`}
+                                </p>
+                                {email.recipientPhone && (
+                                  <p className="text-xs text-stone-500">Phone: {email.recipientPhone}</p>
+                                )}
+                              </div>
+                              <span className="text-xs text-stone-400">{email.itemCount} items</span>
+                            </div>
+                          </div>
+                          <div className="px-4 py-3">
+                            <p className="text-xs text-stone-500 mb-1">Subject: {email.subject}</p>
+                            <pre className="text-xs text-stone-700 whitespace-pre-wrap font-mono bg-stone-50 rounded p-3">
+                              {email.body}
+                            </pre>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="sticky bottom-0 bg-white border-t border-stone-200 p-4 flex gap-2">
+                      <button
+                        onClick={handleSendEmails}
+                        disabled={sendingEmails}
+                        className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        <Mail className="w-4 h-4" />
+                        {sendingEmails ? "Sending..." : "Send All Emails"}
+                      </button>
+                      <button
+                        onClick={() => setShowEmailPreview(false)}
+                        className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 rounded-lg text-sm transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {mode === "pricing" && <MenuPricingReadOnly />}
+      </div>{/* end scrollable area */}
+    </div>
+  );
+}

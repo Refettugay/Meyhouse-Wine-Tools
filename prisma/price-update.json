@@ -1,0 +1,3182 @@
+[
+  {
+    "vendor": "?",
+    "product": "B. Kosuge Chardonnay",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "?",
+    "product": "Dom. Mandeliere Les Fourneux Chablis 1er Cru",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Alluvial",
+    "product": "NA Phony Negroni",
+    "type": "NA",
+    "order_by": "case",
+    "bottle_size_ml": 200,
+    "case_size": 32,
+    "cost_per_bottle_dollars": 3.56,
+    "price_source_column": "V"
+  },
+  {
+    "vendor": "American Ice CO",
+    "product": "Clear Ice Cube",
+    "type": "Grocery",
+    "order_by": "case",
+    "bottle_size_ml": null,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Astro",
+    "product": "Roar Syrah",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Astro",
+    "product": "Roar \"Gary's Vineyard\" Pinot",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 57.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Beaune Imp",
+    "product": "Radio-Coteau '' Belay '' Pinot Noir",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Beaune Imp",
+    "product": "Radio-Coteau \"Heintz\" Chardonnnay\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Don Fulano Anejo",
+    "type": "Tequila",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 68.13,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Fugit Gran Classico Bitter",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 28.33,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Graham's 20yr Tawny",
+    "type": "Dessert",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 53.3,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Schramsberg \"Blanc de Blanc\"  BTG",
+    "type": "BTG Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 24.0,
+    "price_source_column": "V"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Familia Torres Pazo das Bruxas  BTG",
+    "type": "BTG White",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 14.5,
+    "price_source_column": "U"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Disaronno Amaretto",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 37.49,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Graham's 30yr Tawny",
+    "type": "Dessert",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 115.8,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Golden Eight Pear Liq.",
+    "type": "Dessert",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 41.8,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Graham's 10yr Tawny",
+    "type": "Dessert",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 28.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Graham's 40yr Tawny",
+    "type": "Dessert",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 169.8,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Barr Hill Gin (Medi Fizz)",
+    "type": "Gin-CC",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 26.49,
+    "price_source_column": "U"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Madre Espadin (well tequila & craft cocktail) 1L $33.",
+    "type": "Mezcal-CC",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 28.0,
+    "price_source_column": "V"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Fortaleza Blanco (TRANSFER FROM SV IF NEEDED)",
+    "type": "Tequila",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 46.8,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Fortaleza Repo  (TRANSFER FROM SV IF NEEDED)",
+    "type": "Tequila",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 54.8,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Fortaleza Anejo  (TRANSFER FROM SV IF NEEDED)",
+    "type": "Tequila",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 79.8,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Don Fulano Blanco",
+    "type": "Tequila",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 42.8,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Don Fulano Repo",
+    "type": "Tequila",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 49.47,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Arette Classico Blanco (well tequila)",
+    "type": "Tequila-WELL",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 24.5,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Chateau La Garde Pessac-Leognan",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 24.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Odette Estate Cabernet Napa Valley",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 134.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Barnett \"Rattlesnake Hill\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 180.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Familia Torres Mas Las Plana Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 76.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Chateau Rahoul Graves",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 25.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Chateau Le Boscq St Estephe",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 33.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Massican \"Hyde Vineyards\" Chardonnay",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 36.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Domaine Billaud-Simon, Chablis",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 31.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Massican Sauvignon Blanc",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 20.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Chopin Potato Vodka",
+    "type": "Vodka",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 27.69,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Hangar Vodka (well)",
+    "type": "Vodka-CC-WELL",
+    "order_by": "case",
+    "bottle_size_ml": 1000,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 16.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Peyrassol Rose BTG (",
+    "type": "Wine - ROSE BTG",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 21.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Billecart-Salmon La Reserve (FULL BOTTLE)",
+    "type": "Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 52.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Billecart-Salmon La Rose (FULL BOTTLE)",
+    "type": "SPKRose",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 78.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Marchesi di Gresy Barberesco Martinenga",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 49.5,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Ramey, Pinot Noir",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Domaine la Barroche CDP",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Conterno Fantino Barolo",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Brick House \"Les Dijonnais\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Occidental \"Freestone\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Paul Hobbs Cabernet Sauv. Coombsville",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Paul Hobbs Pinot Noir Russian River",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Syrocco Syrah",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Vina Cobos \"Bramare\" Luján de Cuyo",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Sine Qua Non Grenache Disenta IV",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Sine Qua Non Syrah  Disenta IV",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Roccolo Grassi Amarone della Valpecilla",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 64.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Vina Cobos \"Marchiori Estate\" Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Jonata \"El Desafio de Jonata\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Sine Qua Non White Disenta II",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Clos Henri Sauvignon Blanc",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 15.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Garofoli (Verdicchio di Matelica)",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Aia Vecchia Vermentino",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 10.5,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Aubert Chardonnay",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Chapallet Signature Chenin Blanc",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "Bodega Alvear 1927",
+    "type": "Dessert",
+    "order_by": "bottle",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": 27.67,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Chambers",
+    "product": "(1/2 Bottle) Frogs Leap Cabernet Sauv.",
+    "type": "Half Red",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 24.66,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Chambers",
+    "product": "(1/2 Bottle) Marchesi di Gresy Barberesco Martinenga",
+    "type": "Half Red",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 28.5,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Chambers",
+    "product": "(1/2 Bottle) Accendo Cabernet",
+    "type": "Half Red",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chambers",
+    "product": "(1/2 Bottle) Billecart-Salmon La Rose",
+    "type": "Half Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 45.9,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Chambers",
+    "product": "(1/2 Bottle) Billecart-Salmon La Reserve",
+    "type": "Half Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 31.95,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Chef or Hakan",
+    "product": "Fresh Rosemary",
+    "type": "Grocery",
+    "order_by": null,
+    "bottle_size_ml": null,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Chef or Hakan",
+    "product": "Fresh Mint",
+    "type": "Grocery",
+    "order_by": null,
+    "bottle_size_ml": null,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Direct",
+    "product": "Sinegal Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Direct",
+    "product": "Starlite Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 80.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Direct",
+    "product": "Lola Charbono",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Direct",
+    "product": "Starlite Zinfandel",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Direct",
+    "product": "Sevenapart \"Basalt\" Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Direct",
+    "product": "Sevenapart \"Expedetion\" Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Direct",
+    "product": "Tusk L'Orange",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Direct",
+    "product": "Tusk Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Direct",
+    "product": "Sinegal Sauvignon Blanc",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Direct",
+    "product": "Starlite Viognier",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Direct Koncho",
+    "product": "Koncho Rikatsiteli BTG",
+    "type": "BTG White",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 11.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Direct Koncho",
+    "product": "Koncho Saperavi (RED)",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 16.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Direct-Alexandrea",
+    "product": "Alexandrea Areni BTG",
+    "type": "BTG Red",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 16.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Direct-Alexandria",
+    "product": "Alexandria Winery Dry Reisling",
+    "type": "Wine - White",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Direct-Lola",
+    "product": "Lola Cabernet BTG",
+    "type": "BTG Red",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 23.66,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Direct-Alexana",
+    "product": "Alexana \"Revana Vineyard\" Pinot",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 25.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Elevage",
+    "product": "Skouras \"Megas Oenos\"",
+    "type": "BTG Red",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Elevage",
+    "product": "Kir-Yianni \"Amyndeon Akakies\" Xinomavro",
+    "type": "BTG Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Elevage",
+    "product": "Flor de Pingus",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Elevage",
+    "product": "Alpha Estate \" Barba Yannis\" Xinomavro",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Elevage",
+    "product": "Dal Forno Romano Amarone Della Valpolicella",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Elevage",
+    "product": "Alpha Estate \"Turtels Vineyard\" Malagouzia",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Elevage",
+    "product": "Vasaltis Assyrtiko",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Estate Wines",
+    "product": "Sottimano Barberesco",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Estate Wines",
+    "product": "Vine Hill Ranch (VHR) Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Far Niente",
+    "product": "Far Niente Chardonnay BTG",
+    "type": "BTG White",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 30.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Far Niente",
+    "product": "Far Niente Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Far Niente",
+    "product": "Nickel & Nickel \"Fog Break Vineyard\" Cab",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Far Niente",
+    "product": "Dolce",
+    "type": "Dessert",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 37.5,
+    "price_source_column": "V"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Blanton $62",
+    "type": "Bourbon",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 62.0,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Fernet Branca",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 31.26,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Carpano Antica DRY Vermouth",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 14.45,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Glenfiddich 21yr",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 186.33,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "The Balvenie 12yr",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 60.85,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Chambord",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 700,
+    "case_size": null,
+    "cost_per_bottle_dollars": 29.72,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Herradura Agave Syrup",
+    "type": "Syrup",
+    "order_by": "bottle",
+    "bottle_size_ml": 478,
+    "case_size": null,
+    "cost_per_bottle_dollars": 7.52,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Fever Tree MediterraneanTonic",
+    "type": "Grocery",
+    "order_by": "case",
+    "bottle_size_ml": 200,
+    "case_size": 24,
+    "cost_per_bottle_dollars": 1.1,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Fever Tree Soda",
+    "type": "Grocery",
+    "order_by": "case",
+    "bottle_size_ml": 200,
+    "case_size": 24,
+    "cost_per_bottle_dollars": 1.1,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Fever Tree Ginger Beer",
+    "type": "Grocery",
+    "order_by": "case",
+    "bottle_size_ml": 200,
+    "case_size": 24,
+    "cost_per_bottle_dollars": 1.1,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Sazerac 100 Proof (well & island chai) $21.17",
+    "type": "RYE-CC-WELL",
+    "order_by": "case",
+    "bottle_size_ml": 1000,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 21.17,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Woodford RSV $35",
+    "type": "Bourbon",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 35.28,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Buffalo Trace $23 (WELL)",
+    "type": "Bourbon-WELL",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 23.31,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Carpano Antica Sweet Vermouth $32",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 1000,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 32.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Drambuie",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 41.67,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Hendrick's $40",
+    "type": "Gin",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 45.5,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Glenfiddich 12yr",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 49.25,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Golden Brands",
+    "product": "Athletic Run Free Wave NA Hazy IPA",
+    "type": "Beer",
+    "order_by": "case",
+    "bottle_size_ml": 355,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 1.29,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Good Stuff",
+    "product": "Gerolsteiner Sparkling Water",
+    "type": "Grocery",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 15,
+    "cost_per_bottle_dollars": 36.75,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Isabey SB BTG",
+    "type": "BTG White",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 16.19,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Camlija Kara Sevda Papazkarasi",
+    "type": "BTG Red",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 23.5,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Camlija Nev'i Sahsina Munhasir",
+    "type": "BTG Red",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 35.5,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Skinos (order only if vendor out of Hillas)",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Hillas (for Aegean Fashion)",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Dalla Balla Prosecco",
+    "type": "Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 11.95,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Camlija Kalecik Karasi",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 25.5,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Kavaklidere Prestige KK",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 22.99,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Camlija Cabernet Sauvignon",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 29.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Sevilen 900 Fume Blanc",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Hatziyiannis Assyrtiko",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Efe Green Raki",
+    "type": "Raki-CC",
+    "order_by": "case",
+    "bottle_size_ml": 700,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 28.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Bomonti",
+    "type": "Beer",
+    "order_by": "case",
+    "bottle_size_ml": 500,
+    "case_size": 20,
+    "cost_per_bottle_dollars": 2.75,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Septem IPA",
+    "type": "Beer",
+    "order_by": "case",
+    "bottle_size_ml": 330,
+    "case_size": 20,
+    "cost_per_bottle_dollars": 3.63,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Septem Honey Golden Ale",
+    "type": "Beer",
+    "order_by": "case",
+    "bottle_size_ml": 330,
+    "case_size": 20,
+    "cost_per_bottle_dollars": 3.63,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Efes \"Brown Bottle\"",
+    "type": "Beer",
+    "order_by": "case",
+    "bottle_size_ml": 300,
+    "case_size": 24,
+    "cost_per_bottle_dollars": 2.05,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Sari Zeybek",
+    "type": "Raki",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Kalara",
+    "product": "Efe Black",
+    "type": "Raki",
+    "order_by": "case",
+    "bottle_size_ml": 700,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 34.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "KORAY",
+    "product": "Gobek Raki",
+    "type": "Raki",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Mani",
+    "product": "Lazaridi Amethystos Cava",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Monterey Bay",
+    "product": "Dumol \"Western Reach\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Regal",
+    "product": "Hanson Meyerlemon (Meyhouse Vesper)",
+    "type": "Vodka-CC",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 19.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "St. George Spiced Pear Liquer",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 24.5,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Evening Land \"Seven Spring\" Chard BTG",
+    "type": "BTG White",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 21.5,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Kvaszinger \"Hatalos\" Furmint BTG",
+    "type": "BTG White",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 20.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "St. George Nola Coffee Liquer",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Gobelsburg \"Cistercien Rose",
+    "type": "Rose",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Golan Heights \"Yarden\" Syrah",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Soter \"Mineral Spring Ranch\" Pinot Noir",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Laurent Fayolle",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Golan Heights \"Yarden\" Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Tzora Vineyards \"Shoresh\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Ultramarine Hintz Vineyard Blanc de Blanc",
+    "type": "Wine - Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Ultramarine Hintz Vineyard Blanc de Noir",
+    "type": "Wine - Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Sandhi Chardonnay",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Kistler Chard",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Estate Argyos Vin Santo Santorini \"Late Release\"",
+    "type": "Dessert",
+    "order_by": "bottle",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": 100.0,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "Kvazinger \"Relique\" 6 Puntos",
+    "type": "Dessert",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": 55.0,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "Skurnik",
+    "product": "La Spinetta Moscato d'Asti",
+    "type": "Dessert",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": 8.33,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SPBD",
+    "product": "Accompani Flora Green",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 20.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SPBD",
+    "product": "Accompani Mari Gold",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 20.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SPBD",
+    "product": "Cobb \"Doc's Ranch\" Swan Calera Pinot",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 57.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SPBD",
+    "product": "Alban Vineyards \"Patrina\" Syrah",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "St. German Elderflower Liquer",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 33.29,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Dirty Sue Olive Juice (750ml)",
+    "type": "Grocery",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 10.94,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Macallan 12yr \"Sherry Oak\"",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 82.02,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "El Tosoro Blanco  (NARGARITA)",
+    "type": "Tequila-CC",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 36.38,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Yamazaki 12yr",
+    "type": "Whiskey",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 142.49,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Amaro Nonio",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Whistlepig Piggy Back 6yr RYE",
+    "type": "RYE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 38.58,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Evian Still Water",
+    "type": "Grocery",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 2.08,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Mozart Dark Chocolate Liq.",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Makers Mark Bourbon",
+    "type": "Bourbon",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Basil Hayden Bourbon",
+    "type": "Bourbon",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 49.49,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Angels Envy Bourbon",
+    "type": "Bourbon",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Redemtion",
+    "type": "Bourbon",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Elijah Craig Bourbon",
+    "type": "Bourbon",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Hennessy VSOP Cognac",
+    "type": "Cognac",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Hennessy XO Cognac",
+    "type": "Cognac",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Pama Pomegranate Liquer",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 28.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Cointreau",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": 1000,
+    "cost_per_bottle_dollars": 40.75,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Pernod Absinthe",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Bailey's",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Ferrand Dry Curacao Orange",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Grand Marnier",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Chartreuse Green",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Chartreuse Yellow",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Frangelico",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Kahlua",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Luxardo Marschino Cherry Liquer",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Sipsmith GIN (prince negroni craft cocktail)",
+    "type": "Gin",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 24.5,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Botanist Dry Gin",
+    "type": "Gin",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Tanqueray GIN",
+    "type": "Gin",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Vie Vite Rose",
+    "type": "Rose",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Bacardi Rum White",
+    "type": "Rum",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Knob Creek RYE 7yr",
+    "type": "RYE",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Whistlepig Small Batch 10yr RYE",
+    "type": "RYE",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Elijah Craig RYE",
+    "type": "RYE",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Auchentoshan Three Wood",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 60.5,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Aberlour 16yr",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 86.8,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Johnnie Walker BLUE",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Macallan 18yr",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Talisker 10yr",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Johnnie Walker BLACK",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Glenlivet 12yr",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Glenlivet 14yr",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Laphroaig 10yr",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Oban 14yr",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Lagavulin 16yr",
+    "type": "Scotch",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Louis Roederer Cristal",
+    "type": "Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Dom Perignon Brut",
+    "type": "Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Perrier Jouet Belle Epoque Brut",
+    "type": "Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Duval-Leroy Femme De Champagne",
+    "type": "Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Chateau de Blingy, Blanc de Blanc",
+    "type": "Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "El Tosoro Anejo",
+    "type": "Tequila",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "El Tosoro Reposado",
+    "type": "Tequila",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Nikka Yoichi Single Malt",
+    "type": "Whiskey",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 79.5,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Nikka Miyagikyo Single Malt",
+    "type": "Whiskey",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": 79.5,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Crown Royal Canadian Whiskey (TRANSFER FROM SV)",
+    "type": "Whiskey",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Hakushu 12yr",
+    "type": "Whiskey",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Hibiki Harmony JAP WHS",
+    "type": "Whiskey",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Suntory Whiskey Harmony",
+    "type": "Whiskey",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 26.0,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Jameson",
+    "type": "Whiskey",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Yamazaki 18yr",
+    "type": "Whiskey",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Hakushu 18yr",
+    "type": "Whiskey",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Shafer \"Hillside Select\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Seriously Old Dirt \"by Vilafonte\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Chateau Musar Red 750ml",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Chateau Peymouton, St. Emilion Grand Cru",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Girard Petit Syrah",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Bodega y Vinedos Heras Cordon Rioja",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Faust Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 56.2,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Fossacolle Brunello",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Salvioni Rosso di Montalcino",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Stephane Aviron Morgon Cote du Py",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Domaine Serene \"Evenstead\" Pinot",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Metier Cabernet (not red blend)",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Baricci \"Montosoli\" Brunello",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Alceno \"Eleccion Limitada\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Emillio Moro Ribera Del Duero",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Leviathan Red Blend",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Quintessa",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Chateau Clerc Milon",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Chateau Marsannay \"Les Echezots\" Marsannay",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Domaine Faiveley \"Clos Myglands\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Domaine Faiveley Chambertin Clos de Beze Grand Cru",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Opus One",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Favia Cabernet Oakville",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Favia La Magdanela",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Hamel Nuns Vineyard Cab",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Hundered Acre \"Wraith\" Cabernet",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Henri Rebourseau, Charmes Chambertin Grand Cru",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Vie Vette Rose",
+    "type": "Wine - ROSE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Segura Viudas Brut Cava",
+    "type": "Wine - Sparkling",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Pascal Jolivet Sancerre",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Lillet Blanc",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Olivier Leflaive Setilles",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Illumination Sauv. Blanc",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Acumen Sauvignon Blanc",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Seedlip Spice",
+    "type": "NA-CC",
+    "order_by": "case",
+    "bottle_size_ml": 700,
+    "case_size": null,
+    "cost_per_bottle_dollars": 22.5,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Yeni Raki Ala",
+    "type": "Raki",
+    "order_by": "case",
+    "bottle_size_ml": 700,
+    "case_size": null,
+    "cost_per_bottle_dollars": 31.99,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Filthy Pitted Olives",
+    "type": "Grocery",
+    "order_by": null,
+    "bottle_size_ml": null,
+    "case_size": null,
+    "cost_per_bottle_dollars": 23.08,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Maraschino Cherry 3kg Can",
+    "type": "Grocery",
+    "order_by": "case",
+    "bottle_size_ml": null,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Chateau d'Yquem PC Sauternes",
+    "type": "Dessert",
+    "order_by": "bottle",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": 278.44,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "(1/2 Bottle) Regnard Chablis Gran Cru",
+    "type": "Half White",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": 22.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SWS",
+    "product": "(1/2 Bottle) Pio Cesare Barolo",
+    "type": "Half Red",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "(1/2 Bottle) Comte La Fond Sancerre",
+    "type": "Half White",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "(1/2 Bottle) Shafer ''One Point Five'' Cabernet Sauvignon",
+    "type": "Half Red",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "(1/2 Bottle) Antinori Tignanello",
+    "type": "Half Red",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "(1/2 Bottle) Emeritus Pinot Noir",
+    "type": "Half Red",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "(1/2 Bottle) Louis Latour Chateau Corton Grancey",
+    "type": "Half Red",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "(1/2 Bottle) Chateau Musar Rouge",
+    "type": "Half Red",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "(1/2 Bottle) Louis Latour Pluginy-Montrachet",
+    "type": "Half White",
+    "order_by": "bottle",
+    "bottle_size_ml": 375,
+    "case_size": 24,
+    "cost_per_bottle_dollars": 48.17,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "(1/2 Bottle) Patz & Hall Chardonnay Dutton",
+    "type": "Half White",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "(1/2 Bottle) La Scola Gavi dei Gavi Black Label",
+    "type": "Half White",
+    "order_by": "case",
+    "bottle_size_ml": 375,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Bulleit Bourbon",
+    "type": "Bourbon",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 32.67,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Bulleit RYE",
+    "type": "Bourbon",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 26.5,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Aperol",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 32.65,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Bombay sapphire",
+    "type": "Gin",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 33.17,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Monkey 47",
+    "type": "Gin",
+    "order_by": "case",
+    "bottle_size_ml": 1000,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 73.53,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Bullet RYE",
+    "type": "RYE",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 32.67,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Redemtion High RYE",
+    "type": "RYE",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 25.26,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Ketel One",
+    "type": "Vodka",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": 30.95,
+    "price_source_column": "S"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Haku Vodka",
+    "type": "Vodka-CC",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Licor 43",
+    "type": "Cordial",
+    "order_by": "case",
+    "bottle_size_ml": 1000,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 27.45,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "SWS",
+    "product": "Beefeater Gin (WELL)",
+    "type": "Gin",
+    "order_by": "case",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Grey Goose 1000ml",
+    "type": "Vodka",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Belvedere Vodka 1000ml",
+    "type": "Vodka",
+    "order_by": "bottle",
+    "bottle_size_ml": 1000,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Angustura Bitters Orange",
+    "type": "Bitter",
+    "order_by": "bottle",
+    "bottle_size_ml": 200,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Angostura Bitter",
+    "type": "Bitter",
+    "order_by": "bottle",
+    "bottle_size_ml": 500,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Campari",
+    "type": "Cordial",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Kulüp Raki",
+    "type": "Raki",
+    "order_by": "case",
+    "bottle_size_ml": 700,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "SWS",
+    "product": "Franzia Box Crisp White",
+    "type": "Wine - Box",
+    "order_by": "case",
+    "bottle_size_ml": null,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Vinifera",
+    "product": "Cirq Pinot",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Vinifera",
+    "product": "Konsgaard Chardonnay",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 90.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Willow Market",
+    "product": "Scrappys Lavender Bitter",
+    "type": "Bitter",
+    "order_by": "bottle",
+    "bottle_size_ml": 200,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Willow Market",
+    "product": "Scrappys Chocolate Bitter",
+    "type": "Bitter",
+    "order_by": "bottle",
+    "bottle_size_ml": 200,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Winebow",
+    "product": "Lapostelle Pisco XO",
+    "type": "Pisco",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 28.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Winebow",
+    "product": "Macchu Pisco (Regular)",
+    "type": "Pisco",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Winebow",
+    "product": "Domaine Carneros Brut Rose",
+    "type": "SPKRose",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Winebow",
+    "product": "Realm Cellars The Bard",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 107.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Winebow",
+    "product": "O'Shaunghnessy",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Winebow",
+    "product": "Clos Apalta \"Clos Apalta\"",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Pepito",
+    "product": "Gurbuz Kalecik Karasi",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 20.0,
+    "price_source_column": "V"
+  },
+  {
+    "vendor": "Pepito",
+    "product": "Gurbuz Red Blend",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 20.0,
+    "price_source_column": "V"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Latour Moueix Pomerol",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 86.8,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Desaunay-Bissey Gevrey Chambertin",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 74.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Einaudi Barolo Bussia",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 90.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Domaine Faively Vosne Romanee",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 88.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Tenuta Sette Cieli Indaco IGT",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 58.0,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Domaine de la Romanee-Conti Echezeaux 2022",
+    "type": "Wine - RED",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": 1,
+    "cost_per_bottle_dollars": 739.8,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Domaine de la Romanee-Conti Romanee St Vivant 2022",
+    "type": "Wine - RED",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": 1,
+    "cost_per_bottle_dollars": 1972.8,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Breakthru",
+    "product": "Volpaia Balfico IGT",
+    "type": "Wine - RED",
+    "order_by": "bottle",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 78.66,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Eatopia",
+    "product": "Doganay Gurme Spicy",
+    "type": "Grocery",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 24.6,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": "Eatopia",
+    "product": "Doganay Gurme Spicy",
+    "type": "Grocery",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 6,
+    "cost_per_bottle_dollars": 24.6,
+    "price_source_column": "T"
+  },
+  {
+    "vendor": null,
+    "product": "Chateau De Lascombes Margaux",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": null,
+    "product": "Thierry Alleman Reynard Cornas",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": null,
+    "product": "Baricci Montosoli Brunello",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": null,
+    "product": "Domaine de L'arlot, Les Suchots Vosne Romanee 1er",
+    "type": "Wine - RED",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": null,
+    "product": "Gravner Ribolla",
+    "type": "Wine - WHITE",
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": null,
+    "cost_per_bottle_dollars": null,
+    "price_source_column": null
+  },
+  {
+    "vendor": "Pepito",
+    "product": "Gurbuz Orange (Sauvignon Blanc - Muscat)",
+    "type": null,
+    "order_by": "case",
+    "bottle_size_ml": 750,
+    "case_size": 12,
+    "cost_per_bottle_dollars": 18.5,
+    "price_source_column": "U"
+  }
+]
