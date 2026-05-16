@@ -49,10 +49,17 @@ export function Sidebar({ organizationName, userName, role, permissions }: Sideb
 
   return (
     <aside className="flex flex-col w-16 fixed inset-y-0 left-0 bg-white border-r border-stone-200 z-40 overflow-visible">
-      {/* Logo */}
-      <div className="p-3 border-b border-stone-200 relative group" title={organizationName}>
+      {/* Logo — clickable, jumps back to the Sophra launcher where the user
+          can switch between Beverage, Schedule, and any future tool. Plain
+          anchor (not Next Link) because the launcher is on a different
+          subdomain. */}
+      <a
+        href="https://app.runsophra.com"
+        title="Sophra home · switch apps"
+        className="p-3 border-b border-stone-200 relative group block hover:bg-amber-50 transition-colors"
+      >
         <h1 className="text-lg font-bold text-amber-500 text-center">M</h1>
-      </div>
+      </a>
 
       {/* Navigation */}
       <nav className="flex-1 p-1 space-y-1 overflow-visible">
