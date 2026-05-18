@@ -1212,9 +1212,9 @@ export function UnifiedProductsPage({
     if (sortField !== field)
       return <ArrowUpDown className="w-3 h-3 opacity-40" />;
     return sortDir === "asc" ? (
-      <ArrowUp className="w-3 h-3 text-amber-600" />
+      <ArrowUp className="w-3 h-3 text-[var(--brand-olive)]" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-amber-600" />
+      <ArrowDown className="w-3 h-3 text-[var(--brand-olive)]" />
     );
   }
 
@@ -1346,7 +1346,7 @@ export function UnifiedProductsPage({
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">Product Hub</h1>
-          <p className="text-stone-500 text-sm">
+          <p className="text-[var(--ink-muted)] text-sm">
             {filtered.length} of {products.length} products
             {locations.length > 0 && ` across ${locations.length} locations`}
           </p>
@@ -1417,7 +1417,7 @@ export function UnifiedProductsPage({
           // Database/Delete buttons are never "disabled by store selection" — they work on All Locations too
           const removalDisabled = !selected;
           const btnBase = "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors border text-[10px] font-medium whitespace-nowrap";
-          const disabledBtn = "bg-stone-50 border-stone-200 text-stone-300 cursor-not-allowed";
+          const disabledBtn = "bg-[var(--brand-cream)] border-[var(--line)] text-[var(--ink-muted)] cursor-not-allowed";
 
           // For Database/Delete in All Locations mode: show active if ALL stores have the marker
           const allMarkedDB = selected && selected.inventory.length > 0 && selected.inventory.every((inv) => inv.markedForRemoval === "DATABASE");
@@ -1524,7 +1524,7 @@ export function UnifiedProductsPage({
 
         <Link
           href="/dashboard/products/new"
-          className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Product
@@ -1532,11 +1532,11 @@ export function UnifiedProductsPage({
       </div>
 
       {markerError && mode === "products" && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded-lg text-xs mb-3">{markerError}</div>
+        <div className="bg-[#FAF7F1] border border-[var(--brand-olive)] text-[var(--brand-olive-hover)] px-3 py-2 rounded-lg text-xs mb-3">{markerError}</div>
       )}
 
       {/* Mode tabs */}
-      <div className="flex gap-1 bg-stone-100 rounded-lg p-1 mb-4">
+      <div className="flex gap-1 bg-[var(--brand-cream)] rounded-lg p-1 mb-4">
         {[
           { key: "ordering" as Mode, label: "Ordering", icon: ShoppingCart },
           { key: "inventory" as Mode, label: "Inventory Management", icon: ClipboardList },
@@ -1548,8 +1548,8 @@ export function UnifiedProductsPage({
             onClick={() => switchMode(tab.key)}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors flex-1 justify-center ${
               mode === tab.key
-                ? "bg-white text-amber-600 shadow-sm"
-                : "text-stone-500 hover:text-stone-900"
+                ? "bg-white text-[var(--brand-olive)] shadow-sm"
+                : "text-[var(--ink-muted)] hover:text-[var(--brand-brown)]"
             }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -1561,19 +1561,19 @@ export function UnifiedProductsPage({
       {/* Filters */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
         <div className="relative col-span-2 sm:col-span-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
           <input
             type="text"
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] text-sm"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="onMenu">On Menu</option>
           <option value="database">Product Database</option>
@@ -1583,7 +1583,7 @@ export function UnifiedProductsPage({
         <select
           value={vendorFilter}
           onChange={(e) => setVendorFilter(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Vendors</option>
           {allVendors.map((v) => (
@@ -1593,7 +1593,7 @@ export function UnifiedProductsPage({
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Categories</option>
           {categories.map((c) => (
@@ -1603,7 +1603,7 @@ export function UnifiedProductsPage({
         <select
           value={locationFilter}
           onChange={(e) => setLocationFilter(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Locations</option>
           {locations.map((l) => (
@@ -1614,10 +1614,10 @@ export function UnifiedProductsPage({
 
       {/* Store selector + Area buttons — pinned for Ordering & Inventory modes */}
       {(mode === "ordering" || mode === "inventory") && (
-        <div className="bg-white border border-stone-200 rounded-xl p-3 mt-1">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-3 mt-1">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-amber-600" />
+              <MapPin className="w-5 h-5 text-[var(--brand-olive)]" />
               <select
                 value={selectedStoreId}
                 onChange={(e) => {
@@ -1628,7 +1628,7 @@ export function UnifiedProductsPage({
                     setSavedItems(new Set());
                   }
                 }}
-                className="px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                className="px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] font-medium focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] text-sm"
               >
                 <option value="">— Select a store —</option>
                 {locations.map((l) => (
@@ -1637,13 +1637,13 @@ export function UnifiedProductsPage({
               </select>
               {mode === "inventory" && selectedStoreId && (
                 <div className="flex items-center gap-3 text-xs">
-                  <span className="text-stone-500">{inventoryForStore.length} items</span>
-                  <span className="text-amber-600 font-medium">{countedCount} counted</span>
+                  <span className="text-[var(--ink-muted)]">{inventoryForStore.length} items</span>
+                  <span className="text-[var(--brand-olive)] font-medium">{countedCount} counted</span>
                   <span className="text-green-600 font-medium">{savedItems.size} saved</span>
                 </div>
               )}
               {mode === "inventory" && selectedStoreId && (
-                <div className="text-xs text-stone-500">
+                <div className="text-xs text-[var(--ink-muted)]">
                   {new Date().toLocaleDateString()}
                 </div>
               )}
@@ -1651,7 +1651,7 @@ export function UnifiedProductsPage({
             {mode === "ordering" && selectedStoreId && (
               <button
                 onClick={() => setShowCart(!showCart)}
-                className="flex items-center gap-2 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors relative"
+                className="flex items-center gap-2 px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors relative"
               >
                 <ShoppingCart className="w-4 h-4" />
                 {useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}
@@ -1670,8 +1670,8 @@ export function UnifiedProductsPage({
                 onClick={() => setSelectedArea("ALL")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                   selectedArea === "ALL"
-                    ? "bg-amber-600 text-white"
-                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    ? "bg-[var(--brand-olive)] text-white"
+                    : "bg-[var(--brand-cream)] text-[var(--ink-muted)] hover:bg-[var(--line)]"
                 }`}
               >
                 All Areas
@@ -1682,8 +1682,8 @@ export function UnifiedProductsPage({
                   onClick={() => setSelectedArea(area)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     selectedArea === area
-                      ? "bg-amber-600 text-white"
-                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                      ? "bg-[var(--brand-olive)] text-white"
+                      : "bg-[var(--brand-cream)] text-[var(--ink-muted)] hover:bg-[var(--line)]"
                   }`}
                 >
                   {area}
@@ -1701,48 +1701,48 @@ export function UnifiedProductsPage({
 
       {/* === MODE 1: PRODUCTS TABLE === */}
       {mode === "products" && (
-        <div className="bg-white border border-stone-200 rounded-xl">
+        <div className="bg-white border border-[var(--line)] rounded-xl">
           <div>
             <table className="w-full min-w-[1500px] text-xs table-fixed">
               <thead className="sticky top-0 z-10">
-                <tr className="bg-stone-50 border-b border-stone-200 text-[10px] text-stone-500 uppercase font-medium">
-                  <th className="text-left px-2 py-2 w-[15%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("name")}>
+                <tr className="bg-[var(--brand-cream)] border-b border-[var(--line)] text-[10px] text-[var(--ink-muted)] uppercase font-medium">
+                  <th className="text-left px-2 py-2 w-[15%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("name")}>
                     <span className="flex items-center gap-1 whitespace-nowrap">Product <SortIcon field="name" /></span>
                   </th>
-                  <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("size")}>
+                  <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("size")}>
                     <span className="flex items-center gap-1 whitespace-nowrap">Size <SortIcon field="size" /></span>
                   </th>
-                  <th className="text-center px-2 py-2 w-[4%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("case")}>
+                  <th className="text-center px-2 py-2 w-[4%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("case")}>
                     <span className="flex items-center justify-center gap-1 whitespace-nowrap">Case <SortIcon field="case" /></span>
                   </th>
-                  <th className="text-right px-2 py-2 w-[6%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("cost")}>
+                  <th className="text-right px-2 py-2 w-[6%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("cost")}>
                     <span className="flex items-center justify-end gap-1 whitespace-nowrap">Bottle $ <SortIcon field="cost" /></span>
                   </th>
-                  <th className="text-left px-2 py-2 w-[8%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("category")}>
+                  <th className="text-left px-2 py-2 w-[8%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("category")}>
                     <span className="flex items-center gap-1 whitespace-nowrap">Category <SortIcon field="category" /></span>
                   </th>
-                  <th className="text-left px-2 py-2 w-[7%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("vendor")}>
+                  <th className="text-left px-2 py-2 w-[7%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("vendor")}>
                     <span className="flex items-center gap-1 whitespace-nowrap">Vendor <SortIcon field="vendor" /></span>
                   </th>
-                  <th className="text-left px-2 py-2 w-[6%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("area")}>
+                  <th className="text-left px-2 py-2 w-[6%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("area")}>
                     <span className="flex items-center gap-1 whitespace-nowrap">Area 1 <SortIcon field="area" /></span>
                   </th>
-                  <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("shelf")}>
+                  <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("shelf")}>
                     <span className="flex items-center gap-1 whitespace-nowrap">Shelf 1 <SortIcon field="shelf" /></span>
                   </th>
-                  <th className="text-left px-2 py-2 w-[6%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("area2")}>
+                  <th className="text-left px-2 py-2 w-[6%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("area2")}>
                     <span className="flex items-center gap-1 whitespace-nowrap">Area 2 <SortIcon field="area2" /></span>
                   </th>
-                  <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("shelf2")}>
+                  <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("shelf2")}>
                     <span className="flex items-center gap-1 whitespace-nowrap">Shelf 2 <SortIcon field="shelf2" /></span>
                   </th>
-                  <th className="text-center px-2 py-2 w-[6%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("pour")}>
+                  <th className="text-center px-2 py-2 w-[6%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("pour")}>
                     <span className="flex items-center justify-center gap-1 whitespace-nowrap">Pour <SortIcon field="pour" /></span>
                   </th>
-                  <th className="text-right px-2 py-2 w-[6%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("pourCost")}>
+                  <th className="text-right px-2 py-2 w-[6%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("pourCost")}>
                     <span className="flex items-center justify-end gap-1 whitespace-nowrap">Pour $ <SortIcon field="pourCost" /></span>
                   </th>
-                  <th className="text-right px-2 py-2 w-[7%] cursor-pointer hover:text-stone-900" onClick={() => toggleSort("suggested")}>
+                  <th className="text-right px-2 py-2 w-[7%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("suggested")}>
                     <span className="flex items-center justify-end gap-1 whitespace-nowrap">Suggested <SortIcon field="suggested" /></span>
                   </th>
                   <th className="text-center px-2 py-2 w-[5%]"><span className="whitespace-nowrap">Stores</span></th>
@@ -1750,9 +1750,9 @@ export function UnifiedProductsPage({
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-[var(--line)]">
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={14} className="p-8 text-center text-stone-500">No products match your filters</td></tr>
+                  <tr><td colSpan={14} className="p-8 text-center text-[var(--ink-muted)]">No products match your filters</td></tr>
                 ) : (
                   filtered.map((p) => {
                     const catData = getCategoryData(p);
@@ -1779,8 +1779,8 @@ export function UnifiedProductsPage({
                           setHighlightedRow(willHighlight ? p.id : null);
                           if (!willHighlight) closeFloatingEdit();
                         }}
-                        className={`hover:bg-stone-50/50 cursor-pointer transition-colors ${(() => {
-                          if (highlightedRow === p.id) return "!bg-amber-50 ring-1 ring-amber-200";
+                        className={`hover:bg-[var(--brand-cream)] cursor-pointer transition-colors ${(() => {
+                          if (highlightedRow === p.id) return "!bg-[#FAF7F1] ring-1 ring-[var(--brand-olive)]";
                           // Determine which inventory to use for markers
                           const relevantInvs = isAllLocations ? p.inventory : (activeInv ? [activeInv] : []);
                           const anyInactive = relevantInvs.some((i) => i.markedForRemoval === "INACTIVE");
@@ -1807,7 +1807,7 @@ export function UnifiedProductsPage({
                               onChange={(e) => setEditValue(e.target.value)}
                               onBlur={() => saveEdit(p.id, "name")}
                               onKeyDown={(e) => handleKeyDown(e, p.id, "name")}
-                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-xs focus:outline-none"
+                              className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-xs focus:outline-none"
                               autoFocus
                             />
                           ) : (() => {
@@ -1845,20 +1845,20 @@ export function UnifiedProductsPage({
                                   }}
                                   className={`flex-shrink-0 p-1 rounded transition-colors ${
                                     floatingEditProductId === p.id
-                                      ? "bg-amber-500 text-white"
-                                      : "text-stone-300 hover:text-amber-600 hover:bg-amber-50"
+                                      ? "bg-[var(--brand-olive)] text-white"
+                                      : "text-[var(--ink-muted)] hover:text-[var(--brand-olive)] hover:bg-[#FAF7F1]"
                                   }`}
                                   title="Quick edit par levels & store assignments"
                                 >
                                   <Zap className="w-3.5 h-3.5" />
                                 </button>
                                 <span
-                                  className="font-medium text-xs cursor-pointer hover:text-amber-600 truncate"
+                                  className="font-medium text-xs cursor-pointer hover:text-[var(--brand-olive)] truncate"
                                   onClick={() => startEdit(p.id, "name", p.name)}
                                 >
-                                {p.isKeyItem && <Star className="w-3 h-3 text-amber-500 fill-amber-500 inline mr-1" />}
+                                {p.isKeyItem && <Star className="w-3 h-3 text-[var(--brand-olive)] fill-[var(--brand-olive)] inline mr-1" />}
                                 {p.name}
-                                {p.menuStatus === "DATABASE" && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded ml-1">database</span>}
+                                {p.menuStatus === "DATABASE" && <span className="text-[9px] bg-[rgba(74,93,39,0.12)] text-[var(--brand-olive-hover)] px-1 py-0.5 rounded ml-1">database</span>}
                                 {p.menuStatus === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1">inactive</span>}
                                 {anyDB && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded ml-1" title={`Marked for Database${storeBadgeSuffix((i) => i.markedForRemoval === "DATABASE")}`}>→ DB</span>}
                                 {anyInactive && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1" title={`Marked to Delete${storeBadgeSuffix((i) => i.markedForRemoval === "INACTIVE")}`}>→ ✕</span>}
@@ -1886,7 +1886,7 @@ export function UnifiedProductsPage({
                                   value={customSizeValue}
                                   onChange={(e) => setCustomSizeValue(e.target.value)}
                                   placeholder="Size"
-                                  className="w-14 px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                                  className="w-14 px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                                   autoFocus
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter") saveCustomSize();
@@ -1894,7 +1894,7 @@ export function UnifiedProductsPage({
                                   }}
                                 />
                                 <select value={customSizeUnit} onChange={(e) => setCustomSizeUnit(e.target.value)}
-                                  className="px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none">
+                                  className="px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none">
                                   <option value="ml">ml</option>
                                   <option value="oz">fl oz</option>
                                   <option value="gal">gallon</option>
@@ -1904,7 +1904,7 @@ export function UnifiedProductsPage({
                                   <option value="kg">kg</option>
                                 </select>
                                 <button onClick={saveCustomSize}
-                                  className="px-1.5 py-0.5 bg-amber-600 text-white rounded text-[10px] font-medium hover:bg-amber-500">
+                                  className="px-1.5 py-0.5 bg-[var(--brand-olive)] text-white rounded text-[10px] font-medium hover:bg-[var(--brand-olive)]">
                                   ✓
                                 </button>
                               </div>
@@ -1941,7 +1941,7 @@ export function UnifiedProductsPage({
                                 }
                               }}
                               onBlur={() => setEditingCell(null)}
-                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                               autoFocus
                             >
                               <option value="">—</option>
@@ -1965,7 +1965,7 @@ export function UnifiedProductsPage({
                             )
                           ) : (
                             <span
-                              className="text-[10px] text-stone-500 cursor-pointer hover:text-amber-600"
+                              className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)]"
                               onClick={() => startEdit(p.id, "bottleSize", p.bottleSizeMl?.toString() || "")}
                             >
                               {p.bottleSizeMl ? formatSize(p.bottleSizeMl, p.bottleSizeUnit) : "—"}
@@ -1985,7 +1985,7 @@ export function UnifiedProductsPage({
                                 onChange={(e) => setCustomCaseValue(e.target.value)}
                                 placeholder="Qty"
                                 autoFocus
-                                className="w-14 px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] text-center focus:outline-none"
+                                className="w-14 px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] text-center focus:outline-none"
                                 onKeyDown={async (e) => {
                                   if (e.key === "Enter") {
                                     const n = parseInt(customCaseValue);
@@ -2054,7 +2054,7 @@ export function UnifiedProductsPage({
                                 }
                               }}
                               onBlur={() => setEditingCell(null)}
-                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                             >
                               <option value="">—</option>
                               <option value={CASE_BOTTLE_ONLY}>Bottle Only</option>
@@ -2073,7 +2073,7 @@ export function UnifiedProductsPage({
                             </select>
                           ) : (
                             <span
-                              className="text-[10px] text-stone-500 cursor-pointer hover:text-amber-600 whitespace-nowrap"
+                              className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)] whitespace-nowrap"
                               onClick={() => startEdit(p.id, "casePack", p.casePackSize?.toString() || "")}
                             >
                               {formatCaseSize(p.casePackSize)}
@@ -2091,12 +2091,12 @@ export function UnifiedProductsPage({
                               onChange={(e) => setEditValue(e.target.value)}
                               onBlur={() => saveEdit(p.id, "bottleCost")}
                               onKeyDown={(e) => handleKeyDown(e, p.id, "bottleCost")}
-                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-xs text-right focus:outline-none"
+                              className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-xs text-right focus:outline-none"
                               autoFocus
                             />
                           ) : (
                             <span
-                              className={`text-xs cursor-pointer hover:text-amber-600 ${p.bottleCostCents ? "text-stone-900" : "text-stone-400"}`}
+                              className={`text-xs cursor-pointer hover:text-[var(--brand-olive)] ${p.bottleCostCents ? "text-[var(--brand-brown)]" : "text-[var(--ink-muted)]"}`}
                               onClick={() => startEdit(p.id, "bottleCost", p.bottleCostCents ? (p.bottleCostCents / 100).toFixed(2) : "")}
                             >
                               {p.bottleCostCents ? formatCents(p.bottleCostCents) : "—"}
@@ -2111,7 +2111,7 @@ export function UnifiedProductsPage({
                               value={editValue}
                               onChange={(e) => setEditValue(e.target.value)}
                               onBlur={() => saveEdit(p.id, "category")}
-                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                               autoFocus
                             >
                               <option value="">—</option>
@@ -2119,7 +2119,7 @@ export function UnifiedProductsPage({
                             </select>
                           ) : (
                             <span
-                              className="text-[10px] text-stone-700 cursor-pointer hover:text-amber-600 block truncate"
+                              className="text-[10px] text-[var(--brand-brown)] cursor-pointer hover:text-[var(--brand-olive)] block truncate"
                               onClick={() => startEdit(p.id, "category", p.ingredientCategory || "")}
                             >
                               {p.ingredientCategory || "—"}
@@ -2134,7 +2134,7 @@ export function UnifiedProductsPage({
                               value={editValue}
                               onChange={(e) => setEditValue(e.target.value)}
                               onBlur={() => saveEdit(p.id, "vendor")}
-                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                               autoFocus
                             >
                               <option value="">—</option>
@@ -2142,7 +2142,7 @@ export function UnifiedProductsPage({
                             </select>
                           ) : (
                             <span
-                              className="text-[10px] text-stone-700 cursor-pointer hover:text-amber-600 block truncate"
+                              className="text-[10px] text-[var(--brand-brown)] cursor-pointer hover:text-[var(--brand-olive)] block truncate"
                               onClick={() => startEdit(p.id, "vendor", p.vendorId || "")}
                             >
                               {p.vendor || "—"}
@@ -2153,7 +2153,7 @@ export function UnifiedProductsPage({
                         {/* Location / Storage Area */}
                         <td className="px-2 py-2">
                           {isAllLocations ? (
-                            <span className="text-[10px] text-stone-400" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.storageArea || "—"}`).join("\n")}>
+                            <span className="text-[10px] text-[var(--ink-muted)]" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.storageArea || "—"}`).join("\n")}>
                               {storeCount > 0 ? `${storeCount} ${storeCount === 1 ? "store" : "stores"}` : "—"}
                             </span>
                           ) : isEd("location") ? (
@@ -2181,7 +2181,7 @@ export function UnifiedProductsPage({
                                 await updateProductStorageArea(p.id, val, locationFilter, 1);
                               }}
                               onBlur={() => setEditingCell(null)}
-                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                               autoFocus
                             >
                               <option value="">—</option>
@@ -2192,7 +2192,7 @@ export function UnifiedProductsPage({
                             </select>
                           ) : (
                             <span
-                              className="text-[10px] text-stone-600 cursor-pointer hover:text-amber-600 block truncate"
+                              className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)] block truncate"
                               onClick={() => startEdit(p.id, "location", storageArea || "")}
                             >
                               {storageArea || "—"}
@@ -2203,7 +2203,7 @@ export function UnifiedProductsPage({
                         {/* Shelf 1 */}
                         <td className="px-2 py-2">
                           {isAllLocations ? (
-                            <span className="text-[10px] text-stone-400" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.shelfLocation || "—"}`).join("\n")}>
+                            <span className="text-[10px] text-[var(--ink-muted)]" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.shelfLocation || "—"}`).join("\n")}>
                               {storeCount > 0 ? `${storeCount} ${storeCount === 1 ? "store" : "stores"}` : "—"}
                             </span>
                           ) : isEd("shelf") ? (
@@ -2213,12 +2213,12 @@ export function UnifiedProductsPage({
                               onBlur={() => saveEdit(p.id, "shelf")}
                               onKeyDown={(e) => handleKeyDown(e, p.id, "shelf")}
                               placeholder="e.g. 5/3"
-                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                               autoFocus
                             />
                           ) : (
                             <span
-                              className="text-[10px] text-stone-500 cursor-pointer hover:text-amber-600 block"
+                              className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)] block"
                               onClick={() => startEdit(p.id, "shelf", activeInv?.shelfLocation || "")}
                             >
                               {activeInv?.shelfLocation || "—"}
@@ -2229,7 +2229,7 @@ export function UnifiedProductsPage({
                         {/* Area 2 */}
                         <td className="px-2 py-2">
                           {isAllLocations ? (
-                            <span className="text-[10px] text-stone-400" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.storageArea2 || "—"}`).join("\n")}>
+                            <span className="text-[10px] text-[var(--ink-muted)]" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.storageArea2 || "—"}`).join("\n")}>
                               {storeCount > 0 ? `${storeCount} ${storeCount === 1 ? "store" : "stores"}` : "—"}
                             </span>
                           ) : isEd("location2") ? (
@@ -2257,7 +2257,7 @@ export function UnifiedProductsPage({
                                 await updateProductStorageArea(p.id, val, locationFilter, 2);
                               }}
                               onBlur={() => setEditingCell(null)}
-                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                               autoFocus
                             >
                               <option value="">—</option>
@@ -2268,7 +2268,7 @@ export function UnifiedProductsPage({
                             </select>
                           ) : (
                             <span
-                              className="text-[10px] text-stone-600 cursor-pointer hover:text-amber-600 block truncate"
+                              className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)] block truncate"
                               onClick={() => startEdit(p.id, "location2", activeInv?.storageArea2 || "")}
                             >
                               {activeInv?.storageArea2 || "—"}
@@ -2279,7 +2279,7 @@ export function UnifiedProductsPage({
                         {/* Shelf 2 */}
                         <td className="px-2 py-2">
                           {isAllLocations ? (
-                            <span className="text-[10px] text-stone-400" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.shelfLocation2 || "—"}`).join("\n")}>
+                            <span className="text-[10px] text-[var(--ink-muted)]" title={p.inventory.map((inv) => `${inv.locationName}: ${inv.shelfLocation2 || "—"}`).join("\n")}>
                               {storeCount > 0 ? `${storeCount} ${storeCount === 1 ? "store" : "stores"}` : "—"}
                             </span>
                           ) : isEd("shelf2") ? (
@@ -2289,12 +2289,12 @@ export function UnifiedProductsPage({
                               onBlur={() => saveEdit(p.id, "shelf2")}
                               onKeyDown={(e) => handleKeyDown(e, p.id, "shelf2")}
                               placeholder="e.g. 3/1"
-                              className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                              className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                               autoFocus
                             />
                           ) : (
                             <span
-                              className="text-[10px] text-stone-500 cursor-pointer hover:text-amber-600 block"
+                              className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)] block"
                               onClick={() => startEdit(p.id, "shelf2", activeInv?.shelfLocation2 || "")}
                             >
                               {activeInv?.shelfLocation2 || "—"}
@@ -2303,7 +2303,7 @@ export function UnifiedProductsPage({
                         </td>
 
                         {/* Pour Size — clickable dropdown for multi-pour */}
-                        <td className="px-2 py-2 text-center text-xs text-stone-500 relative">
+                        <td className="px-2 py-2 text-center text-xs text-[var(--ink-muted)] relative">
                           {(() => {
                             if (isBTB) return <span className="text-blue-600 font-medium">BTB</span>;
                             if (catData?.servingStyle === "NONE") {
@@ -2321,21 +2321,21 @@ export function UnifiedProductsPage({
                                       if (e.key === "Escape") setEditingCell(null);
                                     }}
                                     placeholder="Qty"
-                                    className="w-16 px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-xs text-center focus:outline-none"
+                                    className="w-16 px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-xs text-center focus:outline-none"
                                     autoFocus
                                   />
                                 );
                               }
                               return (
                                 <span
-                                  className="text-xs cursor-pointer hover:text-amber-600"
+                                  className="text-xs cursor-pointer hover:text-[var(--brand-olive)]"
                                   onClick={() => startEdit(p.id, "yield", p.yieldCount?.toString() || "")}
                                   title="Click to set yield (units per container)"
                                 >
                                   {p.yieldCount ? (
-                                    <span className="text-stone-700">{p.yieldCount} each</span>
+                                    <span className="text-[var(--brand-brown)]">{p.yieldCount} each</span>
                                   ) : (
-                                    <span className="text-stone-400">each →</span>
+                                    <span className="text-[var(--ink-muted)]">each →</span>
                                   )}
                                 </span>
                               );
@@ -2362,8 +2362,8 @@ export function UnifiedProductsPage({
                                   onClick={() => isMulti && setPourDropdownOpen(isOpen ? null : p.id)}
                                   className={`px-1.5 py-0.5 rounded text-xs font-medium transition-colors ${
                                     isMulti
-                                      ? "bg-amber-100 text-amber-700 border border-amber-300 cursor-pointer hover:bg-amber-200"
-                                      : "text-stone-500 cursor-default"
+                                      ? "bg-[rgba(74,93,39,0.12)] text-[var(--brand-olive-hover)] border border-[var(--brand-olive)] cursor-pointer hover:bg-[rgba(74,93,39,0.12)]"
+                                      : "text-[var(--ink-muted)] cursor-default"
                                   }`}
                                   title={isMulti ? validPours.map((ps) => {
                                     const a = ps.amount ?? (ps as any).oz ?? 0;
@@ -2371,12 +2371,12 @@ export function UnifiedProductsPage({
                                   }).join("\n") : undefined}
                                 >
                                   {label}
-                                  {isMulti && <span className="text-amber-400 ml-0.5">▾</span>}
+                                  {isMulti && <span className="text-[var(--brand-olive)] ml-0.5">▾</span>}
                                 </button>
                                 {isOpen && (
                                   <>
                                     <div className="fixed inset-0 z-40" onClick={() => setPourDropdownOpen(null)} />
-                                    <div className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-stone-200 rounded-lg shadow-lg py-1 min-w-[140px]">
+                                    <div className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-[var(--line)] rounded-lg shadow-lg py-1 min-w-[140px]">
                                       {validPours.map((ps, i) => {
                                         const a = ps.amount ?? (ps as any).oz ?? 0;
                                         const uu = ps.unit || "oz";
@@ -2388,12 +2388,12 @@ export function UnifiedProductsPage({
                                               setSelectedPourIdx({ ...selectedPourIdx, [p.id]: i });
                                               setPourDropdownOpen(null);
                                             }}
-                                            className={`w-full text-left px-3 py-1.5 text-xs hover:bg-amber-50 flex items-center justify-between gap-3 ${
-                                              i === (selIdx || 0) ? "bg-amber-50 font-medium" : ""
+                                            className={`w-full text-left px-3 py-1.5 text-xs hover:bg-[#FAF7F1] flex items-center justify-between gap-3 ${
+                                              i === (selIdx || 0) ? "bg-[#FAF7F1] font-medium" : ""
                                             }`}
                                           >
                                             <span>{ps.label} {a > 0 ? `(${a}${uu})` : ""}</span>
-                                            <span className="text-amber-600">{cost > 0 ? formatCents(cost) : "—"}</span>
+                                            <span className="text-[var(--brand-olive)]">{cost > 0 ? formatCents(cost) : "—"}</span>
                                           </button>
                                         );
                                       })}
@@ -2413,12 +2413,12 @@ export function UnifiedProductsPage({
                               if (p.yieldCount && p.yieldCount > 0 && p.bottleCostCents) {
                                 const perUnit = Math.round(p.bottleCostCents / p.yieldCount);
                                 return (
-                                  <span className="text-xs text-amber-600" title={`${formatCents(p.bottleCostCents)} \u00f7 ${p.yieldCount} = ${formatCents(perUnit)} per ${p.yieldUnit || "unit"}`}>
+                                  <span className="text-xs text-[var(--brand-olive)]" title={`${formatCents(p.bottleCostCents)} \u00f7 ${p.yieldCount} = ${formatCents(perUnit)} per ${p.yieldUnit || "unit"}`}>
                                     {formatCents(perUnit)}
                                   </span>
                                 );
                               }
-                              return <span className="text-xs text-stone-400">—</span>;
+                              return <span className="text-xs text-[var(--ink-muted)]">—</span>;
                             }
                             const pours = catData?.pourSizes || [];
                             const validPours = pours.filter((ps) => {
@@ -2434,7 +2434,7 @@ export function UnifiedProductsPage({
                             const isMulti = validPours.length > 1;
                             return (
                               <span
-                                className={`text-xs ${cost > 0 ? "text-amber-600" : "text-stone-400"} ${isMulti ? "cursor-help" : ""}`}
+                                className={`text-xs ${cost > 0 ? "text-[var(--brand-olive)]" : "text-[var(--ink-muted)]"} ${isMulti ? "cursor-help" : ""}`}
                                 title={isMulti ? validPours.map((ps) => {
                                   const a = ps.amount ?? (ps as any).oz ?? 0;
                                   const c = getPourCostForSize(p, ps);
@@ -2463,7 +2463,7 @@ export function UnifiedProductsPage({
                               sug = getSuggestedForCost(cost, p);
                             }
                             return (
-                              <span className={`text-xs ${sug > 0 ? "text-green-600" : "text-stone-400"}`}>
+                              <span className={`text-xs ${sug > 0 ? "text-green-600" : "text-[var(--ink-muted)]"}`}>
                                 {sug > 0 ? formatCents(sug) : "—"}
                               </span>
                             );
@@ -2472,7 +2472,7 @@ export function UnifiedProductsPage({
 
                         {/* Stores */}
                         <td className="px-2 py-2 text-center">
-                          <span className="text-xs text-stone-600">{p.locationCount}/{locations.length}</span>
+                          <span className="text-xs text-[var(--ink-muted)]">{p.locationCount}/{locations.length}</span>
                         </td>
 
                         {/* Actions */}
@@ -2480,7 +2480,7 @@ export function UnifiedProductsPage({
                           <div className="flex items-center justify-end gap-0.5">
                             <Link
                               href={`/dashboard/products/${p.id}/edit`}
-                              className="p-1 text-stone-400 hover:text-amber-600 transition-colors"
+                              className="p-1 text-[var(--ink-muted)] hover:text-[var(--brand-olive)] transition-colors"
                               title="Edit full details"
                               onClick={() => {
                                 // Save current scroll + highlight RIGHT BEFORE navigation
@@ -2499,7 +2499,7 @@ export function UnifiedProductsPage({
                               <div className="relative">
                                 <button
                                   onClick={() => setRemoveMenuOpen(removeMenuOpen === p.id ? null : p.id)}
-                                  className="p-1 text-stone-400 hover:text-red-600 transition-colors"
+                                  className="p-1 text-[var(--ink-muted)] hover:text-red-600 transition-colors"
                                   title="Remove from menu"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -2507,16 +2507,16 @@ export function UnifiedProductsPage({
                                 {removeMenuOpen === p.id && (
                                   <>
                                     <div className="fixed inset-0 z-40" onClick={() => setRemoveMenuOpen(null)} />
-                                    <div className="absolute right-0 top-7 bg-white border border-stone-200 rounded-lg shadow-lg z-50 w-52 py-1">
+                                    <div className="absolute right-0 top-7 bg-white border border-[var(--line)] rounded-lg shadow-lg z-50 w-52 py-1">
                                       <button
                                         onClick={async () => {
                                           await moveProductToDatabase(p.id);
                                           setRemoveMenuOpen(null);
                                         }}
-                                        className="w-full text-left px-3 py-2 text-xs hover:bg-stone-50 transition-colors"
+                                        className="w-full text-left px-3 py-2 text-xs hover:bg-[var(--brand-cream)] transition-colors"
                                       >
-                                        <p className="font-medium text-stone-900">Move to Product Database</p>
-                                        <p className="text-[10px] text-stone-500">Tasted but not on menu yet</p>
+                                        <p className="font-medium text-[var(--brand-brown)]">Move to Product Database</p>
+                                        <p className="text-[10px] text-[var(--ink-muted)]">Tasted but not on menu yet</p>
                                       </button>
                                       <button
                                         onClick={async () => {
@@ -2527,7 +2527,7 @@ export function UnifiedProductsPage({
                                         className="w-full text-left px-3 py-2 text-xs hover:bg-red-50 transition-colors"
                                       >
                                         <p className="font-medium text-red-600">Permanently Delete</p>
-                                        <p className="text-[10px] text-stone-500">Removes from database — cannot be undone</p>
+                                        <p className="text-[10px] text-[var(--ink-muted)]">Removes from database — cannot be undone</p>
                                       </button>
                                     </div>
                                   </>
@@ -2538,7 +2538,7 @@ export function UnifiedProductsPage({
                                 onClick={async () => {
                                   await moveProductToMenu(p.id);
                                 }}
-                                className="p-1 text-stone-400 hover:text-green-600 transition-colors"
+                                className="p-1 text-[var(--ink-muted)] hover:text-green-600 transition-colors"
                                 title="Restore to menu"
                               >
                                 <Undo2 className="w-3.5 h-3.5" />
@@ -2568,20 +2568,20 @@ export function UnifiedProductsPage({
         return (
           <div
             data-floating-edit
-            className="fixed z-50 bg-white border border-stone-200 rounded-xl shadow-xl p-3 w-[340px]"
+            className="fixed z-50 bg-white border border-[var(--line)] rounded-xl shadow-xl p-3 w-[340px]"
             style={{
               top: `${Math.max(10, floatingEditPos.top - 220)}px`,
               left: `${Math.max(10, floatingEditPos.left)}px`,
             }}
           >
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-stone-800 truncate pr-2">{product.name}</p>
-              <button onClick={closeFloatingEdit} className="text-stone-400 hover:text-stone-700 text-sm leading-none" title="Close">✕</button>
+              <p className="text-xs font-semibold text-[var(--brand-brown)] truncate pr-2">{product.name}</p>
+              <button onClick={closeFloatingEdit} className="text-[var(--ink-muted)] hover:text-[var(--brand-brown)] text-sm leading-none" title="Close">✕</button>
             </div>
 
             {/* Available at stores */}
             <div className="mb-3">
-              <p className="text-[10px] uppercase text-stone-400 font-medium mb-1">Available at Stores</p>
+              <p className="text-[10px] uppercase text-[var(--ink-muted)] font-medium mb-1">Available at Stores</p>
               <div className="flex flex-wrap gap-1">
                 {locations.map((loc) => {
                   const isSelected = selectedLocationsDraft.includes(loc.id);
@@ -2592,8 +2592,8 @@ export function UnifiedProductsPage({
                       onClick={() => toggleStore(loc.id)}
                       className={`px-2 py-1 rounded-md text-[10px] font-medium border transition-colors ${
                         isSelected
-                          ? "bg-amber-100 border-amber-400 text-amber-800"
-                          : "bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100"
+                          ? "bg-[rgba(74,93,39,0.12)] border-[var(--brand-olive)] text-[var(--brand-olive-hover)]"
+                          : "bg-[var(--brand-cream)] border-[var(--line)] text-[var(--ink-muted)] hover:bg-[var(--brand-cream)]"
                       }`}
                     >
                       {isSelected && "✓ "}{shortName}
@@ -2605,9 +2605,9 @@ export function UnifiedProductsPage({
 
             {/* Par per store */}
             <div className="space-y-1.5 mb-2">
-              <p className="text-[10px] uppercase text-stone-400 font-medium">Par Level per Store</p>
+              <p className="text-[10px] uppercase text-[var(--ink-muted)] font-medium">Par Level per Store</p>
               {selectedLocationsDraft.length === 0 ? (
-                <p className="text-xs text-stone-400 italic">No stores selected</p>
+                <p className="text-xs text-[var(--ink-muted)] italic">No stores selected</p>
               ) : (
                 selectedLocationsDraft.map((locId) => {
                   const loc = locations.find((l) => l.id === locId);
@@ -2616,9 +2616,9 @@ export function UnifiedProductsPage({
                   const isNew = !inv;
                   return (
                     <div key={locId} className="flex items-center justify-between gap-2">
-                      <label className="text-xs text-stone-600 truncate flex-1">
+                      <label className="text-xs text-[var(--ink-muted)] truncate flex-1">
                         {loc.name.replace("Meyhouse ", "")}
-                        {isNew && <span className="text-[9px] text-amber-600 ml-1">(new)</span>}
+                        {isNew && <span className="text-[9px] text-[var(--brand-olive)] ml-1">(new)</span>}
                       </label>
                       <input
                         type="number"
@@ -2631,7 +2631,7 @@ export function UnifiedProductsPage({
                           if (e.key === "Escape") closeFloatingEdit();
                         }}
                         placeholder="0"
-                        className="w-16 px-2 py-1 bg-stone-50 border border-stone-300 rounded text-xs text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-16 px-2 py-1 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-xs text-right focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                       />
                     </div>
                   );
@@ -2639,10 +2639,10 @@ export function UnifiedProductsPage({
               )}
             </div>
 
-            <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+            <div className="flex items-center gap-2 pt-2 border-t border-[var(--line)]">
               <button
                 onClick={saveFloatingParChanges}
-                className="flex-1 px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-medium"
+                className="flex-1 px-3 py-1.5 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-xs font-medium"
               >
                 Save
               </button>
@@ -2656,12 +2656,12 @@ export function UnifiedProductsPage({
                     sessionStorage.setItem("meyhouse_productHighlight", product.id);
                   } catch {}
                 }}
-                className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-medium"
+                className="px-3 py-1.5 bg-[var(--brand-cream)] hover:bg-[var(--line)] text-[var(--brand-brown)] rounded-lg text-xs font-medium"
               >
                 Edit Full Details
               </Link>
             </div>
-            <p className="text-[10px] text-stone-400 mt-1.5 text-center">Press Enter to save · Esc to cancel</p>
+            <p className="text-[10px] text-[var(--ink-muted)] mt-1.5 text-center">Press Enter to save · Esc to cancel</p>
           </div>
         );
       })()}
@@ -2671,30 +2671,30 @@ export function UnifiedProductsPage({
         <div>
 
           {!selectedStoreId ? (
-            <div className="bg-white border border-stone-200 rounded-xl p-8 text-center">
-              <ClipboardList className="w-10 h-10 text-stone-300 mx-auto mb-3" />
+            <div className="bg-white border border-[var(--line)] rounded-xl p-8 text-center">
+              <ClipboardList className="w-10 h-10 text-[var(--ink-muted)] mx-auto mb-3" />
               <h2 className="text-lg font-semibold mb-1">Select a store to start counting</h2>
-              <p className="text-sm text-stone-500">Pick a location above, then walk through each storage area.</p>
+              <p className="text-sm text-[var(--ink-muted)]">Pick a location above, then walk through each storage area.</p>
             </div>
           ) : (
-            <div className="bg-white border border-stone-200 rounded-xl">
+            <div className="bg-white border border-[var(--line)] rounded-xl">
                           <table className="w-full min-w-[1100px] text-xs table-fixed">
                             <thead className="sticky top-0 z-10">
-                              <tr className="bg-stone-50 border-b border-stone-200 text-[10px] text-stone-500 uppercase font-medium">
-                                <th className="text-left px-2 py-2 w-[17%] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("name")}>
+                              <tr className="bg-[var(--brand-cream)] border-b border-[var(--line)] text-[10px] text-[var(--ink-muted)] uppercase font-medium">
+                                <th className="text-left px-2 py-2 w-[17%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("name")}>
                                   <span className="flex items-center gap-1">Item <OrderSortIcon field="name" /></span>
                                 </th>
-                                <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("size")}>
+                                <th className="text-left px-2 py-2 w-[5%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("size")}>
                                   <span className="flex items-center gap-1">Size <OrderSortIcon field="size" /></span>
                                 </th>
-                                <th className="text-left px-2 py-2 w-[7%] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("vendor")}>
+                                <th className="text-left px-2 py-2 w-[7%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("vendor")}>
                                   <span className="flex items-center gap-1">Vendor <OrderSortIcon field="vendor" /></span>
                                 </th>
                                 <th className="text-right px-2 py-2 w-[6%]">Cost</th>
                                 <th className="text-right px-2 py-2 w-[6%]">Previous</th>
                                 <th className="text-right px-2 py-2 w-[7%]">Purchases</th>
                                 <th className="text-right px-2 py-2 w-[6%]">Transfers</th>
-                                <th className="text-center px-2 py-2 w-[7%] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("count")}>
+                                <th className="text-center px-2 py-2 w-[7%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("count")}>
                                   <span className="flex items-center justify-center gap-1">Count <OrderSortIcon field="count" /></span>
                                 </th>
                                 <th className="text-right px-2 py-2 w-[7%]">Actual Usage</th>
@@ -2705,7 +2705,7 @@ export function UnifiedProductsPage({
                                 <th className="text-right px-2 py-2 w-[7%]">Efficiency</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-stone-100">
+                            <tbody className="divide-y divide-[var(--line)]">
                               {flatInventoryItems.map((item) => {
                                 const countVal = inventoryCounts[item.inv.id] ?? "";
                                 const hasCount = countVal !== "";
@@ -2743,9 +2743,9 @@ export function UnifiedProductsPage({
                                       if ((e.target as HTMLElement).closest("input, select, button, a")) return;
                                       setHighlightedRow(highlightedRow === item.inv.id ? null : item.inv.id);
                                     }}
-                                    className={`hover:bg-stone-50/50 cursor-pointer transition-colors ${
-                                      highlightedRow === item.inv.id ? "!bg-amber-50 ring-1 ring-amber-200" :
-                                      isSaved ? "bg-green-50/50" : hasCount ? "bg-amber-50/30" :
+                                    className={`hover:bg-[var(--brand-cream)] cursor-pointer transition-colors ${
+                                      highlightedRow === item.inv.id ? "!bg-[#FAF7F1] ring-1 ring-[var(--brand-olive)]" :
+                                      isSaved ? "bg-green-50/50" : hasCount ? "bg-[#FAF7F1]" :
                                       invMarkerColor
                                     }`}
                                   >
@@ -2762,22 +2762,22 @@ export function UnifiedProductsPage({
                                         {item.inv.isDessertWine && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded ml-1" title="Dessert Wine">🍇</span>}
                                       </p>
                                     </td>
-                                    <td className="px-2 py-2 text-stone-500 text-[10px]">
+                                    <td className="px-2 py-2 text-[var(--ink-muted)] text-[10px]">
                                       {item.bottleSizeMl ? formatSize(item.bottleSizeMl, item.bottleSizeUnit || "ml") : "—"}
                                     </td>
-                                    <td className="px-2 py-2 text-stone-500 text-[10px] truncate max-w-[70px]">
+                                    <td className="px-2 py-2 text-[var(--ink-muted)] text-[10px] truncate max-w-[70px]">
                                       {item.vendor || "—"}
                                     </td>
-                                    <td className="px-2 py-2 text-right text-stone-600">
+                                    <td className="px-2 py-2 text-right text-[var(--ink-muted)]">
                                       {item.bottleCostCents ? `$${(item.bottleCostCents / 100).toFixed(2)}` : "—"}
                                     </td>
                                     <td className="px-2 py-2 text-right text-blue-600">
                                       {prev.toFixed(prev % 1 === 0 ? 0 : 2)}
                                     </td>
-                                    <td className="px-2 py-2 text-right text-stone-600">
+                                    <td className="px-2 py-2 text-right text-[var(--ink-muted)]">
                                       {purchased > 0 ? purchased.toFixed(purchased % 1 === 0 ? 0 : 2) : "0.00"}
                                     </td>
-                                    <td className="px-2 py-2 text-right text-stone-400">0.00</td>
+                                    <td className="px-2 py-2 text-right text-[var(--ink-muted)]">0.00</td>
                                     <td className="px-2 py-2 text-center">
                                       <input
                                         type="number"
@@ -2787,36 +2787,36 @@ export function UnifiedProductsPage({
                                         onChange={(e) => setInventoryCounts({ ...inventoryCounts, [item.inv.id]: e.target.value })}
                                         onBlur={(e) => { if (e.target.value !== "") handleCountSave(item.inv.id, e.target.value); }}
                                         placeholder="—"
-                                        className={`w-16 px-1.5 py-1 border rounded text-xs text-center font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                                          isSaved ? "bg-green-100 border-green-400" : "bg-white border-stone-300"
+                                        className={`w-16 px-1.5 py-1 border rounded text-xs text-center font-bold focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] ${
+                                          isSaved ? "bg-green-100 border-green-400" : "bg-white border-[var(--line)]"
                                         }`}
                                       />
                                       {isSaved && <span className="text-[9px] text-green-600 block">✓</span>}
                                     </td>
                                     <td className="px-2 py-2 text-right">
                                       {actualUsage !== null ? (
-                                        <span className={actualUsage < 0 ? "text-red-600" : "text-stone-700"}>
+                                        <span className={actualUsage < 0 ? "text-red-600" : "text-[var(--brand-brown)]"}>
                                           {actualUsage < 0 ? `(${Math.abs(actualUsage).toFixed(2)})` : actualUsage.toFixed(2)}
                                         </span>
-                                      ) : <span className="text-stone-400">—</span>}
+                                      ) : <span className="text-[var(--ink-muted)]">—</span>}
                                     </td>
-                                    <td className="px-2 py-2 text-right text-stone-400">0.00</td>
-                                    <td className="px-2 py-2 text-right text-stone-400">0.00</td>
+                                    <td className="px-2 py-2 text-right text-[var(--ink-muted)]">0.00</td>
+                                    <td className="px-2 py-2 text-right text-[var(--ink-muted)]">0.00</td>
                                     <td className="px-2 py-2 text-right">
                                       {variance !== null ? (
-                                        <span className={`font-medium ${variance !== 0 ? "text-red-600" : "text-stone-500"}`}>
+                                        <span className={`font-medium ${variance !== 0 ? "text-red-600" : "text-[var(--ink-muted)]"}`}>
                                           {variance !== 0 ? (variance > 0 ? variance.toFixed(2) : `(${Math.abs(variance).toFixed(2)})`) : "0.00"}
                                         </span>
-                                      ) : <span className="text-stone-400">—</span>}
+                                      ) : <span className="text-[var(--ink-muted)]">—</span>}
                                     </td>
                                     <td className="px-2 py-2 text-right">
                                       {varianceDollars !== null ? (
-                                        <span className={`font-medium ${varianceDollars !== 0 ? "text-red-600" : "text-stone-500"}`}>
+                                        <span className={`font-medium ${varianceDollars !== 0 ? "text-red-600" : "text-[var(--ink-muted)]"}`}>
                                           {varianceDollars !== 0 ? (varianceDollars > 0 ? `$${varianceDollars.toFixed(2)}` : `($${Math.abs(varianceDollars).toFixed(2)})`) : "$0.00"}
                                         </span>
-                                      ) : <span className="text-stone-400">—</span>}
+                                      ) : <span className="text-[var(--ink-muted)]">—</span>}
                                     </td>
-                                    <td className="px-2 py-2 text-right text-stone-400">
+                                    <td className="px-2 py-2 text-right text-[var(--ink-muted)]">
                                       {efficiency !== null ? `${efficiency.toFixed(1)}%` : "0.00%"}
                                     </td>
                                   </tr>
@@ -2835,45 +2835,45 @@ export function UnifiedProductsPage({
           <div className={`flex-1 min-w-0 transition-all duration-200 ${cartExpanded ? "hidden" : ""}`}>
 
             {!selectedStoreId ? (
-              <div className="bg-white border border-stone-200 rounded-xl p-8 text-center">
-                <ShoppingCart className="w-10 h-10 text-stone-300 mx-auto mb-3" />
+              <div className="bg-white border border-[var(--line)] rounded-xl p-8 text-center">
+                <ShoppingCart className="w-10 h-10 text-[var(--ink-muted)] mx-auto mb-3" />
                 <h2 className="text-lg font-semibold mb-1">Select a store to start ordering</h2>
-                <p className="text-sm text-stone-500">Pick a location, count what you have, and the system auto-generates your order.</p>
+                <p className="text-sm text-[var(--ink-muted)]">Pick a location, count what you have, and the system auto-generates your order.</p>
               </div>
             ) : (
-              <div className="bg-white border border-stone-200 rounded-xl">
+              <div className="bg-white border border-[var(--line)] rounded-xl">
                   <table ref={orderTableRef} className="w-full min-w-[980px] text-xs">
                     <thead className="sticky top-0 z-10">
-                      <tr className="bg-stone-50 border-b border-stone-200 text-[10px] text-stone-500 uppercase font-medium">
-                        <th className="text-left px-2 py-2 cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("name")}>
+                      <tr className="bg-[var(--brand-cream)] border-b border-[var(--line)] text-[10px] text-[var(--ink-muted)] uppercase font-medium">
+                        <th className="text-left px-2 py-2 cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("name")}>
                           <span className="flex items-center gap-1">Product <OrderSortIcon field="name" /></span>
                         </th>
-                        <th className="text-left px-2 py-2 w-[55px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("size")}>
+                        <th className="text-left px-2 py-2 w-[55px] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("size")}>
                           <span className="flex items-center gap-1">Size <OrderSortIcon field="size" /></span>
                         </th>
                         <th className="text-center px-2 py-2 w-[70px]">
                           <span className="whitespace-nowrap">Case</span>
                         </th>
-                        <th className="text-left px-2 py-2 w-[75px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("vendor")}>
+                        <th className="text-left px-2 py-2 w-[75px] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("vendor")}>
                           <span className="flex items-center gap-1">Vendor <OrderSortIcon field="vendor" /></span>
                         </th>
-                        <th className="text-right px-2 py-2 w-[45px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("par")}>
+                        <th className="text-right px-2 py-2 w-[45px] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("par")}>
                           <span className="flex items-center justify-end gap-1">Par <OrderSortIcon field="par" /></span>
                         </th>
                         <th className="text-right px-2 py-2 w-[55px]">Last</th>
-                        <th className="text-center px-2 py-2 w-[55px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("count")}>
+                        <th className="text-center px-2 py-2 w-[55px] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("count")}>
                           <span className="flex items-center justify-center gap-1">Count <OrderSortIcon field="count" /></span>
                         </th>
-                        <th className="text-right px-2 py-2 w-[45px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("need")}>
+                        <th className="text-right px-2 py-2 w-[45px] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("need")}>
                           <span className="flex items-center justify-end gap-1">Need <OrderSortIcon field="need" /></span>
                         </th>
-                        <th className="text-center px-2 py-2 w-[70px] cursor-pointer hover:text-stone-900" onClick={() => toggleOrderSort("order")}>
+                        <th className="text-center px-2 py-2 w-[70px] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("order")}>
                           <span className="flex items-center justify-center gap-1">Order <OrderSortIcon field="order" /></span>
                         </th>
                         <th className="text-left px-2 py-2">8-Week History</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-100">
+                    <tbody className="divide-y divide-[var(--line)]">
                       {flatInventoryItems.map((item) => {
                         const countVal = orderCounts[item.inv.id] ?? "";
                         const hasCount = countVal !== "";
@@ -2905,9 +2905,9 @@ export function UnifiedProductsPage({
                               if ((e.target as HTMLElement).closest("input, select, button, a")) return;
                               setHighlightedRow(highlightedRow === item.inv.id ? null : item.inv.id);
                             }}
-                            className={`hover:bg-stone-50/50 cursor-pointer transition-colors ${
-                              highlightedRow === item.inv.id ? "!bg-amber-50 ring-1 ring-amber-200" :
-                              hasCount && needed && needed > 0 ? "bg-amber-50/30" :
+                            className={`hover:bg-[var(--brand-cream)] cursor-pointer transition-colors ${
+                              highlightedRow === item.inv.id ? "!bg-[#FAF7F1] ring-1 ring-[var(--brand-olive)]" :
+                              hasCount && needed && needed > 0 ? "bg-[#FAF7F1]" :
                               ordMarkerColor
                             }`}>
                             {/* Product name */}
@@ -2950,7 +2950,7 @@ export function UnifiedProductsPage({
                                     }
                                   }}
                                   onBlur={() => setEditingCell(null)}
-                                  className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                                  className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                                   autoFocus
                                 >
                                   <option value="">—</option>
@@ -2972,7 +2972,7 @@ export function UnifiedProductsPage({
                                 </select>
                               ) : (
                                 <span
-                                  className="text-[10px] text-stone-500 cursor-pointer hover:text-amber-600"
+                                  className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)]"
                                   onClick={() => startEdit(item.id, "bottleSize", item.bottleSizeMl?.toString() || "")}
                                 >
                                   {item.bottleSizeMl ? formatSize(item.bottleSizeMl, item.bottleSizeUnit || "ml") : "—"}
@@ -2980,7 +2980,7 @@ export function UnifiedProductsPage({
                               )}
                             </td>
                             {/* Case size (read-only) */}
-                            <td className="px-2 py-2 text-center text-[10px] text-stone-500 whitespace-nowrap">
+                            <td className="px-2 py-2 text-center text-[10px] text-[var(--ink-muted)] whitespace-nowrap">
                               {formatCaseSize(item.casePackSize)}
                             </td>
                             {/* Vendor — click to edit */}
@@ -2990,7 +2990,7 @@ export function UnifiedProductsPage({
                                   value={editValue}
                                   onChange={(e) => setEditValue(e.target.value)}
                                   onBlur={() => saveEdit(item.id, "vendor")}
-                                  className="w-full px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                                  className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                                   autoFocus
                                 >
                                   <option value="">—</option>
@@ -2998,7 +2998,7 @@ export function UnifiedProductsPage({
                                 </select>
                               ) : (
                                 <span
-                                  className="text-[10px] text-stone-600 cursor-pointer hover:text-amber-600 truncate block"
+                                  className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)] truncate block"
                                   onClick={() => startEdit(item.id, "vendor", item.vendorId || "")}
                                 >
                                   {item.vendor || "—"}
@@ -3021,12 +3021,12 @@ export function UnifiedProductsPage({
                                     if (e.key === "Enter") { handleParSave(item.inv.id, editValue); setEditingCell(null); }
                                     if (e.key === "Escape") setEditingCell(null);
                                   }}
-                                  className="w-12 px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-xs text-right focus:outline-none"
+                                  className="w-12 px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-xs text-right focus:outline-none"
                                   autoFocus
                                 />
                               ) : (
                                 <span
-                                  className="text-xs text-stone-700 cursor-pointer hover:text-amber-600"
+                                  className="text-xs text-[var(--brand-brown)] cursor-pointer hover:text-[var(--brand-olive)]"
                                   onClick={() => startEdit(item.id, "par", item.inv.parLevel.toString())}
                                 >
                                   {item.inv.parLevel}
@@ -3034,7 +3034,7 @@ export function UnifiedProductsPage({
                               )}
                             </td>
                             {/* Last Count */}
-                            <td className="px-2 py-2 text-right text-xs text-stone-400">{item.inv.currentStock}</td>
+                            <td className="px-2 py-2 text-right text-xs text-[var(--ink-muted)]">{item.inv.currentStock}</td>
                             {/* Count input */}
                             <td className="px-2 py-2 text-center">
                               <input
@@ -3044,16 +3044,16 @@ export function UnifiedProductsPage({
                                 value={countVal}
                                 onChange={(e) => setOrderCounts({ ...orderCounts, [item.inv.id]: e.target.value })}
                                 placeholder="—"
-                                className="w-14 px-1 py-1 border border-stone-300 rounded text-xs text-center font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                className="w-14 px-1 py-1 border border-[var(--line)] rounded text-xs text-center font-bold focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                               />
                             </td>
                             {/* Need */}
                             <td className="px-2 py-2 text-right">
                               {needed !== null && needed > 0 ? (
-                                <span className="text-xs text-amber-600 font-medium">{needed}</span>
+                                <span className="text-xs text-[var(--brand-olive)] font-medium">{needed}</span>
                               ) : needed !== null ? (
                                 <span className="text-xs text-green-600">✓</span>
-                              ) : <span className="text-xs text-stone-400">—</span>}
+                              ) : <span className="text-xs text-[var(--ink-muted)]">—</span>}
                             </td>
                             {/* Order — click to edit qty + case/bottle */}
                             <td className="px-2 py-2 text-center">
@@ -3068,7 +3068,7 @@ export function UnifiedProductsPage({
                                       const unit = editValue.split(":")[1] || (isCase ? "cs" : "btl");
                                       setEditValue(`${e.target.value}:${unit}`);
                                     }}
-                                    className="w-10 px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-xs text-center focus:outline-none"
+                                    className="w-10 px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-xs text-center focus:outline-none"
                                     autoFocus
                                   />
                                   <select
@@ -3078,7 +3078,7 @@ export function UnifiedProductsPage({
                                       setEditValue(`${qty}:${e.target.value}`);
                                     }}
                                     onBlur={() => setEditingCell(null)}
-                                    className="px-1 py-0.5 bg-amber-50 border border-amber-300 rounded text-[10px] focus:outline-none"
+                                    className="px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                                   >
                                     <option value="btl">btl</option>
                                     <option value="cs">case</option>
@@ -3086,22 +3086,22 @@ export function UnifiedProductsPage({
                                 </div>
                               ) : orderQty > 0 ? (
                                 <span
-                                  className="text-xs text-amber-700 font-bold cursor-pointer hover:text-amber-900"
+                                  className="text-xs text-[var(--brand-olive-hover)] font-bold cursor-pointer hover:text-[var(--brand-olive-hover)]"
                                   onClick={() => startEdit(item.id, "orderQty", `${orderQty}:${orderUnitLabel(item.casePackSize, isCase)}`)}
                                 >
                                   {orderQty} {orderUnitLabel(item.casePackSize, isCase)}
                                 </span>
-                              ) : <span className="text-xs text-stone-400">—</span>}
+                              ) : <span className="text-xs text-[var(--ink-muted)]">—</span>}
                             </td>
                             {/* 8-Week History */}
                             <td className="px-2 py-2">
-                              <div className="flex items-center gap-2 text-[10px] text-stone-500">
-                                <span className="text-stone-400">Last 8:</span>
+                              <div className="flex items-center gap-2 text-[10px] text-[var(--ink-muted)]">
+                                <span className="text-[var(--ink-muted)]">Last 8:</span>
                                 <span className="font-mono">{history.weekly.join("·")}</span>
-                                <span className="text-stone-300">|</span>
-                                <span>Wk: <span className="text-stone-700">{history.weeklyAvg.toFixed(1)}</span></span>
-                                <span className="text-stone-300">|</span>
-                                <span>Mo: <span className="text-stone-700">{history.monthlyAvg.toFixed(1)}</span></span>
+                                <span className="text-[var(--ink-muted)]">|</span>
+                                <span>Wk: <span className="text-[var(--brand-brown)]">{history.weeklyAvg.toFixed(1)}</span></span>
+                                <span className="text-[var(--ink-muted)]">|</span>
+                                <span>Mo: <span className="text-[var(--brand-brown)]">{history.monthlyAvg.toFixed(1)}</span></span>
                               </div>
                             </td>
                           </tr>
@@ -3115,24 +3115,24 @@ export function UnifiedProductsPage({
 
           {/* ===== ORDER CART SIDEBAR ===== */}
           {showCart && (
-            <div className={`${cartExpanded ? "flex-1" : "w-[260px]"} flex-shrink-0 sticky top-2 self-start max-h-[calc(100vh-12rem)] bg-white border border-stone-200 rounded-xl shadow-lg flex flex-col transition-all duration-200 z-20`}>
-              <div className="p-4 border-b border-stone-200 flex items-center justify-between">
+            <div className={`${cartExpanded ? "flex-1" : "w-[260px]"} flex-shrink-0 sticky top-2 self-start max-h-[calc(100vh-12rem)] bg-white border border-[var(--line)] rounded-xl shadow-lg flex flex-col transition-all duration-200 z-20`}>
+              <div className="p-4 border-b border-[var(--line)] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5 text-amber-600" />
+                  <ShoppingCart className="w-5 h-5 text-[var(--brand-olive)]" />
                   <h2 className="font-bold">{useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}</h2>
-                  <span className="text-xs text-stone-500">({cartItems.length})</span>
+                  <span className="text-xs text-[var(--ink-muted)]">({cartItems.length})</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setCartExpanded(!cartExpanded)}
-                    className="text-stone-400 hover:text-amber-600 p-1 transition-colors"
+                    className="text-[var(--ink-muted)] hover:text-[var(--brand-olive)] p-1 transition-colors"
                     title={cartExpanded ? "Collapse cart" : "Expand cart full width"}
                   >
                     {cartExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => { setShowCart(false); setCartExpanded(false); }}
-                    className="text-stone-400 hover:text-stone-700 text-lg"
+                    className="text-[var(--ink-muted)] hover:text-[var(--brand-brown)] text-lg"
                   >
                     ✕
                   </button>
@@ -3141,7 +3141,7 @@ export function UnifiedProductsPage({
 
               <div className="flex-1 overflow-y-auto p-3">
                 {cartItems.length === 0 ? (
-                  <div className="text-center py-8 text-stone-400 text-sm">
+                  <div className="text-center py-8 text-[var(--ink-muted)] text-sm">
                     <ShoppingCart className="w-8 h-8 mx-auto mb-2 opacity-30" />
                     <p>Cart is empty</p>
                     <p className="text-xs mt-1">Enter counts below par to add items</p>
@@ -3159,24 +3159,24 @@ export function UnifiedProductsPage({
                       return (
                         <div key={vendor}>
                           <div className="flex items-center gap-1 mb-1">
-                            <span className="text-xs font-bold text-stone-700 uppercase">{vendor}</span>
-                            <span className="text-xs text-stone-400">({vendorItems.length})</span>
+                            <span className="text-xs font-bold text-[var(--brand-brown)] uppercase">{vendor}</span>
+                            <span className="text-xs text-[var(--ink-muted)]">({vendorItems.length})</span>
                           </div>
                           {[...byStore.entries()].map(([storeName, storeItems]) => (
                             <div key={storeName} className="mb-2">
                               {useMergedOrderCart && (
-                                <p className="text-xs text-amber-700 font-bold ml-1 mb-0.5">{storeName}</p>
+                                <p className="text-xs text-[var(--brand-olive-hover)] font-bold ml-1 mb-0.5">{storeName}</p>
                               )}
                               <div className="space-y-1">
                                 {storeItems.map((ci, idx) => {
                                   const cartKey = `${ci.productId}_${ci.locationId}`;
                                   const isEditingThis = editingCartItem === cartKey;
                                   return (
-                                  <div key={`${ci.productId}-${ci.locationId}-${idx}`} className="bg-stone-50 rounded px-2 py-1.5 text-xs">
+                                  <div key={`${ci.productId}-${ci.locationId}-${idx}`} className="bg-[var(--brand-cream)] rounded px-2 py-1.5 text-xs">
                                     <div className="flex items-center justify-between">
                                       <div className="flex-1 min-w-0 mr-2">
                                         <p className="truncate font-medium">{ci.productName}</p>
-                                        <p className="text-[10px] text-stone-500">
+                                        <p className="text-[10px] text-[var(--ink-muted)]">
                                           Par {ci.parLevel} · Had {ci.counted}
                                         </p>
                                       </div>
@@ -3191,21 +3191,21 @@ export function UnifiedProductsPage({
                                             const val = parseInt(e.target.value) || 1;
                                             setCartOverrides({ ...cartOverrides, [cartKey]: { ...cartOverrides[cartKey], orderQty: val } });
                                           }}
-                                          className="w-8 px-0.5 py-0.5 border border-stone-300 rounded text-[10px] text-center font-bold focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                          className="w-8 px-0.5 py-0.5 border border-[var(--line)] rounded text-[10px] text-center font-bold focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
                                         />
                                         <select
                                           value={ci.orderUnit}
                                           onChange={(e) => {
                                             setCartOverrides({ ...cartOverrides, [cartKey]: { ...cartOverrides[cartKey], orderUnit: e.target.value } });
                                           }}
-                                          className="px-0.5 py-0.5 border border-stone-300 rounded text-[10px] focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                          className="px-0.5 py-0.5 border border-[var(--line)] rounded text-[10px] focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
                                         >
                                           <option value="bottle">btl</option>
                                           <option value="case">case</option>
                                         </select>
                                         <button
                                           onClick={() => removeFromCart(ci.productId, ci.locationId)}
-                                          className="ml-0.5 text-stone-400 hover:text-red-500"
+                                          className="ml-0.5 text-[var(--ink-muted)] hover:text-red-500"
                                           title="Remove from cart"
                                         >
                                           ✕
@@ -3215,7 +3215,7 @@ export function UnifiedProductsPage({
                                     {/* Store reassignment — click store name to change */}
                                     {useMergedOrderCart && (
                                       <div className="mt-1 flex items-center gap-1">
-                                        <span className="text-[9px] text-stone-400">Store:</span>
+                                        <span className="text-[9px] text-[var(--ink-muted)]">Store:</span>
                                         <select
                                           value={ci.locationId}
                                           onChange={(e) => {
@@ -3229,7 +3229,7 @@ export function UnifiedProductsPage({
                                               },
                                             });
                                           }}
-                                          className="text-[9px] px-1 py-0 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white"
+                                          className="text-[9px] px-1 py-0 border border-[var(--line)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)] bg-white"
                                         >
                                           {locations.map((l) => (
                                             <option key={l.id} value={l.id}>
@@ -3253,10 +3253,10 @@ export function UnifiedProductsPage({
               </div>
 
               {cartItems.length > 0 && (
-                <div className="p-4 border-t border-stone-200 bg-stone-50">
+                <div className="p-4 border-t border-[var(--line)] bg-[var(--brand-cream)]">
                   <div className="flex justify-between text-sm mb-3">
-                    <span className="text-stone-600">Total: {cartItems.length} items</span>
-                    <span className="font-bold text-amber-700">
+                    <span className="text-[var(--ink-muted)]">Total: {cartItems.length} items</span>
+                    <span className="font-bold text-[var(--brand-olive-hover)]">
                       {cartTotal > 0 ? `$${cartTotal.toFixed(2)}` : "—"}
                     </span>
                   </div>
@@ -3269,13 +3269,13 @@ export function UnifiedProductsPage({
                     <button
                       onClick={handleGenerateOrder}
                       disabled={generatingOrder || cartItems.length === 0}
-                      className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                      className="flex-1 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
                     >
                       {generatingOrder ? "Saving..." : orderSuccess ? "Save Again" : "Generate Order"}
                     </button>
                     <button
                       onClick={() => window.print()}
-                      className="px-3 py-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-xs transition-colors"
+                      className="px-3 py-2 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-xs transition-colors"
                     >
                       Print
                     </button>
@@ -3293,7 +3293,7 @@ export function UnifiedProductsPage({
                         handleClearCart();
                       }
                     }}
-                    className="w-full mt-2 py-2 bg-stone-100 hover:bg-red-50 hover:text-red-600 text-stone-600 rounded-lg text-xs transition-colors"
+                    className="w-full mt-2 py-2 bg-[var(--brand-cream)] hover:bg-red-50 hover:text-red-600 text-[var(--ink-muted)] rounded-lg text-xs transition-colors"
                   >
                     Clear All Items
                   </button>
@@ -3305,17 +3305,17 @@ export function UnifiedProductsPage({
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                   <div className="fixed inset-0 bg-black/40" onClick={() => setShowEmailPreview(false)} />
                   <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto m-4 z-50">
-                    <div className="sticky top-0 bg-white border-b border-stone-200 p-4 flex items-center justify-between">
+                    <div className="sticky top-0 bg-white border-b border-[var(--line)] p-4 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Mail className="w-5 h-5 text-blue-600" />
                         <h2 className="font-bold text-lg">Email Preview</h2>
-                        <span className="text-xs text-stone-500">
+                        <span className="text-xs text-[var(--ink-muted)]">
                           ({emailPreviews.length} vendor{emailPreviews.length !== 1 ? "s" : ""})
                         </span>
                       </div>
                       <button
                         onClick={() => setShowEmailPreview(false)}
-                        className="text-stone-400 hover:text-stone-700 text-xl"
+                        className="text-[var(--ink-muted)] hover:text-[var(--brand-brown)] text-xl"
                       >
                         ✕
                       </button>
@@ -3335,25 +3335,25 @@ export function UnifiedProductsPage({
                       )}
 
                       {emailPreviews.map((email, i) => (
-                        <div key={i} className="border border-stone-200 rounded-lg overflow-hidden">
-                          <div className="bg-stone-50 px-4 py-3 border-b border-stone-200">
+                        <div key={i} className="border border-[var(--line)] rounded-lg overflow-hidden">
+                          <div className="bg-[var(--brand-cream)] px-4 py-3 border-b border-[var(--line)]">
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="font-semibold text-sm">{email.vendor}</p>
-                                <p className="text-xs text-stone-500">
+                                <p className="text-xs text-[var(--ink-muted)]">
                                   To: {email.recipientEmail || <span className="text-red-500">No email set — add in Vendors</span>}
                                   {email.recipientName && ` (${email.recipientName})`}
                                 </p>
                                 {email.recipientPhone && (
-                                  <p className="text-xs text-stone-500">Phone: {email.recipientPhone}</p>
+                                  <p className="text-xs text-[var(--ink-muted)]">Phone: {email.recipientPhone}</p>
                                 )}
                               </div>
-                              <span className="text-xs text-stone-400">{email.itemCount} items</span>
+                              <span className="text-xs text-[var(--ink-muted)]">{email.itemCount} items</span>
                             </div>
                           </div>
                           <div className="px-4 py-3">
-                            <p className="text-xs text-stone-500 mb-1">Subject: {email.subject}</p>
-                            <pre className="text-xs text-stone-700 whitespace-pre-wrap font-mono bg-stone-50 rounded p-3">
+                            <p className="text-xs text-[var(--ink-muted)] mb-1">Subject: {email.subject}</p>
+                            <pre className="text-xs text-[var(--brand-brown)] whitespace-pre-wrap font-mono bg-[var(--brand-cream)] rounded p-3">
                               {email.body}
                             </pre>
                           </div>
@@ -3361,7 +3361,7 @@ export function UnifiedProductsPage({
                       ))}
                     </div>
 
-                    <div className="sticky bottom-0 bg-white border-t border-stone-200 p-4 flex gap-2">
+                    <div className="sticky bottom-0 bg-white border-t border-[var(--line)] p-4 flex gap-2">
                       <button
                         onClick={handleSendEmails}
                         disabled={sendingEmails}
@@ -3372,7 +3372,7 @@ export function UnifiedProductsPage({
                       </button>
                       <button
                         onClick={() => setShowEmailPreview(false)}
-                        className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 rounded-lg text-sm transition-colors"
+                        className="px-4 py-2.5 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-sm transition-colors"
                       >
                         Close
                       </button>

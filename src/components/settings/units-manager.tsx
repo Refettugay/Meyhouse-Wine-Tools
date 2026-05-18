@@ -47,7 +47,7 @@ const MEASURE_TYPE_INFO: Record<
     label: "Count",
     icon: Hash,
     baseUnit: "each",
-    color: "text-amber-600 bg-amber-100",
+    color: "text-[var(--brand-olive)] bg-[rgba(74,93,39,0.12)]",
   },
 };
 
@@ -113,18 +113,18 @@ export function UnitsManager({
       {!showAddForm ? (
         <button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 text-amber-600 hover:text-amber-700 text-sm"
+          className="flex items-center gap-2 text-[var(--brand-olive)] hover:text-[var(--brand-olive-hover)] text-sm"
         >
           <Plus className="w-4 h-4" />
           Add Custom Unit
         </button>
       ) : (
-        <div className="bg-white border border-amber-300 rounded-xl p-4">
-          <h3 className="font-semibold text-amber-700 mb-3">New Unit</h3>
+        <div className="bg-white border border-[var(--brand-olive)] rounded-xl p-4">
+          <h3 className="font-semibold text-[var(--brand-olive-hover)] mb-3">New Unit</h3>
           <form onSubmit={handleCreate} className="space-y-3">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <div>
-                <label className="block text-xs text-stone-600 mb-1">
+                <label className="block text-xs text-[var(--ink-muted)] mb-1">
                   Code *
                 </label>
                 <input
@@ -133,11 +133,11 @@ export function UnitsManager({
                     setNewUnit({ ...newUnit, code: e.target.value })
                   }
                   placeholder="e.g. bib5gal"
-                  className="w-full px-2 py-1.5 bg-stone-100 border border-stone-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full px-2 py-1.5 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
                 />
               </div>
               <div>
-                <label className="block text-xs text-stone-600 mb-1">
+                <label className="block text-xs text-[var(--ink-muted)] mb-1">
                   Name *
                 </label>
                 <input
@@ -146,11 +146,11 @@ export function UnitsManager({
                     setNewUnit({ ...newUnit, name: e.target.value })
                   }
                   placeholder="e.g. BIB (5 Gallon)"
-                  className="w-full px-2 py-1.5 bg-stone-100 border border-stone-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full px-2 py-1.5 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
                 />
               </div>
               <div>
-                <label className="block text-xs text-stone-600 mb-1">
+                <label className="block text-xs text-[var(--ink-muted)] mb-1">
                   Abbreviation
                 </label>
                 <input
@@ -159,11 +159,11 @@ export function UnitsManager({
                     setNewUnit({ ...newUnit, abbrev: e.target.value })
                   }
                   placeholder="e.g. BIB 5gal"
-                  className="w-full px-2 py-1.5 bg-stone-100 border border-stone-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full px-2 py-1.5 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
                 />
               </div>
               <div>
-                <label className="block text-xs text-stone-600 mb-1">
+                <label className="block text-xs text-[var(--ink-muted)] mb-1">
                   Measure Type
                 </label>
                 <select
@@ -171,7 +171,7 @@ export function UnitsManager({
                   onChange={(e) =>
                     setNewUnit({ ...newUnit, measureType: e.target.value })
                   }
-                  className="w-full px-2 py-1.5 bg-stone-100 border border-stone-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full px-2 py-1.5 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
                 >
                   <option value="VOLUME">Volume</option>
                   <option value="WEIGHT">Weight</option>
@@ -181,7 +181,7 @@ export function UnitsManager({
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <div>
-                <label className="block text-xs text-stone-600 mb-1">
+                <label className="block text-xs text-[var(--ink-muted)] mb-1">
                   = how many{" "}
                   {MEASURE_TYPE_INFO[newUnit.measureType]?.baseUnit || "base"}?
                 </label>
@@ -193,16 +193,16 @@ export function UnitsManager({
                     setNewUnit({ ...newUnit, baseFactor: e.target.value })
                   }
                   placeholder="e.g. 18927"
-                  className="w-full px-2 py-1.5 bg-stone-100 border border-stone-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full px-2 py-1.5 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
                 />
-                <p className="text-xs text-stone-400 mt-0.5">
+                <p className="text-xs text-[var(--ink-muted)] mt-0.5">
                   1 of this unit ={" "}
                   {newUnit.baseFactor || "?"}{" "}
                   {MEASURE_TYPE_INFO[newUnit.measureType]?.baseUnit}
                 </p>
               </div>
               <div className="flex items-end gap-4">
-                <label className="flex items-center gap-1 text-xs text-stone-600">
+                <label className="flex items-center gap-1 text-xs text-[var(--ink-muted)]">
                   <input
                     type="checkbox"
                     checked={newUnit.canPurchase}
@@ -216,7 +216,7 @@ export function UnitsManager({
                   />
                   Purchasing
                 </label>
-                <label className="flex items-center gap-1 text-xs text-stone-600">
+                <label className="flex items-center gap-1 text-xs text-[var(--ink-muted)]">
                   <input
                     type="checkbox"
                     checked={newUnit.canRecipe}
@@ -231,14 +231,14 @@ export function UnitsManager({
               <div className="flex items-end gap-2 col-span-2">
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded text-sm font-medium"
+                  className="px-4 py-1.5 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded text-sm font-medium"
                 >
                   Create
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="px-4 py-1.5 bg-stone-100 hover:bg-stone-200 rounded text-sm"
+                  className="px-4 py-1.5 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded text-sm"
                 >
                   Cancel
                 </button>
@@ -257,37 +257,37 @@ export function UnitsManager({
         return (
           <div
             key={type}
-            className="bg-white border border-stone-200 rounded-xl overflow-hidden"
+            className="bg-white border border-[var(--line)] rounded-xl overflow-hidden"
           >
             <button
               onClick={() => toggleSection(type)}
-              className="w-full px-4 py-3 flex items-center justify-between hover:bg-stone-50 transition-colors"
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-[var(--brand-cream)] transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${info?.color || "bg-stone-100"}`}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${info?.color || "bg-[var(--brand-cream)]"}`}
                 >
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="text-left">
                   <h2 className="font-semibold">{info?.label || type}</h2>
-                  <p className="text-xs text-stone-500">
+                  <p className="text-xs text-[var(--ink-muted)]">
                     {units.length} units · base ={" "}
                     {info?.baseUnit || "?"}
                   </p>
                 </div>
               </div>
               {isExpanded ? (
-                <ChevronUp className="w-5 h-5 text-stone-400" />
+                <ChevronUp className="w-5 h-5 text-[var(--ink-muted)]" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-stone-400" />
+                <ChevronDown className="w-5 h-5 text-[var(--ink-muted)]" />
               )}
             </button>
 
             {isExpanded && (
-              <div className="border-t border-stone-200">
+              <div className="border-t border-[var(--line)]">
                 {/* Header */}
-                <div className="hidden md:grid md:grid-cols-12 gap-2 px-4 py-2 text-xs text-stone-500 uppercase font-medium bg-stone-50">
+                <div className="hidden md:grid md:grid-cols-12 gap-2 px-4 py-2 text-xs text-[var(--ink-muted)] uppercase font-medium bg-[var(--brand-cream)]">
                   <div className="col-span-2">Code</div>
                   <div className="col-span-3">Name</div>
                   <div className="col-span-1">Abbrev</div>
@@ -304,7 +304,7 @@ export function UnitsManager({
                   <div className="col-span-1"></div>
                 </div>
 
-                <div className="divide-y divide-stone-200">
+                <div className="divide-y divide-[var(--line)]">
                   {units.map((unit) => (
                     <div
                       key={unit.id}
@@ -312,16 +312,16 @@ export function UnitsManager({
                         !unit.isActive ? "opacity-50" : ""
                       }`}
                     >
-                      <div className="col-span-6 md:col-span-2 font-mono text-xs text-stone-600">
+                      <div className="col-span-6 md:col-span-2 font-mono text-xs text-[var(--ink-muted)]">
                         {unit.code}
                       </div>
                       <div className="col-span-6 md:col-span-3">
                         {unit.name}
                       </div>
-                      <div className="hidden md:block md:col-span-1 text-stone-500">
+                      <div className="hidden md:block md:col-span-1 text-[var(--ink-muted)]">
                         {unit.abbrev}
                       </div>
-                      <div className="hidden md:block md:col-span-2 text-right text-stone-700 font-mono text-xs">
+                      <div className="hidden md:block md:col-span-2 text-right text-[var(--brand-brown)] font-mono text-xs">
                         {unit.baseFactor}
                       </div>
                       <div className="hidden md:flex md:col-span-1 justify-center">
@@ -334,7 +334,7 @@ export function UnitsManager({
                           className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
                             unit.canPurchase
                               ? "bg-blue-500 text-white"
-                              : "bg-stone-200 text-stone-500"
+                              : "bg-[var(--line)] text-[var(--ink-muted)]"
                           }`}
                         >
                           {unit.canPurchase ? "✓" : ""}
@@ -349,8 +349,8 @@ export function UnitsManager({
                           }
                           className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
                             unit.canRecipe
-                              ? "bg-amber-500 text-white"
-                              : "bg-stone-200 text-stone-500"
+                              ? "bg-[var(--brand-olive)] text-white"
+                              : "bg-[var(--line)] text-[var(--ink-muted)]"
                           }`}
                         >
                           {unit.canRecipe ? "✓" : ""}
@@ -364,7 +364,7 @@ export function UnitsManager({
                             })
                           }
                           className={`w-8 h-4 rounded-full relative transition-colors ${
-                            unit.isActive ? "bg-green-500" : "bg-stone-300"
+                            unit.isActive ? "bg-green-500" : "bg-[var(--line)]"
                           }`}
                         >
                           <span
@@ -387,7 +387,7 @@ export function UnitsManager({
                                 if (r?.error) setError(r.error);
                               }
                             }}
-                            className="text-stone-400 hover:text-red-600"
+                            className="text-[var(--ink-muted)] hover:text-red-600"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>

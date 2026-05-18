@@ -82,18 +82,18 @@ export function VendorsManager({
       )}
 
       {/* Add new vendor */}
-      <div className="bg-white border border-stone-200 rounded-xl p-4">
+      <div className="bg-white border border-[var(--line)] rounded-xl p-4">
         <h2 className="font-semibold mb-3">Add New Vendor</h2>
         <form onSubmit={handleAddVendor} className="flex gap-2">
           <input
             value={newVendorName}
             onChange={(e) => setNewVendorName(e.target.value)}
             placeholder="e.g. Southern Glazers Wine & Spirits"
-            className="flex-1 px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="flex-1 px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
           />
           <button
             type="submit"
-            className="flex items-center gap-1 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-1 px-4 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add
@@ -107,7 +107,7 @@ export function VendorsManager({
         placeholder={`Search ${vendors.length} vendors...`}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+        className="w-full px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
       />
 
       {/* Vendor list */}
@@ -115,28 +115,28 @@ export function VendorsManager({
         {filtered.map((vendor) => (
           <div
             key={vendor.id}
-            className="bg-white border border-stone-200 rounded-xl overflow-hidden"
+            className="bg-white border border-[var(--line)] rounded-xl overflow-hidden"
           >
             <button
               onClick={() =>
                 setExpanded(expanded === vendor.id ? null : vendor.id)
               }
-              className="w-full p-4 flex items-center justify-between hover:bg-stone-50 transition-colors"
+              className="w-full p-4 flex items-center justify-between hover:bg-[var(--brand-cream)] transition-colors"
             >
               <div className="flex items-center gap-3 text-left">
-                <Truck className="w-5 h-5 text-amber-600" />
+                <Truck className="w-5 h-5 text-[var(--brand-olive)]" />
                 <div>
                   <p className="font-semibold">{vendor.name}</p>
-                  <p className="text-xs text-stone-500">
+                  <p className="text-xs text-[var(--ink-muted)]">
                     {vendor._count.ingredients} products · {vendor.reps.length}{" "}
                     {vendor.reps.length === 1 ? "rep" : "reps"}
                   </p>
                 </div>
               </div>
               {expanded === vendor.id ? (
-                <ChevronUp className="w-5 h-5 text-stone-400" />
+                <ChevronUp className="w-5 h-5 text-[var(--ink-muted)]" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-stone-400" />
+                <ChevronDown className="w-5 h-5 text-[var(--ink-muted)]" />
               )}
             </button>
 
@@ -159,7 +159,7 @@ export function VendorsManager({
         ))}
 
         {filtered.length === 0 && (
-          <div className="text-center py-8 text-stone-500 text-sm">
+          <div className="text-center py-8 text-[var(--ink-muted)] text-sm">
             {vendors.length === 0
               ? "No vendors yet. Add your first one above."
               : "No vendors match your search."}
@@ -183,14 +183,14 @@ function VendorDetails({
   const [editingRepId, setEditingRepId] = useState<string | null>(null);
 
   return (
-    <div className="px-4 pb-4 border-t border-stone-200 pt-4">
+    <div className="px-4 pb-4 border-t border-[var(--line)] pt-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-stone-700">Representatives</h3>
+        <h3 className="text-sm font-medium text-[var(--brand-brown)]">Representatives</h3>
         <div className="flex gap-2">
           {!addingRep && (
             <button
               onClick={() => setAddingRep(true)}
-              className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700"
+              className="flex items-center gap-1 text-sm text-[var(--brand-olive)] hover:text-[var(--brand-olive-hover)]"
             >
               <Plus className="w-3 h-3" />
               Add Rep
@@ -198,7 +198,7 @@ function VendorDetails({
           )}
           <button
             onClick={onDelete}
-            className="text-stone-500 hover:text-red-600"
+            className="text-[var(--ink-muted)] hover:text-red-600"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -219,7 +219,7 @@ function VendorDetails({
         {vendor.reps.map((rep) => (
           <div
             key={rep.id}
-            className="bg-stone-50 border border-stone-200 rounded-lg p-3"
+            className="bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg p-3"
           >
             {editingRepId === rep.id ? (
               <RepForm
@@ -232,14 +232,14 @@ function VendorDetails({
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <User className="w-4 h-4 text-stone-500" />
+                    <User className="w-4 h-4 text-[var(--ink-muted)]" />
                     <p className="font-medium">{rep.name}</p>
                   </div>
-                  <div className="space-y-0.5 text-xs text-stone-600 ml-6">
+                  <div className="space-y-0.5 text-xs text-[var(--ink-muted)] ml-6">
                     {rep.email && (
                       <div className="flex items-center gap-1">
                         <Mail className="w-3 h-3" />
-                        <a href={`mailto:${rep.email}`} className="hover:text-amber-600">
+                        <a href={`mailto:${rep.email}`} className="hover:text-[var(--brand-olive)]">
                           {rep.email}
                         </a>
                       </div>
@@ -247,7 +247,7 @@ function VendorDetails({
                     {rep.phone && (
                       <div className="flex items-center gap-1">
                         <Phone className="w-3 h-3" />
-                        <a href={`tel:${rep.phone}`} className="hover:text-amber-600">
+                        <a href={`tel:${rep.phone}`} className="hover:text-[var(--brand-olive)]">
                           {rep.phone}
                         </a>
                       </div>
@@ -258,13 +258,13 @@ function VendorDetails({
                         rep.locations.map((rl) => (
                           <span
                             key={rl.location.id}
-                            className="inline-block bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs"
+                            className="inline-block bg-[rgba(74,93,39,0.12)] text-[var(--brand-olive-hover)] px-2 py-0.5 rounded text-xs"
                           >
                             {rl.location.name}
                           </span>
                         ))
                       ) : (
-                        <span className="text-stone-400">No stores</span>
+                        <span className="text-[var(--ink-muted)]">No stores</span>
                       )}
                     </div>
                   </div>
@@ -272,7 +272,7 @@ function VendorDetails({
                 <div className="flex gap-1">
                   <button
                     onClick={() => setEditingRepId(rep.id)}
-                    className="p-1 text-stone-500 hover:text-amber-600"
+                    className="p-1 text-[var(--ink-muted)] hover:text-[var(--brand-olive)]"
                   >
                     <Edit className="w-3 h-3" />
                   </button>
@@ -282,7 +282,7 @@ function VendorDetails({
                         await deleteVendorRep(rep.id);
                       }
                     }}
-                    className="p-1 text-stone-500 hover:text-red-600"
+                    className="p-1 text-[var(--ink-muted)] hover:text-red-600"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -293,7 +293,7 @@ function VendorDetails({
         ))}
 
         {vendor.reps.length === 0 && !addingRep && (
-          <p className="text-xs text-stone-400 italic">
+          <p className="text-xs text-[var(--ink-muted)] italic">
             No representatives added yet
           </p>
         )}
@@ -354,12 +354,12 @@ function RepForm({
   }
 
   return (
-    <div className="bg-white border border-amber-300 rounded-lg p-3 mb-3">
+    <div className="bg-white border border-[var(--brand-olive)] rounded-lg p-3 mb-3">
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-semibold text-amber-700">
+        <h4 className="text-sm font-semibold text-[var(--brand-olive-hover)]">
           {rep ? "Edit Representative" : "New Representative"}
         </h4>
-        <button onClick={onDone} className="text-stone-400 hover:text-stone-700">
+        <button onClick={onDone} className="text-[var(--ink-muted)] hover:text-[var(--brand-brown)]">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -375,7 +375,7 @@ function RepForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Rep Name *"
-          className="w-full px-2 py-1.5 bg-stone-100 border border-stone-300 rounded text-stone-900 placeholder-stone-400 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="w-full px-2 py-1.5 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-[var(--brand-brown)] placeholder-[var(--ink-muted)] text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
         />
         <div className="grid grid-cols-2 gap-2">
           <input
@@ -383,18 +383,18 @@ function RepForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="email@example.com"
-            className="w-full px-2 py-1.5 bg-stone-100 border border-stone-300 rounded text-stone-900 placeholder-stone-400 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full px-2 py-1.5 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-[var(--brand-brown)] placeholder-[var(--ink-muted)] text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
           />
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="Phone number"
-            className="w-full px-2 py-1.5 bg-stone-100 border border-stone-300 rounded text-stone-900 placeholder-stone-400 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full px-2 py-1.5 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-[var(--brand-brown)] placeholder-[var(--ink-muted)] text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
           />
         </div>
 
         <div>
-          <p className="text-xs text-stone-600 mb-1">Assigned to stores:</p>
+          <p className="text-xs text-[var(--ink-muted)] mb-1">Assigned to stores:</p>
           <div className="flex flex-wrap gap-1">
             {locations.map((loc) => (
               <button
@@ -403,8 +403,8 @@ function RepForm({
                 onClick={() => toggleLocation(loc.id)}
                 className={`px-2 py-1 rounded text-xs transition-colors ${
                   selectedLocIds.has(loc.id)
-                    ? "bg-amber-600 text-white"
-                    : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                    ? "bg-[var(--brand-olive)] text-white"
+                    : "bg-[var(--brand-cream)] text-[var(--brand-brown)] hover:bg-[var(--line)]"
                 }`}
               >
                 {loc.name}
@@ -416,7 +416,7 @@ function RepForm({
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
+          className="w-full py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
         >
           {saving ? "Saving..." : rep ? "Update Rep" : "Add Rep"}
         </button>

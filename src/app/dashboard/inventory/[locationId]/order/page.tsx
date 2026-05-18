@@ -56,7 +56,7 @@ export default async function OrderPage({
     <div className="p-4 lg:p-8">
       <Link
         href="/dashboard/inventory"
-        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 text-sm"
+        className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Inventory & Ordering
@@ -64,7 +64,7 @@ export default async function OrderPage({
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Count & Order</h1>
-        <p className="text-stone-500 text-sm">
+        <p className="text-[var(--ink-muted)] text-sm">
           {location.name} — Count current stock and auto-generate an order for
           items below par. {items.length} items to count.
         </p>

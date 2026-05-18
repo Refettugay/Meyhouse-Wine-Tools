@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-inter), system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,6 +39,17 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* Sophra brand tokens — exposed as Tailwind utilities so we can write
+     bg-brand-olive, text-brand-brown, border-line, etc. throughout the app. */
+  --color-brand-brown:       var(--brand-brown);
+  --color-brand-olive:       var(--brand-olive);
+  --color-brand-olive-hover: var(--brand-olive-hover);
+  --color-brand-cream:       var(--brand-cream);
+  --color-line:              var(--line);
+  --color-ink:               var(--ink);
+  --color-ink-muted:         var(--ink-muted);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,72 +60,100 @@
 }
 
 :root {
-  --background: oklch(0.985 0.005 85);
-  --foreground: oklch(0.2 0.01 50);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* ── Sophra brand palette (matches Schedule app) ──────────────────────── */
+  --brand-brown:       #3D2614;
+  --brand-olive:       #4A5D27;
+  --brand-olive-hover: #3d4d20;
+  --brand-cream:       #F5EFE3;
+  --line:              #E5DFD2;
+  --ink:               #1A1A1A;
+  --ink-muted:         #6B6358;
+
+  /* ── shadcn variables, mapped to Sophra tokens ────────────────────────── */
+  --background: var(--brand-cream);
+  --foreground: var(--ink);
+
+  --card: #ffffff;
+  --card-foreground: var(--brand-brown);
+
+  --popover: #ffffff;
+  --popover-foreground: var(--brand-brown);
+
+  --primary: var(--brand-olive);
+  --primary-foreground: var(--brand-cream);
+
+  --secondary: #FAF7F1;
+  --secondary-foreground: var(--brand-brown);
+
+  --muted: #FAF7F1;
+  --muted-foreground: var(--ink-muted);
+
+  --accent: rgba(74, 93, 39, 0.08);
+  --accent-foreground: var(--brand-olive);
+
+  --destructive: #B91C1C;
+
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--brand-olive);
+
+  --chart-1: var(--brand-olive);
+  --chart-2: #8C7A56;
+  --chart-3: var(--brand-brown);
+  --chart-4: var(--ink-muted);
+  --chart-5: var(--line);
+
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  --sidebar: var(--brand-cream);
+  --sidebar-foreground: var(--brand-brown);
+  --sidebar-primary: var(--brand-olive);
+  --sidebar-primary-foreground: var(--brand-cream);
+  --sidebar-accent: rgba(74, 93, 39, 0.08);
+  --sidebar-accent-foreground: var(--brand-olive);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--brand-olive);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Sophra inverted: keep brown/olive but invert backgrounds. The Beverage
+     app doesn't currently expose a theme toggle to users, but dark tokens
+     are kept defined so any component that opts in still resolves. */
+  --background: #1f1610;
+  --foreground: var(--brand-cream);
+
+  --card: #2a1e15;
+  --card-foreground: var(--brand-cream);
+
+  --popover: #2a1e15;
+  --popover-foreground: var(--brand-cream);
+
+  --primary: var(--brand-cream);
+  --primary-foreground: var(--brand-brown);
+
+  --secondary: #2a1e15;
+  --secondary-foreground: var(--brand-cream);
+
+  --muted: #2a1e15;
+  --muted-foreground: #c8baa5;
+
+  --accent: rgba(245, 239, 227, 0.12);
+  --accent-foreground: var(--brand-cream);
+
+  --destructive: #ef4444;
+
+  --border: rgba(245, 239, 227, 0.15);
+  --input: rgba(245, 239, 227, 0.15);
+  --ring: var(--brand-cream);
+
+  --sidebar: #1f1610;
+  --sidebar-foreground: var(--brand-cream);
+  --sidebar-primary: var(--brand-cream);
+  --sidebar-primary-foreground: var(--brand-brown);
+  --sidebar-accent: rgba(245, 239, 227, 0.12);
+  --sidebar-accent-foreground: var(--brand-cream);
+  --sidebar-border: rgba(245, 239, 227, 0.15);
+  --sidebar-ring: var(--brand-cream);
 }
 
 @layer base {
@@ -126,5 +165,49 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* ── Reusable Sophra utility classes (match Schedule's vocabulary) ──────── */
+@layer components {
+  .eyebrow {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .btn-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 200ms, border-color 200ms, transform 100ms;
+  }
+  .btn-pill-primary {
+    background: var(--brand-olive);
+    color: var(--brand-cream);
+    border-color: var(--brand-olive);
+  }
+  .btn-pill-primary:hover {
+    background: var(--brand-olive-hover);
+    border-color: var(--brand-olive-hover);
+    transform: translateY(-1px);
+  }
+  .btn-pill-ghost {
+    background: transparent;
+    color: var(--brand-brown);
+    border-color: var(--brand-brown);
+  }
+  .btn-pill-ghost:hover {
+    background: var(--brand-brown);
+    color: var(--brand-cream);
   }
 }

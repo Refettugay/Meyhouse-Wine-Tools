@@ -35,7 +35,7 @@ export default async function LocationInventoryPage({
     <div className="p-4 lg:p-8">
       <Link
         href="/dashboard/inventory"
-        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 text-sm"
+        className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Inventory & Ordering
@@ -44,14 +44,14 @@ export default async function LocationInventoryPage({
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">{location.name}</h1>
-          <p className="text-stone-500 text-sm">
+          <p className="text-[var(--ink-muted)] text-sm">
             {location.inventoryItems.length} items · View and edit par levels
             and storage areas
           </p>
         </div>
         <Link
           href={`/dashboard/inventory/${locationId}/order`}
-          className="flex items-center gap-2 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors"
         >
           <ClipboardList className="w-4 h-4" />
           Count & Order

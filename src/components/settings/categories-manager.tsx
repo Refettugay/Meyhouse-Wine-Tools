@@ -25,9 +25,9 @@ function PourChip({ ps, onRemove }: { ps: PourSize; onRemove: () => void }) {
   const u = ps.unit || (amt > 0 ? "oz" : "");
   const display = amt === 0 ? ps.label : `${ps.label} · ${amt}${u}`;
   return (
-    <span className="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-800 border border-amber-200 px-2 py-1 rounded-full">
+    <span className="inline-flex items-center gap-1 text-xs bg-[#FAF7F1] text-[var(--brand-olive-hover)] border border-[var(--brand-olive)] px-2 py-1 rounded-full">
       {display}
-      <button onClick={onRemove} className="text-amber-400 hover:text-red-500"><X className="w-3 h-3" /></button>
+      <button onClick={onRemove} className="text-[var(--brand-olive)] hover:text-red-500"><X className="w-3 h-3" /></button>
     </span>
   );
 }
@@ -80,21 +80,21 @@ function InlinePourAdder({ onAdd, onCancel }: { onAdd: (ps: PourSize) => void; o
     <div className="inline-flex items-center gap-1.5 flex-wrap">
       {/* Name dropdown */}
       <select value={label} onChange={(e) => handleLabelChange(e.target.value)}
-        className="px-2 py-1 text-xs border border-stone-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-amber-500">
+        className="px-2 py-1 text-xs border border-[var(--line)] rounded bg-white focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]">
         {POUR_NAMES.map((n) => <option key={n} value={n}>{n}</option>)}
         <option value="__custom__">Custom...</option>
       </select>
       {isCustomName && (
         <input value={customLabel} onChange={(e) => setCustomLabel(e.target.value)}
           placeholder="Name" autoFocus
-          className="w-20 px-2 py-1 text-xs border border-stone-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="w-20 px-2 py-1 text-xs border border-[var(--line)] rounded bg-white focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
           onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); if (e.key === "Escape") onCancel(); }} />
       )}
 
       {/* Size: suggested dropdown OR custom input */}
       {hasSuggestions ? (
         <select value={sizeSelection} onChange={(e) => setSizeSelection(e.target.value)}
-          className="px-2 py-1 text-xs border border-stone-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-amber-500">
+          className="px-2 py-1 text-xs border border-[var(--line)] rounded bg-white focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]">
           {suggestions.map((s, i) => (
             <option key={i} value={String(i)}>{s.label}</option>
           ))}
@@ -107,19 +107,19 @@ function InlinePourAdder({ onAdd, onCancel }: { onAdd: (ps: PourSize) => void; o
         <>
           <input type="number" step="0.01" value={customAmount} onChange={(e) => setCustomAmount(e.target.value)}
             placeholder="Size" autoFocus={!isCustomName}
-            className="w-16 px-2 py-1 text-xs border border-stone-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-16 px-2 py-1 text-xs border border-[var(--line)] rounded bg-white focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
             onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); if (e.key === "Escape") onCancel(); }} />
           <select value={customUnit} onChange={(e) => setCustomUnit(e.target.value)}
-            className="px-2 py-1 text-xs border border-stone-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-amber-500">
+            className="px-2 py-1 text-xs border border-[var(--line)] rounded bg-white focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]">
             {POUR_UNITS.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
           </select>
         </>
       )}
 
       <button onClick={handleAdd}
-        className="px-2 py-1 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded font-medium">Add</button>
+        className="px-2 py-1 text-xs bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded font-medium">Add</button>
       <button onClick={onCancel}
-        className="px-2 py-1 text-xs text-stone-400 hover:text-stone-600">Cancel</button>
+        className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink-muted)]">Cancel</button>
     </div>
   );
 }
@@ -224,13 +224,13 @@ export function CategoriesManager({
 
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
           <input type="text" placeholder={`Search ${config.subs.length} categories...`}
             value={search} onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" />
+            className="w-full pl-9 pr-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] text-sm" />
         </div>
         <Link href="/dashboard/settings/categories/new"
-          className="flex items-center gap-1 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors">
+          className="flex items-center gap-1 px-4 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors">
           <Plus className="w-4 h-4" /> Add Category
         </Link>
       </div>
@@ -238,27 +238,27 @@ export function CategoriesManager({
       {grouped.map(({ parent, subs }) => {
         const isCollapsed = collapsedParents.has(parent.name);
         return (
-          <div key={parent.name} className="bg-white border border-stone-200 rounded-xl">
+          <div key={parent.name} className="bg-white border border-[var(--line)] rounded-xl">
             {/* Parent header */}
-            <div className="px-4 py-3 bg-stone-50 border-b border-stone-200 rounded-t-xl">
+            <div className="px-4 py-3 bg-[var(--brand-cream)] border-b border-[var(--line)] rounded-t-xl">
               <div className="flex items-center justify-between">
-                <button onClick={() => toggleParent(parent.name)} className="flex items-center gap-2 hover:text-amber-600 transition-colors">
-                  {isCollapsed ? <ChevronRight className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+                <button onClick={() => toggleParent(parent.name)} className="flex items-center gap-2 hover:text-[var(--brand-olive)] transition-colors">
+                  {isCollapsed ? <ChevronRight className="w-4 h-4 text-[var(--ink-muted)]" /> : <ChevronDown className="w-4 h-4 text-[var(--ink-muted)]" />}
                   <span className="text-lg">{parent.icon}</span>
                   <h3 className="font-semibold text-sm">{parent.name}</h3>
-                  <span className="text-xs text-stone-400">({subs.length})</span>
+                  <span className="text-xs text-[var(--ink-muted)]">({subs.length})</span>
                 </button>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-stone-400">Default:</span>
+                  <span className="text-xs text-[var(--ink-muted)]">Default:</span>
                   {parent.defaultPourSizes.map((ps, i) => {
                     const amt = ps.amount ?? (ps as any).oz ?? 0;
                     const u = ps.unit || (amt > 0 ? "oz" : "");
                     const display = amt === 0 ? ps.label : `${ps.label} · ${amt}${u}`;
                     return (
-                      <span key={i} className="inline-flex items-center gap-0.5 text-xs bg-stone-200 text-stone-700 px-1.5 py-0.5 rounded">
+                      <span key={i} className="inline-flex items-center gap-0.5 text-xs bg-[var(--line)] text-[var(--brand-brown)] px-1.5 py-0.5 rounded">
                         {display}
                         <button onClick={() => handleParentPourRemove(parent, i)}
-                          className="text-stone-400 hover:text-red-500 ml-0.5"><X className="w-3 h-3" /></button>
+                          className="text-[var(--ink-muted)] hover:text-red-500 ml-0.5"><X className="w-3 h-3" /></button>
                       </span>
                     );
                   })}
@@ -270,13 +270,13 @@ export function CategoriesManager({
                   ) : (
                     <button
                       onClick={() => setAddingPourFor(`parent:${parent.name}`)}
-                      className="inline-flex items-center gap-0.5 text-xs text-stone-400 hover:text-amber-600 border border-dashed border-stone-300 hover:border-amber-400 px-2 py-1 rounded-full transition-colors"
+                      className="inline-flex items-center gap-0.5 text-xs text-[var(--ink-muted)] hover:text-[var(--brand-olive)] border border-dashed border-[var(--line)] hover:border-[var(--brand-olive)] px-2 py-1 rounded-full transition-colors"
                     >
                       <Plus className="w-3 h-3" /> Add
                     </button>
                   )}
                   <Link href={`/dashboard/settings/categories/parent/${encodeURIComponent(parent.name)}`}
-                    className="p-1 text-stone-400 hover:text-amber-600" title="Edit parent"><Settings2 className="w-4 h-4" /></Link>
+                    className="p-1 text-[var(--ink-muted)] hover:text-[var(--brand-olive)]" title="Edit parent"><Settings2 className="w-4 h-4" /></Link>
                 </div>
               </div>
             </div>
@@ -287,18 +287,18 @@ export function CategoriesManager({
                 {subs.length > 0 && (
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-[10px] text-stone-400 uppercase border-b border-stone-100">
+                      <tr className="text-[10px] text-[var(--ink-muted)] uppercase border-b border-[var(--line)]">
                         <th className="text-left px-4 py-1.5 font-medium w-[180px]">Sub-Category</th>
                         <th className="text-left px-2 py-1.5 font-medium">Pour Sizes</th>
                         <th className="text-right px-3 py-1.5 font-medium w-[50px]">Items</th>
                         <th className="w-[36px]"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-50">
+                    <tbody className="divide-y divide-[var(--line)]">
                       {subs.map((sub) => {
                         const count = subCounts[sub.name] || 0;
                         return (
-                          <tr key={sub.name} className="hover:bg-stone-50/50 group">
+                          <tr key={sub.name} className="hover:bg-[var(--brand-cream)] group">
                             <td className="px-4 py-2.5">
                               {editingSubName === sub.name ? (
                                 <input
@@ -309,12 +309,12 @@ export function CategoriesManager({
                                     if (e.key === "Enter") handleRenameSub(sub);
                                     if (e.key === "Escape") setEditingSubName(null);
                                   }}
-                                  className="w-full px-2 py-0.5 text-sm font-medium bg-amber-50 border border-amber-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                  className="w-full px-2 py-0.5 text-sm font-medium bg-[#FAF7F1] border border-[var(--brand-olive)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
                                   autoFocus
                                 />
                               ) : (
                                 <span
-                                  className="font-medium text-stone-800 cursor-pointer hover:text-amber-600 transition-colors"
+                                  className="font-medium text-[var(--brand-brown)] cursor-pointer hover:text-[var(--brand-olive)] transition-colors"
                                   onClick={() => { setEditingSubName(sub.name); setEditNameValue(sub.name); }}
                                   title="Click to rename"
                                 >
@@ -335,7 +335,7 @@ export function CategoriesManager({
                                 ) : (
                                   <button
                                     onClick={() => setAddingPourFor(sub.name)}
-                                    className="inline-flex items-center gap-0.5 text-xs text-stone-400 hover:text-amber-600 border border-dashed border-stone-300 hover:border-amber-400 px-2 py-1 rounded-full transition-colors"
+                                    className="inline-flex items-center gap-0.5 text-xs text-[var(--ink-muted)] hover:text-[var(--brand-olive)] border border-dashed border-[var(--line)] hover:border-[var(--brand-olive)] px-2 py-1 rounded-full transition-colors"
                                   >
                                     <Plus className="w-3 h-3" /> Add
                                   </button>
@@ -343,11 +343,11 @@ export function CategoriesManager({
                               </div>
                             </td>
                             <td className="px-3 py-2.5 text-right">
-                              <span className="text-xs text-stone-500">{count}</span>
+                              <span className="text-xs text-[var(--ink-muted)]">{count}</span>
                             </td>
                             <td className="px-2 py-2.5">
                               <button onClick={() => handleDeleteSub(sub.name)}
-                                className="p-1 text-stone-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
+                                className="p-1 text-[var(--ink-muted)] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </td>
@@ -359,21 +359,21 @@ export function CategoriesManager({
                 )}
 
                 {/* Add sub-category */}
-                <div className="px-4 py-2.5 border-t border-stone-100">
+                <div className="px-4 py-2.5 border-t border-[var(--line)]">
                   {addingSubFor === parent.name ? (
                     <div className="flex items-center gap-2">
                       <input value={newSubName} onChange={(e) => setNewSubName(e.target.value)}
                         placeholder={`New ${parent.name} sub-category...`} autoFocus
-                        className="flex-1 px-3 py-1.5 text-sm border border-stone-300 rounded-lg bg-stone-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="flex-1 px-3 py-1.5 text-sm border border-[var(--line)] rounded-lg bg-[var(--brand-cream)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                         onKeyDown={(e) => { if (e.key === "Enter") handleAddSub(parent.name); if (e.key === "Escape") { setAddingSubFor(null); setNewSubName(""); } }} />
                       <button onClick={() => handleAddSub(parent.name)}
-                        className="px-3 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-medium">Add</button>
+                        className="px-3 py-1.5 text-xs bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg font-medium">Add</button>
                       <button onClick={() => { setAddingSubFor(null); setNewSubName(""); }}
-                        className="px-3 py-1.5 text-xs text-stone-500">Cancel</button>
+                        className="px-3 py-1.5 text-xs text-[var(--ink-muted)]">Cancel</button>
                     </div>
                   ) : (
                     <button onClick={() => { setAddingSubFor(parent.name); setNewSubName(""); setError(""); }}
-                      className="flex items-center gap-1 text-xs text-stone-400 hover:text-amber-600 transition-colors">
+                      className="flex items-center gap-1 text-xs text-[var(--ink-muted)] hover:text-[var(--brand-olive)] transition-colors">
                       <Plus className="w-3.5 h-3.5" /> Add sub-category
                     </button>
                   )}

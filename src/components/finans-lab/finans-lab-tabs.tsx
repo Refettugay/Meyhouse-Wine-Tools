@@ -43,7 +43,7 @@ export function FinanceHubTabs() {
   const pathname = usePathname();
 
   return (
-    <div className="flex gap-1 bg-stone-100 rounded-lg p-1 mb-4">
+    <div className="flex gap-1 bg-[var(--brand-cream)] rounded-lg p-1 mb-4">
       {tabs.map((tab) => {
         const isActive = tab.exact
           ? pathname === tab.href
@@ -55,8 +55,8 @@ export function FinanceHubTabs() {
             href={tab.href}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors flex-1 justify-center ${
               isActive
-                ? "bg-white text-amber-600 shadow-sm"
-                : "text-stone-500 hover:text-stone-900"
+                ? "bg-white text-[var(--brand-olive)] shadow-sm"
+                : "text-[var(--ink-muted)] hover:text-[var(--brand-brown)]"
             }`}
           >
             <Icon className="w-4 h-4" />

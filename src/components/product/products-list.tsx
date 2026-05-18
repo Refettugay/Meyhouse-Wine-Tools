@@ -195,9 +195,9 @@ export function ProductsList({
       return <ArrowUpDown className="w-3 h-3 opacity-40" />;
     }
     return sortDir === "asc" ? (
-      <ArrowUp className="w-3 h-3 text-amber-600" />
+      <ArrowUp className="w-3 h-3 text-[var(--brand-olive)]" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-amber-600" />
+      <ArrowDown className="w-3 h-3 text-[var(--brand-olive)]" />
     );
   }
 
@@ -206,19 +206,19 @@ export function ProductsList({
       {/* Search & filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
           <input
             type="text"
             placeholder="Search..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
           />
         </div>
         <select
           value={vendorFilter}
           onChange={(e) => handleVendorChange(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Vendors</option>
           {vendors.map((v) => (
@@ -230,7 +230,7 @@ export function ProductsList({
         <select
           value={categoryFilter}
           onChange={(e) => handleCategoryChange(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Categories</option>
           {categories.map((c) => (
@@ -242,7 +242,7 @@ export function ProductsList({
         <select
           value={locationFilter}
           onChange={(e) => handleLocationChange(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Locations</option>
           {locations.map((l) => (
@@ -253,34 +253,34 @@ export function ProductsList({
         </select>
       </div>
 
-      <p className="text-sm text-stone-500 mb-3">
+      <p className="text-sm text-[var(--ink-muted)] mb-3">
         Showing {filtered.length} of {products.length}
       </p>
 
-      <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-[var(--line)] rounded-xl overflow-hidden">
         {/* Desktop headers */}
-        <div className="hidden md:grid md:grid-cols-12 gap-2 px-4 py-3 border-b border-stone-200 text-xs font-medium text-stone-500 uppercase">
+        <div className="hidden md:grid md:grid-cols-12 gap-2 px-4 py-3 border-b border-[var(--line)] text-xs font-medium text-[var(--ink-muted)] uppercase">
           <button
             onClick={() => toggleSort("name")}
-            className="col-span-4 flex items-center gap-1 hover:text-stone-900 transition-colors text-left"
+            className="col-span-4 flex items-center gap-1 hover:text-[var(--brand-brown)] transition-colors text-left"
           >
             Product <SortIcon field="name" />
           </button>
           <button
             onClick={() => toggleSort("vendor")}
-            className="col-span-2 flex items-center gap-1 hover:text-stone-900 transition-colors text-left"
+            className="col-span-2 flex items-center gap-1 hover:text-[var(--brand-brown)] transition-colors text-left"
           >
             Vendor <SortIcon field="vendor" />
           </button>
           <button
             onClick={() => toggleSort("category")}
-            className="col-span-2 flex items-center gap-1 hover:text-stone-900 transition-colors text-left"
+            className="col-span-2 flex items-center gap-1 hover:text-[var(--brand-brown)] transition-colors text-left"
           >
             Category <SortIcon field="category" />
           </button>
           <button
             onClick={() => toggleSort("cost")}
-            className="col-span-2 flex items-center gap-1 hover:text-stone-900 transition-colors text-left"
+            className="col-span-2 flex items-center gap-1 hover:text-[var(--brand-brown)] transition-colors text-left"
           >
             Cost <SortIcon field="cost" />
           </button>
@@ -288,8 +288,8 @@ export function ProductsList({
         </div>
 
         {/* Mobile sort */}
-        <div className="md:hidden px-4 py-2 border-b border-stone-200 flex items-center gap-2">
-          <span className="text-xs text-stone-500">Sort:</span>
+        <div className="md:hidden px-4 py-2 border-b border-[var(--line)] flex items-center gap-2">
+          <span className="text-xs text-[var(--ink-muted)]">Sort:</span>
           <select
             value={`${sortField}-${sortDir}`}
             onChange={(e) => {
@@ -298,7 +298,7 @@ export function ProductsList({
               setSortDir(d as SortDir);
               updateUrl({ sort: f, dir: d });
             }}
-            className="flex-1 px-2 py-1 bg-stone-100 border border-stone-300 rounded text-stone-900 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="flex-1 px-2 py-1 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-[var(--brand-brown)] text-xs focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
           >
             <option value="name-asc">Name (A-Z)</option>
             <option value="name-desc">Name (Z-A)</option>
@@ -309,9 +309,9 @@ export function ProductsList({
           </select>
         </div>
 
-        <div className="divide-y divide-stone-200">
+        <div className="divide-y divide-[var(--line)]">
           {filtered.length === 0 ? (
-            <div className="p-8 text-center text-stone-500">
+            <div className="p-8 text-center text-[var(--ink-muted)]">
               No products match your filters
             </div>
           ) : (
@@ -322,12 +322,12 @@ export function ProductsList({
               return (
                 <div
                   key={product.id}
-                  className="px-4 py-3 grid grid-cols-12 gap-2 items-center hover:bg-stone-50"
+                  className="px-4 py-3 grid grid-cols-12 gap-2 items-center hover:bg-[var(--brand-cream)]"
                 >
                   <div className="col-span-12 md:col-span-4">
                     <p className="font-medium text-sm">{product.name}</p>
                     {product.bottleSizeMl && (
-                      <p className="text-xs text-stone-500">
+                      <p className="text-xs text-[var(--ink-muted)]">
                         {product.bottleSizeMl}ml
                         {product.casePackSize &&
                           product.casePackSize > 1 &&
@@ -335,31 +335,31 @@ export function ProductsList({
                       </p>
                     )}
                   </div>
-                  <div className="hidden md:block md:col-span-2 text-sm text-stone-700">
+                  <div className="hidden md:block md:col-span-2 text-sm text-[var(--brand-brown)]">
                     {vendorName}
                   </div>
-                  <div className="hidden md:block md:col-span-2 text-sm text-stone-700">
+                  <div className="hidden md:block md:col-span-2 text-sm text-[var(--brand-brown)]">
                     {product.ingredientCategory || "—"}
                   </div>
                   <div className="hidden md:block md:col-span-2 text-sm">
                     {product.bottleCostCents ? (
-                      <span className="text-amber-600 font-medium">
+                      <span className="text-[var(--brand-olive)] font-medium">
                         ${(product.bottleCostCents / 100).toFixed(2)}
                       </span>
                     ) : (
-                      <span className="text-stone-400">—</span>
+                      <span className="text-[var(--ink-muted)]">—</span>
                     )}
                   </div>
                   <div className="col-span-8 md:col-span-2 flex items-center justify-end gap-2">
                     <div className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-stone-400" />
-                      <span className="text-xs text-stone-600">
+                      <MapPin className="w-3 h-3 text-[var(--ink-muted)]" />
+                      <span className="text-xs text-[var(--ink-muted)]">
                         {storeCount}/{locations.length}
                       </span>
                     </div>
                     <Link
                       href={`/dashboard/products/${product.id}/edit`}
-                      className="p-1.5 text-stone-500 hover:text-amber-600 transition-colors"
+                      className="p-1.5 text-[var(--ink-muted)] hover:text-[var(--brand-olive)] transition-colors"
                     >
                       <Edit className="w-4 h-4" />
                     </Link>
@@ -373,7 +373,7 @@ export function ProductsList({
                           await deleteProduct(product.id);
                         }
                       }}
-                      className="p-1.5 text-stone-500 hover:text-red-600 transition-colors"
+                      className="p-1.5 text-[var(--ink-muted)] hover:text-red-600 transition-colors"
                       title="Remove from menu (moves to Product Database)"
                     >
                       <Trash2 className="w-4 h-4" />

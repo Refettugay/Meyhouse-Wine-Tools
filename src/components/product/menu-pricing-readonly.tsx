@@ -44,7 +44,7 @@ export function MenuPricingReadOnly() {
 
   if (error) {
     return (
-      <div className="bg-white border border-stone-200 rounded-xl p-6 text-center">
+      <div className="bg-white border border-[var(--line)] rounded-xl p-6 text-center">
         <p className="text-sm text-red-600">Failed to load pricing: {error}</p>
       </div>
     );
@@ -52,17 +52,17 @@ export function MenuPricingReadOnly() {
 
   if (rows === null) {
     return (
-      <div className="bg-white border border-stone-200 rounded-xl p-6 text-center">
-        <DollarSign className="w-8 h-8 text-stone-300 mx-auto mb-2 animate-pulse" />
-        <p className="text-sm text-stone-500">Loading menu prices…</p>
+      <div className="bg-white border border-[var(--line)] rounded-xl p-6 text-center">
+        <DollarSign className="w-8 h-8 text-[var(--ink-muted)] mx-auto mb-2 animate-pulse" />
+        <p className="text-sm text-[var(--ink-muted)]">Loading menu prices…</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      <div className="bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 flex items-center gap-2 text-xs text-stone-600">
-        <Lock className="w-3.5 h-3.5 text-stone-400" />
+      <div className="bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg px-3 py-2 flex items-center gap-2 text-xs text-[var(--ink-muted)]">
+        <Lock className="w-3.5 h-3.5 text-[var(--ink-muted)]" />
         <span>
           Read-only view. To change menu prices or cost targets, use the
           <span className="font-semibold"> Pricing Hub</span>.

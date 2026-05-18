@@ -99,7 +99,7 @@ export function CostingMethodForm({
   return (
     <div className="space-y-6">
       {/* Costing Method */}
-      <section className="bg-white border border-stone-200 rounded-xl p-5">
+      <section className="bg-white border border-[var(--line)] rounded-xl p-5">
         <div className="flex items-center justify-between mb-1">
           <h2 className="font-semibold">Costing Method</h2>
           {savedMethod === method && (
@@ -108,7 +108,7 @@ export function CostingMethodForm({
             </span>
           )}
         </div>
-        <p className="text-xs text-stone-500 mb-4">
+        <p className="text-xs text-[var(--ink-muted)] mb-4">
           How inventory cost is calculated for Pricing Hub and Inventory
           Insights.
         </p>
@@ -118,8 +118,8 @@ export function CostingMethodForm({
               key={m.value}
               className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                 method === m.value
-                  ? "border-amber-500 bg-amber-50/40"
-                  : "border-stone-200 hover:border-stone-300"
+                  ? "border-[var(--brand-olive)] bg-[#FAF7F1]"
+                  : "border-[var(--line)] hover:border-[var(--line)]"
               }`}
             >
               <input
@@ -129,18 +129,18 @@ export function CostingMethodForm({
                 checked={method === m.value}
                 onChange={() => saveMethod(m.value)}
                 disabled={isPending}
-                className="mt-0.5 accent-amber-600"
+                className="mt-0.5 accent-[var(--brand-olive)]"
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm">{m.label}</span>
                   {m.recommended && (
-                    <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded">
+                    <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 bg-[rgba(74,93,39,0.12)] text-[var(--brand-olive-hover)] rounded">
                       Recommended
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-stone-500 mt-0.5">{m.description}</p>
+                <p className="text-xs text-[var(--ink-muted)] mt-0.5">{m.description}</p>
               </div>
             </label>
           ))}
@@ -148,27 +148,27 @@ export function CostingMethodForm({
       </section>
 
       {/* KPI Excluded Employees */}
-      <section className="bg-white border border-stone-200 rounded-xl p-5">
+      <section className="bg-white border border-[var(--line)] rounded-xl p-5">
         <h2 className="font-semibold mb-1">KPI Excluded Employees</h2>
-        <p className="text-xs text-stone-500 mb-4">
+        <p className="text-xs text-[var(--ink-muted)] mb-4">
           Employees listed here are removed from Server KPI scoring. Use for
           managers, directors, and trainees who don&apos;t serve tables full-time.
         </p>
 
         <div className="flex flex-wrap gap-2 mb-3">
           {excluded.length === 0 && (
-            <p className="text-xs text-stone-400 italic">No one excluded yet.</p>
+            <p className="text-xs text-[var(--ink-muted)] italic">No one excluded yet.</p>
           )}
           {excluded.map((name) => (
             <span
               key={name}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-100 text-stone-700 text-xs"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--brand-cream)] text-[var(--brand-brown)] text-xs"
             >
               {name}
               <button
                 onClick={() => removeExcluded(name)}
                 disabled={isPending}
-                className="text-stone-400 hover:text-red-500"
+                className="text-[var(--ink-muted)] hover:text-red-500"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -187,12 +187,12 @@ export function CostingMethodForm({
               }
             }}
             placeholder="Employee name (e.g. Refet Tugay)"
-            className="flex-1 px-3 py-1.5 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
+            className="flex-1 px-3 py-1.5 border border-[var(--line)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] focus:border-[var(--brand-olive)]"
           />
           <button
             onClick={addExcluded}
             disabled={isPending || !newExcluded.trim()}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--brand-olive)] text-white text-sm font-medium hover:bg-[var(--brand-olive-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-3.5 h-3.5" />
             Add
@@ -201,9 +201,9 @@ export function CostingMethodForm({
       </section>
 
       {/* KPI Special Accounts */}
-      <section className="bg-white border border-stone-200 rounded-xl p-5">
+      <section className="bg-white border border-[var(--line)] rounded-xl p-5">
         <h2 className="font-semibold mb-1">KPI Special Accounts</h2>
-        <p className="text-xs text-stone-500 mb-4">
+        <p className="text-xs text-[var(--ink-muted)] mb-4">
           Accounts shown separately from the main leaderboard. Typically PDR
           Banquet, Online Ordering, or other system accounts that don&apos;t
           represent a single server.
@@ -211,7 +211,7 @@ export function CostingMethodForm({
 
         <div className="flex flex-wrap gap-2 mb-3">
           {special.length === 0 && (
-            <p className="text-xs text-stone-400 italic">
+            <p className="text-xs text-[var(--ink-muted)] italic">
               No special accounts defined.
             </p>
           )}
@@ -243,12 +243,12 @@ export function CostingMethodForm({
               }
             }}
             placeholder="Account name"
-            className="flex-1 px-3 py-1.5 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
+            className="flex-1 px-3 py-1.5 border border-[var(--line)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] focus:border-[var(--brand-olive)]"
           />
           <button
             onClick={addSpecial}
             disabled={isPending || !newSpecial.trim()}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--brand-olive)] text-white text-sm font-medium hover:bg-[var(--brand-olive-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-3.5 h-3.5" />
             Add

@@ -32,7 +32,7 @@ export default async function VendorsPage() {
     <div className="p-4 lg:p-8 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Vendors</h1>
-        <p className="text-stone-500 text-sm mt-1">
+        <p className="text-[var(--ink-muted)] text-sm mt-1">
           Manage suppliers and their representatives per location
         </p>
       </div>

@@ -9,7 +9,7 @@ export function BackToRecipes() {
   return (
     <button
       onClick={() => router.back()}
-      className="flex items-center gap-2 text-stone-500 hover:text-stone-900 text-sm"
+      className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] text-sm"
     >
       <ArrowLeft className="w-4 h-4" />
       Back to Recipes

@@ -176,23 +176,23 @@ export function CountAndOrderForm({
       )}
 
       {/* Sticky toolbar */}
-      <div className="sticky top-0 z-10 bg-stone-50 pb-3 mb-3 -mx-4 px-4 lg:-mx-8 lg:px-8">
-        <div className="bg-white border border-stone-200 rounded-xl p-3 shadow-sm">
+      <div className="sticky top-0 z-10 bg-[var(--brand-cream)] pb-3 mb-3 -mx-4 px-4 lg:-mx-8 lg:px-8">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-3 shadow-sm">
           <div className="flex flex-col sm:flex-row gap-2 mb-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
               <input
                 type="text"
                 placeholder="Search products..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full pl-9 pr-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               />
             </div>
             <select
               value={groupBy}
               onChange={(e) => setGroupBy(e.target.value as GroupBy)}
-              className="px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
             >
               <option value="area">Group by Storage Area</option>
               <option value="vendor">Group by Vendor</option>
@@ -201,7 +201,7 @@ export function CountAndOrderForm({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortBy)}
-              className="px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
             >
               <option value="name">Sort by Name</option>
               <option value="vendor">Sort by Vendor</option>
@@ -211,11 +211,11 @@ export function CountAndOrderForm({
 
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-4 text-sm">
-              <span className="text-stone-700 font-medium">
+              <span className="text-[var(--brand-brown)] font-medium">
                 {countedCount} / {items.length} counted
               </span>
               {itemsNeedingOrder > 0 && (
-                <span className="text-amber-600">
+                <span className="text-[var(--brand-olive)]">
                   {itemsNeedingOrder} need ordering
                 </span>
               )}
@@ -223,7 +223,7 @@ export function CountAndOrderForm({
             <button
               onClick={handleSubmit}
               disabled={saving || countedCount === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {saving ? "Saving..." : "Save & Generate Order"}
@@ -237,18 +237,18 @@ export function CountAndOrderForm({
         {groups.map((group) => (
           <div
             key={group.name}
-            className="bg-white border border-stone-200 rounded-xl overflow-hidden"
+            className="bg-white border border-[var(--line)] rounded-xl overflow-hidden"
           >
-            <div className="px-4 py-3 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
+            <div className="px-4 py-3 border-b border-[var(--line)] bg-[var(--brand-cream)] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-amber-600" />
+                <MapPin className="w-4 h-4 text-[var(--brand-olive)]" />
                 <h3 className="font-semibold">{group.name}</h3>
-                <span className="text-xs text-stone-500">
+                <span className="text-xs text-[var(--ink-muted)]">
                   ({group.items.length})
                 </span>
               </div>
             </div>
-            <div className="divide-y divide-stone-200">
+            <div className="divide-y divide-[var(--line)]">
               {group.items.map((item) => {
                 const enteredVal = counts[item.id] ?? "";
                 const hasEntry = enteredVal !== "";
@@ -271,7 +271,7 @@ export function CountAndOrderForm({
                   <div
                     key={item.id}
                     className={`px-4 py-3 transition-colors ${
-                      needsOrder ? "bg-amber-50/50" : ""
+                      needsOrder ? "bg-[#FAF7F1]" : ""
                     } ${hasEntry ? "bg-green-50/30" : ""}`}
                   >
                     <div className="flex items-center justify-between gap-3">
@@ -279,24 +279,24 @@ export function CountAndOrderForm({
                         <p className="font-medium text-sm truncate">
                           {item.ingredient.name}
                         </p>
-                        <div className="flex items-center gap-2 text-xs text-stone-500 mt-0.5 flex-wrap">
+                        <div className="flex items-center gap-2 text-xs text-[var(--ink-muted)] mt-0.5 flex-wrap">
                           <span>
                             Par:{" "}
-                            <span className="text-stone-700 font-medium">
+                            <span className="text-[var(--brand-brown)] font-medium">
                               {item.parLevel}
                             </span>
                           </span>
                           <span>·</span>
                           <span>
                             Previous:{" "}
-                            <span className="text-stone-700">
+                            <span className="text-[var(--brand-brown)]">
                               {item.currentStock}
                             </span>
                           </span>
                           {isCase && (
                             <>
                               <span>·</span>
-                              <span className="text-amber-700 font-medium">
+                              <span className="text-[var(--brand-olive-hover)] font-medium">
                                 by case ({effectiveCasePack}-pk)
                               </span>
                             </>
@@ -314,7 +314,7 @@ export function CountAndOrderForm({
 
                       <div className="flex items-center gap-2">
                         {needsOrder && (
-                          <div className="text-xs text-amber-700 bg-amber-100 rounded px-2 py-1 font-medium whitespace-nowrap">
+                          <div className="text-xs text-[var(--brand-olive-hover)] bg-[rgba(74,93,39,0.12)] rounded px-2 py-1 font-medium whitespace-nowrap">
                             Order {order.quantity}{" "}
                             {order.quantity === 1 ? order.unit : order.unit + "s"}
                           </div>
@@ -326,7 +326,7 @@ export function CountAndOrderForm({
                           value={enteredVal}
                           onChange={(e) => updateCount(item.id, e.target.value)}
                           placeholder="—"
-                          className="w-20 px-2 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 text-lg text-center font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          className="w-20 px-2 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-lg text-center font-bold focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                         />
                         {hasEntry && !needsOrder && (
                           <Check className="w-4 h-4 text-green-600" />
@@ -342,8 +342,8 @@ export function CountAndOrderForm({
       </div>
 
       {/* Notes */}
-      <div className="mt-4 bg-white border border-stone-200 rounded-xl p-4">
-        <label className="block text-sm font-medium text-stone-700 mb-2">
+      <div className="mt-4 bg-white border border-[var(--line)] rounded-xl p-4">
+        <label className="block text-sm font-medium text-[var(--brand-brown)] mb-2">
           Order Notes (optional)
         </label>
         <textarea
@@ -351,7 +351,7 @@ export function CountAndOrderForm({
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
           placeholder="Anything to remember about this order..."
-          className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+          className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] resize-none"
         />
       </div>
     </div>

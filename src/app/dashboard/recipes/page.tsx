@@ -52,13 +52,13 @@ export default async function RecipesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Recipes</h1>
-          <p className="text-stone-500 text-sm mt-1">
+          <p className="text-[var(--ink-muted)] text-sm mt-1">
             {recipes.length} cocktails
           </p>
         </div>
         <Link
           href="/dashboard/recipes/new"
-          className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Recipe
@@ -71,10 +71,10 @@ export default async function RecipesPage() {
       <div className="mt-12">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <Beaker className="w-6 h-6 text-amber-600" />
+            <Beaker className="w-6 h-6 text-[var(--brand-olive)]" />
             <div>
               <h2 className="text-xl font-bold">House-Made Bar Ingredients</h2>
-              <p className="text-stone-500 text-sm">
+              <p className="text-[var(--ink-muted)] text-sm">
                 {subRecipes.length} house-made items — syrups, infusions,
                 shrubs
               </p>
@@ -82,7 +82,7 @@ export default async function RecipesPage() {
           </div>
           <Link
             href="/dashboard/recipes/sub-recipe/new"
-            className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add House-Made

@@ -117,9 +117,9 @@ export function DatabaseList({ products }: { products: DbProduct[] }) {
       return <ArrowUpDown className="w-3 h-3 opacity-40" />;
     }
     return sortDir === "asc" ? (
-      <ArrowUp className="w-3 h-3 text-amber-600" />
+      <ArrowUp className="w-3 h-3 text-[var(--brand-olive)]" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-amber-600" />
+      <ArrowDown className="w-3 h-3 text-[var(--brand-olive)]" />
     );
   }
 
@@ -134,19 +134,19 @@ export function DatabaseList({ products }: { products: DbProduct[] }) {
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
           <input
             type="text"
             placeholder="Search name or notes..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
           />
         </div>
         <select
           value={vendorFilter}
           onChange={(e) => setVendorFilter(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Vendors</option>
           {vendors.map((v) => (
@@ -158,7 +158,7 @@ export function DatabaseList({ products }: { products: DbProduct[] }) {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Categories</option>
           {categories.map((c) => (
@@ -169,61 +169,61 @@ export function DatabaseList({ products }: { products: DbProduct[] }) {
         </select>
       </div>
 
-      <p className="text-sm text-stone-500 mb-3">
+      <p className="text-sm text-[var(--ink-muted)] mb-3">
         Showing {filtered.length} of {products.length}
       </p>
 
       {products.length === 0 ? (
-        <div className="bg-white border border-stone-200 rounded-xl p-8 text-center">
-          <FileText className="w-10 h-10 text-stone-300 mx-auto mb-3" />
+        <div className="bg-white border border-[var(--line)] rounded-xl p-8 text-center">
+          <FileText className="w-10 h-10 text-[var(--ink-muted)] mx-auto mb-3" />
           <h2 className="text-lg font-semibold mb-1">
             Your tasting database is empty
           </h2>
-          <p className="text-sm text-stone-500 mb-4">
+          <p className="text-sm text-[var(--ink-muted)] mb-4">
             Add products you&apos;ve tasted with vendor reps. You can move them
             to the menu later.
           </p>
           <Link
             href="/dashboard/database/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors"
           >
             Add your first product
           </Link>
         </div>
       ) : (
-        <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
-          <div className="hidden md:grid md:grid-cols-12 gap-2 px-4 py-3 border-b border-stone-200 text-xs font-medium text-stone-500 uppercase">
+        <div className="bg-white border border-[var(--line)] rounded-xl overflow-hidden">
+          <div className="hidden md:grid md:grid-cols-12 gap-2 px-4 py-3 border-b border-[var(--line)] text-xs font-medium text-[var(--ink-muted)] uppercase">
             <button
               onClick={() => toggleSort("name")}
-              className="col-span-4 flex items-center gap-1 hover:text-stone-900 transition-colors text-left"
+              className="col-span-4 flex items-center gap-1 hover:text-[var(--brand-brown)] transition-colors text-left"
             >
               Product <SortIcon field="name" />
             </button>
             <button
               onClick={() => toggleSort("vendor")}
-              className="col-span-2 flex items-center gap-1 hover:text-stone-900 transition-colors text-left"
+              className="col-span-2 flex items-center gap-1 hover:text-[var(--brand-brown)] transition-colors text-left"
             >
               Vendor <SortIcon field="vendor" />
             </button>
             <button
               onClick={() => toggleSort("category")}
-              className="col-span-2 flex items-center gap-1 hover:text-stone-900 transition-colors text-left"
+              className="col-span-2 flex items-center gap-1 hover:text-[var(--brand-brown)] transition-colors text-left"
             >
               Category <SortIcon field="category" />
             </button>
             <div className="col-span-1 text-left">Cost</div>
             <button
               onClick={() => toggleSort("recent")}
-              className="col-span-1 flex items-center gap-1 hover:text-stone-900 transition-colors text-left"
+              className="col-span-1 flex items-center gap-1 hover:text-[var(--brand-brown)] transition-colors text-left"
             >
               Added <SortIcon field="recent" />
             </button>
             <div className="col-span-2 text-right">Actions</div>
           </div>
 
-          <div className="divide-y divide-stone-200">
+          <div className="divide-y divide-[var(--line)]">
             {filtered.length === 0 ? (
-              <div className="p-8 text-center text-stone-500">
+              <div className="p-8 text-center text-[var(--ink-muted)]">
                 No products match your filters
               </div>
             ) : (
@@ -234,18 +234,18 @@ export function DatabaseList({ products }: { products: DbProduct[] }) {
                 return (
                   <div
                     key={product.id}
-                    className="px-4 py-3 hover:bg-stone-50"
+                    className="px-4 py-3 hover:bg-[var(--brand-cream)]"
                   >
                     <div className="grid grid-cols-12 gap-2 items-start">
                       <div className="col-span-12 md:col-span-4">
                         <div className="flex items-start gap-2">
                           {product.notes && (
-                            <FileText className="w-3 h-3 text-amber-600 mt-1 flex-shrink-0" />
+                            <FileText className="w-3 h-3 text-[var(--brand-olive)] mt-1 flex-shrink-0" />
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm">{product.name}</p>
                             {product.bottleSizeMl && (
-                              <p className="text-xs text-stone-500">
+                              <p className="text-xs text-[var(--ink-muted)]">
                                 {product.bottleSizeMl}ml
                                 {product.casePackSize &&
                                   product.casePackSize > 1 &&
@@ -255,22 +255,22 @@ export function DatabaseList({ products }: { products: DbProduct[] }) {
                           </div>
                         </div>
                       </div>
-                      <div className="hidden md:block md:col-span-2 text-sm text-stone-700">
+                      <div className="hidden md:block md:col-span-2 text-sm text-[var(--brand-brown)]">
                         {vendorName}
                       </div>
-                      <div className="hidden md:block md:col-span-2 text-sm text-stone-700">
+                      <div className="hidden md:block md:col-span-2 text-sm text-[var(--brand-brown)]">
                         {product.ingredientCategory || "—"}
                       </div>
                       <div className="hidden md:block md:col-span-1 text-sm">
                         {product.bottleCostCents ? (
-                          <span className="text-amber-600 font-medium">
+                          <span className="text-[var(--brand-olive)] font-medium">
                             ${(product.bottleCostCents / 100).toFixed(2)}
                           </span>
                         ) : (
-                          <span className="text-stone-400">—</span>
+                          <span className="text-[var(--ink-muted)]">—</span>
                         )}
                       </div>
-                      <div className="hidden md:block md:col-span-1 text-xs text-stone-500">
+                      <div className="hidden md:block md:col-span-1 text-xs text-[var(--ink-muted)]">
                         {date}
                       </div>
                       <div className="col-span-12 md:col-span-2 flex items-center justify-end gap-1 flex-wrap">
@@ -284,7 +284,7 @@ export function DatabaseList({ products }: { products: DbProduct[] }) {
                               await moveProductToMenu(product.id);
                             }
                           }}
-                          className="flex items-center gap-1 px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded text-xs font-medium transition-colors"
+                          className="flex items-center gap-1 px-2 py-1 bg-[#FAF7F1] hover:bg-[rgba(74,93,39,0.12)] text-[var(--brand-olive-hover)] border border-[var(--brand-olive)] rounded text-xs font-medium transition-colors"
                           title="Move to menu"
                         >
                           <ArrowRight className="w-3 h-3" />
@@ -292,7 +292,7 @@ export function DatabaseList({ products }: { products: DbProduct[] }) {
                         </button>
                         <Link
                           href={`/dashboard/database/${product.id}/edit`}
-                          className="p-1.5 text-stone-500 hover:text-amber-600 transition-colors"
+                          className="p-1.5 text-[var(--ink-muted)] hover:text-[var(--brand-olive)] transition-colors"
                           title="Edit"
                         >
                           <Edit className="w-4 h-4" />
@@ -310,7 +310,7 @@ export function DatabaseList({ products }: { products: DbProduct[] }) {
                               if (result?.error) setError(result.error);
                             }
                           }}
-                          className="p-1.5 text-stone-500 hover:text-red-600 transition-colors"
+                          className="p-1.5 text-[var(--ink-muted)] hover:text-red-600 transition-colors"
                           title="Permanently delete"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -320,7 +320,7 @@ export function DatabaseList({ products }: { products: DbProduct[] }) {
 
                     {/* Notes preview */}
                     {product.notes && (
-                      <div className="mt-2 ml-0 md:ml-5 text-xs text-stone-600 bg-amber-50 border-l-2 border-amber-300 pl-3 py-1.5 rounded-r">
+                      <div className="mt-2 ml-0 md:ml-5 text-xs text-[var(--ink-muted)] bg-[#FAF7F1] border-l-2 border-[var(--brand-olive)] pl-3 py-1.5 rounded-r">
                         {product.notes.length > 200
                           ? product.notes.slice(0, 200) + "..."
                           : product.notes}

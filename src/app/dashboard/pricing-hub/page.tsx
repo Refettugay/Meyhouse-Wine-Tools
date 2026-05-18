@@ -158,13 +158,13 @@ export default async function PricingHubOverviewPage() {
 
       {/* Attention banner */}
       {attentionCount > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
+        <div className="bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-[var(--brand-olive)] mt-0.5" />
           <div className="flex-1">
-            <p className="font-semibold text-amber-900">
+            <p className="font-semibold text-[var(--brand-olive-hover)]">
               {attentionCount} item{attentionCount === 1 ? "" : "s"} need your attention
             </p>
-            <p className="text-sm text-amber-800/80 mt-0.5">
+            <p className="text-sm text-[var(--brand-olive-hover)]/80 mt-0.5">
               Click into each pricing tab below to review items that are over target, near target, or
               missing price/target info.
             </p>
@@ -174,7 +174,7 @@ export default async function PricingHubOverviewPage() {
 
       {/* Tabs overview */}
       <div>
-        <h2 className="text-sm font-semibold text-stone-600 uppercase tracking-wide mb-3">
+        <h2 className="text-sm font-semibold text-[var(--ink-muted)] uppercase tracking-wide mb-3">
           Pricing Categories
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -186,32 +186,32 @@ export default async function PricingHubOverviewPage() {
                 href={s.href}
                 className={`group relative block bg-white border rounded-xl p-4 transition-colors ${
                   s.status === "ready"
-                    ? "border-stone-200 hover:border-amber-500/40"
-                    : "border-stone-200/60 hover:border-stone-300"
+                    ? "border-[var(--line)] hover:border-[var(--brand-olive)]"
+                    : "border-[var(--line)]/60 hover:border-[var(--line)]"
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div
                     className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      s.status === "ready" ? "bg-amber-50" : "bg-stone-50"
+                      s.status === "ready" ? "bg-[#FAF7F1]" : "bg-[var(--brand-cream)]"
                     }`}
                   >
                     <Icon
                       className={`w-5 h-5 ${
-                        s.status === "ready" ? "text-amber-600" : "text-stone-400"
+                        s.status === "ready" ? "text-[var(--brand-olive)]" : "text-[var(--ink-muted)]"
                       }`}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-stone-900">{s.label}</h3>
+                      <h3 className="font-semibold text-[var(--brand-brown)]">{s.label}</h3>
                       {s.status === "soon" && (
-                        <span className="text-[10px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded bg-stone-100 text-stone-500">
+                        <span className="text-[10px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded bg-[var(--brand-cream)] text-[var(--ink-muted)]">
                           Soon
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-stone-500 mt-0.5">{s.description}</p>
+                    <p className="text-xs text-[var(--ink-muted)] mt-0.5">{s.description}</p>
                   </div>
                 </div>
               </Link>
@@ -245,9 +245,9 @@ function StatCard({
     },
     amber: {
       bg: "bg-white",
-      border: "border-amber-200",
-      text: "text-amber-700",
-      iconBg: "bg-amber-50",
+      border: "border-[var(--brand-olive)]",
+      text: "text-[var(--brand-olive-hover)]",
+      iconBg: "bg-[#FAF7F1]",
     },
     emerald: {
       bg: "bg-white",
@@ -263,9 +263,9 @@ function StatCard({
     },
     stone: {
       bg: "bg-white",
-      border: "border-stone-200",
-      text: "text-stone-700",
-      iconBg: "bg-stone-100",
+      border: "border-[var(--line)]",
+      text: "text-[var(--brand-brown)]",
+      iconBg: "bg-[var(--brand-cream)]",
     },
   };
   const c = colorStyles[color];
@@ -275,9 +275,9 @@ function StatCard({
         <Icon className={`w-4 h-4 ${c.text}`} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-stone-500 uppercase tracking-wide">{label}</p>
+        <p className="text-xs font-medium text-[var(--ink-muted)] uppercase tracking-wide">{label}</p>
         <p className={`text-2xl font-bold mt-0.5 ${c.text}`}>{value}</p>
-        <p className="text-xs text-stone-400 mt-0.5">{sublabel}</p>
+        <p className="text-xs text-[var(--ink-muted)] mt-0.5">{sublabel}</p>
       </div>
     </div>
   );

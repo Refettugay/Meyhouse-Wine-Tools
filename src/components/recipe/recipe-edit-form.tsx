@@ -168,7 +168,7 @@ export function RecipeEditForm({
     <div>
       <Link
         href={`/dashboard/recipes/${recipe.id}`}
-        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 text-sm"
+        className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Recipe
@@ -182,30 +182,30 @@ export function RecipeEditForm({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic info */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
           <h2 className="font-semibold">Basic Info</h2>
 
           <div>
-            <label className="block text-sm text-stone-700 mb-1">
+            <label className="block text-sm text-[var(--brand-brown)] mb-1">
               Cocktail Name *
             </label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-stone-700 mb-1">
+              <label className="block text-sm text-[var(--brand-brown)] mb-1">
                 Category
               </label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               >
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
@@ -215,13 +215,13 @@ export function RecipeEditForm({
               </select>
             </div>
             <div>
-              <label className="block text-sm text-stone-700 mb-1">
+              <label className="block text-sm text-[var(--brand-brown)] mb-1">
                 Storage
               </label>
               <select
                 value={storageType}
                 onChange={(e) => setStorageType(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               >
                 <option value="NONE">Room Temp</option>
                 <option value="FRIDGE">Fridge</option>
@@ -236,16 +236,16 @@ export function RecipeEditForm({
               id="noBatching"
               checked={noBatching}
               onChange={(e) => setNoBatching(e.target.checked)}
-              className="w-4 h-4 rounded bg-stone-100 border-stone-300 text-amber-500 focus:ring-amber-500"
+              className="w-4 h-4 rounded bg-[var(--brand-cream)] border-[var(--line)] text-[var(--brand-olive)] focus:ring-[var(--brand-olive)]"
             />
-            <label htmlFor="noBatching" className="text-sm text-stone-700">
+            <label htmlFor="noBatching" className="text-sm text-[var(--brand-brown)]">
               No batching (single serve only)
             </label>
           </div>
         </div>
 
         {/* Ingredients */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
           <h2 className="font-semibold">Ingredients (Single Serving)</h2>
 
           {rows.map((row, index) => (
@@ -256,7 +256,7 @@ export function RecipeEditForm({
                   onChange={(e) =>
                     updateRow(index, "ingredientId", e.target.value)
                   }
-                  className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 >
                   <option value="">Select ingredient...</option>
                   {ingredients.map((ing) => (
@@ -274,13 +274,13 @@ export function RecipeEditForm({
                 onChange={(e) =>
                   updateRow(index, "amount", parseFloat(e.target.value) || 0)
                 }
-                className="w-20 px-2 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-20 px-2 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 placeholder="Amt"
               />
               <select
                 value={row.unit}
                 onChange={(e) => updateRow(index, "unit", e.target.value)}
-                className="w-24 px-2 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-24 px-2 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               >
                 {UNITS.map((u) => (
                   <option key={u.value} value={u.value}>
@@ -288,7 +288,7 @@ export function RecipeEditForm({
                   </option>
                 ))}
               </select>
-              <label className="flex items-center gap-1 text-xs text-stone-500 whitespace-nowrap py-2">
+              <label className="flex items-center gap-1 text-xs text-[var(--ink-muted)] whitespace-nowrap py-2">
                 <input
                   type="checkbox"
                   checked={row.isTopOff}
@@ -302,7 +302,7 @@ export function RecipeEditForm({
               <button
                 type="button"
                 onClick={() => removeRow(index)}
-                className="p-2 text-stone-500 hover:text-red-600"
+                className="p-2 text-[var(--ink-muted)] hover:text-red-600"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -312,7 +312,7 @@ export function RecipeEditForm({
           <button
             type="button"
             onClick={addRow}
-            className="flex items-center gap-2 text-amber-500 hover:text-amber-600 text-sm"
+            className="flex items-center gap-2 text-[var(--brand-olive)] hover:text-[var(--brand-olive)] text-sm"
           >
             <Plus className="w-4 h-4" />
             Add Ingredient
@@ -321,11 +321,11 @@ export function RecipeEditForm({
 
         {/* Batch settings */}
         {!noBatching && (
-          <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+          <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
             <h2 className="font-semibold">Batch Settings</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-stone-700 mb-1">
+                <label className="block text-sm text-[var(--brand-brown)] mb-1">
                   Default Portions
                 </label>
                 <input
@@ -335,11 +335,11 @@ export function RecipeEditForm({
                     setPortionCount(parseInt(e.target.value) || 15)
                   }
                   min={1}
-                  className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 />
               </div>
               <div>
-                <label className="block text-sm text-stone-700 mb-1">
+                <label className="block text-sm text-[var(--brand-brown)] mb-1">
                   Dilution %
                 </label>
                 <input
@@ -350,7 +350,7 @@ export function RecipeEditForm({
                   }
                   min={0}
                   step="0.1"
-                  className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 />
               </div>
             </div>
@@ -358,64 +358,64 @@ export function RecipeEditForm({
         )}
 
         {/* Build info */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
           <h2 className="font-semibold">Build Instructions</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-stone-700 mb-1">Glass</label>
+              <label className="block text-sm text-[var(--brand-brown)] mb-1">Glass</label>
               <input
                 value={glassType}
                 onChange={(e) => setGlassType(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 placeholder="e.g. Rock Glass"
               />
             </div>
             <div>
-              <label className="block text-sm text-stone-700 mb-1">Ice</label>
+              <label className="block text-sm text-[var(--brand-brown)] mb-1">Ice</label>
               <input
                 value={iceType}
                 onChange={(e) => setIceType(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 placeholder="e.g. Big Clear Ice Cube"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm text-stone-700 mb-1">Garnish</label>
+            <label className="block text-sm text-[var(--brand-brown)] mb-1">Garnish</label>
             <input
               value={garnish}
               onChange={(e) => setGarnish(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
             />
           </div>
           <div>
-            <label className="block text-sm text-stone-700 mb-1">
+            <label className="block text-sm text-[var(--brand-brown)] mb-1">
               Pour from Batch
             </label>
             <input
               value={pourFromBatch}
               onChange={(e) => setPourFromBatch(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               placeholder="e.g. 4oz"
             />
           </div>
           <div>
-            <label className="block text-sm text-stone-700 mb-1">How to</label>
+            <label className="block text-sm text-[var(--brand-brown)] mb-1">How to</label>
             <textarea
               value={howTo}
               onChange={(e) => setHowTo(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+              className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] resize-none"
             />
           </div>
         </div>
 
         {/* Pricing */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
           <h2 className="font-semibold">Pricing</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-stone-700 mb-1">
+              <label className="block text-sm text-[var(--brand-brown)] mb-1">
                 Cost Target % (leave empty for category default)
               </label>
               <input
@@ -425,12 +425,12 @@ export function RecipeEditForm({
                 step="0.1"
                 min="0"
                 max="100"
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 placeholder="e.g. 20"
               />
             </div>
             <div>
-              <label className="block text-sm text-stone-700 mb-1">
+              <label className="block text-sm text-[var(--brand-brown)] mb-1">
                 Menu Price ($) (optional override)
               </label>
               <input
@@ -439,7 +439,7 @@ export function RecipeEditForm({
                 onChange={(e) => setMenuPrice(e.target.value)}
                 step="0.50"
                 min="0"
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 placeholder="e.g. 16.00"
               />
             </div>
@@ -447,20 +447,20 @@ export function RecipeEditForm({
         </div>
 
         {/* Notes */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4">
-          <label className="block text-sm text-stone-700 mb-1">Notes</label>
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4">
+          <label className="block text-sm text-[var(--brand-brown)] mb-1">Notes</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
-            className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+            className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] resize-none"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+          className="w-full py-3 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
         >
           {loading ? "Saving..." : "Save Changes"}
         </button>

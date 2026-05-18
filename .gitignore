@@ -48,3 +48,19 @@ next-env.d.ts
 *.db
 *.db-journal
 prisma/backups/
+
+# Meyhouse business data — vendor pricing, Toast POS exports, menu PDFs.
+# These are source-of-truth files kept locally; never to git, even private.
+/Excel Files/
+/Meyhouse Data Files/
+/Files/
+
+# Local debugging / one-off scripts that read dev.db. Not part of the app.
+/_list_users.js
+/backup-today.bat
+/check-db.js
+/reset-password.js
+/rft_with_ordering_guide*.html
+
+# Internal Claude Code config
+/.claude/

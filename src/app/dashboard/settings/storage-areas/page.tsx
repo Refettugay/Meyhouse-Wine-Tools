@@ -58,7 +58,7 @@ export default async function StorageAreasPage() {
     <div className="p-4 lg:p-8 max-w-3xl">
       <Link
         href="/dashboard/settings"
-        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 text-sm"
+        className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Settings
@@ -66,7 +66,7 @@ export default async function StorageAreasPage() {
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Storage Areas</h1>
-        <p className="text-stone-500 text-sm mt-1">
+        <p className="text-[var(--ink-muted)] text-sm mt-1">
           Click a location or area name to rename it. Values are calculated from current inventory counts.
         </p>
       </div>

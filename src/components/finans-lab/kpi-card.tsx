@@ -15,16 +15,16 @@ export function KpiCard({ label, value, change, muted }: KpiCardProps) {
     ? "text-emerald-600"
     : isDown
     ? "text-red-500"
-    : "text-stone-400";
+    : "text-[var(--ink-muted)]";
 
   return (
-    <div className="bg-white border border-stone-200 rounded-xl p-4">
-      <p className="text-xs font-medium text-stone-500 uppercase tracking-wide">
+    <div className="bg-white border border-[var(--line)] rounded-xl p-4">
+      <p className="text-xs font-medium text-[var(--ink-muted)] uppercase tracking-wide">
         {label}
       </p>
       <p
         className={`text-2xl font-bold mt-1 ${
-          muted ? "text-stone-300" : "text-stone-900"
+          muted ? "text-[var(--ink-muted)]" : "text-[var(--brand-brown)]"
         }`}
       >
         {value}
@@ -36,7 +36,7 @@ export function KpiCard({ label, value, change, muted }: KpiCardProps) {
             {isUp ? "+" : ""}
             {change.toFixed(1)}%
           </span>
-          <span className="text-stone-400">vs last week</span>
+          <span className="text-[var(--ink-muted)]">vs last week</span>
         </div>
       )}
     </div>

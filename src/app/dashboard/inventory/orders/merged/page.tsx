@@ -79,7 +79,7 @@ export default async function MergedOrderPage() {
     <div className="p-4 lg:p-8">
       <Link
         href="/dashboard/inventory"
-        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 text-sm"
+        className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Inventory & Ordering
@@ -87,20 +87,20 @@ export default async function MergedOrderPage() {
 
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <Layers className="w-6 h-6 text-amber-600" />
+          <Layers className="w-6 h-6 text-[var(--brand-olive)]" />
           <h1 className="text-2xl font-bold">Merged Order View</h1>
         </div>
-        <p className="text-stone-500 text-sm">
+        <p className="text-[var(--ink-muted)] text-sm">
           All draft orders from {locationsWithDrafts} of {locations.length}{" "}
           locations, grouped by vendor
         </p>
       </div>
 
       {allItems.length === 0 ? (
-        <div className="bg-white border border-stone-200 rounded-xl p-8 text-center">
-          <Info className="w-10 h-10 text-stone-300 mx-auto mb-3" />
+        <div className="bg-white border border-[var(--line)] rounded-xl p-8 text-center">
+          <Info className="w-10 h-10 text-[var(--ink-muted)] mx-auto mb-3" />
           <h2 className="text-lg font-semibold mb-1">No draft orders</h2>
-          <p className="text-sm text-stone-500">
+          <p className="text-sm text-[var(--ink-muted)]">
             Complete a Count & Order at one of your locations first. Only
             orders in DRAFT status appear in the merged view.
           </p>

@@ -120,9 +120,9 @@ export function InventoryView({
       return <ArrowUpDown className="w-3 h-3 opacity-40" />;
     }
     return sortDir === "asc" ? (
-      <ArrowUp className="w-3 h-3 text-amber-600" />
+      <ArrowUp className="w-3 h-3 text-[var(--brand-olive)]" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-amber-600" />
+      <ArrowDown className="w-3 h-3 text-[var(--brand-olive)]" />
     );
   }
 
@@ -176,19 +176,19 @@ export function InventoryView({
       {/* Search & filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
           <input
             type="text"
             placeholder="Search items..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
           />
         </div>
         <select
           value={vendorFilter}
           onChange={(e) => setVendorFilter(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Vendors</option>
           {vendors.map((v) => (
@@ -200,7 +200,7 @@ export function InventoryView({
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Status</option>
           <option value="BELOW_PAR">Below Par</option>
@@ -213,21 +213,21 @@ export function InventoryView({
       {!showAddForm ? (
         <button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 text-amber-500 hover:text-amber-600 text-sm mb-4"
+          className="flex items-center gap-2 text-[var(--brand-olive)] hover:text-[var(--brand-olive)] text-sm mb-4"
         >
           <Plus className="w-4 h-4" />
           Add Item to Inventory
         </button>
       ) : (
-        <div className="bg-white border border-amber-500/30 rounded-xl p-4 mb-4">
+        <div className="bg-white border border-[var(--brand-olive)] rounded-xl p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-amber-600">Add Inventory Item</h3>
+            <h3 className="font-semibold text-[var(--brand-olive)]">Add Inventory Item</h3>
             <button
               onClick={() => {
                 setShowAddForm(false);
                 setError("");
               }}
-              className="text-stone-500 hover:text-stone-900"
+              className="text-[var(--ink-muted)] hover:text-[var(--brand-brown)]"
             >
               <X className="w-4 h-4" />
             </button>
@@ -241,7 +241,7 @@ export function InventoryView({
             <select
               value={newIngredientId}
               onChange={(e) => setNewIngredientId(e.target.value)}
-              className="md:col-span-3 px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="md:col-span-3 px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
             >
               <option value="">Select ingredient...</option>
               {availableIngredients.map((ing) => (
@@ -256,7 +256,7 @@ export function InventoryView({
               value={newParLevel}
               onChange={(e) => setNewParLevel(e.target.value)}
               placeholder="Par level"
-              className="px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
             />
             <input
               type="number"
@@ -264,11 +264,11 @@ export function InventoryView({
               value={newCurrentStock}
               onChange={(e) => setNewCurrentStock(e.target.value)}
               placeholder="Current stock"
-              className="px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
             />
             <button
               onClick={handleAdd}
-              className="px-3 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg text-sm font-medium transition-colors"
+              className="px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] rounded-lg text-sm font-medium transition-colors"
             >
               Add Item
             </button>
@@ -277,29 +277,29 @@ export function InventoryView({
       )}
 
       {/* Items list */}
-      <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
-        <div className="hidden md:grid md:grid-cols-12 gap-2 px-4 py-3 border-b border-stone-200 text-xs font-medium text-stone-500 uppercase">
+      <div className="bg-white border border-[var(--line)] rounded-xl overflow-hidden">
+        <div className="hidden md:grid md:grid-cols-12 gap-2 px-4 py-3 border-b border-[var(--line)] text-xs font-medium text-[var(--ink-muted)] uppercase">
           <button
             onClick={() => toggleSort("name")}
-            className="col-span-5 flex items-center gap-1 hover:text-stone-900 transition-colors text-left"
+            className="col-span-5 flex items-center gap-1 hover:text-[var(--brand-brown)] transition-colors text-left"
           >
             Item <SortIcon field="name" />
           </button>
           <button
             onClick={() => toggleSort("vendor")}
-            className="col-span-2 flex items-center gap-1 hover:text-stone-900 transition-colors text-left"
+            className="col-span-2 flex items-center gap-1 hover:text-[var(--brand-brown)] transition-colors text-left"
           >
             Vendor <SortIcon field="vendor" />
           </button>
           <button
             onClick={() => toggleSort("par")}
-            className="col-span-2 flex items-center justify-center gap-1 hover:text-stone-900 transition-colors"
+            className="col-span-2 flex items-center justify-center gap-1 hover:text-[var(--brand-brown)] transition-colors"
           >
             Par <SortIcon field="par" />
           </button>
           <button
             onClick={() => toggleSort("stock")}
-            className="col-span-2 flex items-center justify-center gap-1 hover:text-stone-900 transition-colors"
+            className="col-span-2 flex items-center justify-center gap-1 hover:text-[var(--brand-brown)] transition-colors"
           >
             Stock <SortIcon field="stock" />
           </button>
@@ -307,8 +307,8 @@ export function InventoryView({
         </div>
 
         {/* Mobile sort selector */}
-        <div className="md:hidden px-4 py-2 border-b border-stone-200 flex items-center gap-2">
-          <span className="text-xs text-stone-500">Sort:</span>
+        <div className="md:hidden px-4 py-2 border-b border-[var(--line)] flex items-center gap-2">
+          <span className="text-xs text-[var(--ink-muted)]">Sort:</span>
           <select
             value={`${sortField}-${sortDir}`}
             onChange={(e) => {
@@ -316,7 +316,7 @@ export function InventoryView({
               setSortField(f as SortField);
               setSortDir(d as SortDir);
             }}
-            className="flex-1 px-2 py-1 bg-stone-100 border border-stone-300 rounded text-stone-900 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="flex-1 px-2 py-1 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-[var(--brand-brown)] text-xs focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
           >
             <option value="name-asc">Name (A-Z)</option>
             <option value="name-desc">Name (Z-A)</option>
@@ -328,9 +328,9 @@ export function InventoryView({
             <option value="stock-desc">Stock (High-Low)</option>
           </select>
         </div>
-        <div className="divide-y divide-stone-200">
+        <div className="divide-y divide-[var(--line)]">
           {filtered.length === 0 ? (
-            <div className="p-8 text-center text-stone-500">
+            <div className="p-8 text-center text-[var(--ink-muted)]">
               No items match your filters
             </div>
           ) : (
@@ -343,17 +343,17 @@ export function InventoryView({
               return (
                 <div
                   key={item.id}
-                  className="px-4 py-3 grid grid-cols-12 gap-2 items-center hover:bg-stone-100/50"
+                  className="px-4 py-3 grid grid-cols-12 gap-2 items-center hover:bg-[var(--brand-cream)]"
                 >
                   <div className="col-span-12 md:col-span-5">
                     <p className="font-medium text-sm">
                       {item.ingredient.name}
                     </p>
-                    <p className="text-xs text-stone-400 md:hidden">
+                    <p className="text-xs text-[var(--ink-muted)] md:hidden">
                       {item.ingredient.vendor} - {item.ingredient.ingredientCategory}
                     </p>
                   </div>
-                  <div className="hidden md:block md:col-span-2 text-xs text-stone-500">
+                  <div className="hidden md:block md:col-span-2 text-xs text-[var(--ink-muted)]">
                     {item.ingredient.vendor || "—"}
                   </div>
                   <div className="col-span-4 md:col-span-2 text-center">
@@ -368,10 +368,10 @@ export function InventoryView({
                             parLevel: e.target.value,
                           })
                         }
-                        className="w-16 px-2 py-1 bg-stone-100 border border-stone-300 rounded text-stone-900 text-sm text-center focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        className="w-16 px-2 py-1 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-[var(--brand-brown)] text-sm text-center focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
                       />
                     ) : (
-                      <span className="text-sm text-stone-700">
+                      <span className="text-sm text-[var(--brand-brown)]">
                         {item.parLevel}
                       </span>
                     )}
@@ -388,7 +388,7 @@ export function InventoryView({
                             currentStock: e.target.value,
                           })
                         }
-                        className="w-16 px-2 py-1 bg-stone-100 border border-stone-300 rounded text-stone-900 text-sm text-center focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        className="w-16 px-2 py-1 bg-[var(--brand-cream)] border border-[var(--line)] rounded text-[var(--brand-brown)] text-sm text-center focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)]"
                       />
                     ) : (
                       <span
@@ -396,7 +396,7 @@ export function InventoryView({
                           isOut
                             ? "text-red-600"
                             : isBelowPar
-                            ? "text-amber-600"
+                            ? "text-[var(--brand-olive)]"
                             : "text-green-600"
                         }`}
                       >
@@ -412,13 +412,13 @@ export function InventoryView({
                       <>
                         <button
                           onClick={() => saveEdit(item.id)}
-                          className="px-2 py-1 bg-amber-600 hover:bg-amber-500 rounded text-xs font-medium"
+                          className="px-2 py-1 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] rounded text-xs font-medium"
                         >
                           Save
                         </button>
                         <button
                           onClick={() => setEditingId(null)}
-                          className="px-2 py-1 bg-stone-200 hover:bg-zinc-600 rounded text-xs"
+                          className="px-2 py-1 bg-[var(--line)] hover:bg-zinc-600 rounded text-xs"
                         >
                           ✕
                         </button>
@@ -427,7 +427,7 @@ export function InventoryView({
                       <>
                         <button
                           onClick={() => startEdit(item)}
-                          className="text-xs text-amber-500 hover:text-amber-600"
+                          className="text-xs text-[var(--brand-olive)] hover:text-[var(--brand-olive)]"
                         >
                           Edit
                         </button>
@@ -441,7 +441,7 @@ export function InventoryView({
                               await deleteInventoryItem(item.id);
                             }
                           }}
-                          className="p-1 text-stone-500 hover:text-red-600"
+                          className="p-1 text-[var(--ink-muted)] hover:text-red-600"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>

@@ -229,7 +229,7 @@ export function SubRecipeForm({
       <button
         type="button"
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 text-sm"
+        className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Recipes
@@ -243,14 +243,14 @@ export function SubRecipeForm({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Header */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
           <div className="flex items-center gap-2 mb-2">
-            <Beaker className="w-5 h-5 text-amber-600" />
+            <Beaker className="w-5 h-5 text-[var(--brand-olive)]" />
             <h2 className="font-semibold">What are you making?</h2>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
+            <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
               Name *
             </label>
             <input
@@ -258,20 +258,20 @@ export function SubRecipeForm({
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="e.g. Sage Tea Syrup"
-              className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               autoFocus
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                 Category
               </label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               >
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
@@ -281,13 +281,13 @@ export function SubRecipeForm({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                 Storage
               </label>
               <select
                 value={storageType}
                 onChange={(e) => setStorageType(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               >
                 <option value="NONE">Room Temp</option>
                 <option value="FRIDGE">Fridge</option>
@@ -298,9 +298,9 @@ export function SubRecipeForm({
         </div>
 
         {/* Ingredients */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
           <h2 className="font-semibold">Ingredients</h2>
-          <p className="text-xs text-stone-500">
+          <p className="text-xs text-[var(--ink-muted)]">
             What goes into this? Select from your product list.
           </p>
 
@@ -312,7 +312,7 @@ export function SubRecipeForm({
                   onChange={(e) =>
                     updateRow(index, "ingredientId", e.target.value)
                   }
-                  className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 >
                   <option value="">Select ingredient...</option>
                   {ingredients.map((ing) => (
@@ -330,13 +330,13 @@ export function SubRecipeForm({
                 onChange={(e) =>
                   updateRow(index, "amount", parseFloat(e.target.value) || 0)
                 }
-                className="w-20 px-2 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-20 px-2 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 placeholder="Amt"
               />
               <select
                 value={row.unit}
                 onChange={(e) => updateRow(index, "unit", e.target.value)}
-                className="w-24 px-2 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-24 px-2 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               >
                 {RECIPE_UNITS.map((u) => (
                   <option key={u.value} value={u.value}>
@@ -347,7 +347,7 @@ export function SubRecipeForm({
               <button
                 type="button"
                 onClick={() => removeRow(index)}
-                className="p-2 text-stone-500 hover:text-red-600"
+                className="p-2 text-[var(--ink-muted)] hover:text-red-600"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -357,7 +357,7 @@ export function SubRecipeForm({
           <button
             type="button"
             onClick={addRow}
-            className="flex items-center gap-2 text-amber-600 hover:text-amber-700 text-sm"
+            className="flex items-center gap-2 text-[var(--brand-olive)] hover:text-[var(--brand-olive-hover)] text-sm"
           >
             <Plus className="w-4 h-4" />
             Add Ingredient
@@ -365,16 +365,16 @@ export function SubRecipeForm({
         </div>
 
         {/* Yield */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
           <h2 className="font-semibold">Yield & Shelf Life</h2>
-          <p className="text-xs text-stone-500">
+          <p className="text-xs text-[var(--ink-muted)]">
             How much does this recipe make? The system uses this to calculate
             cost per unit when used in cocktails.
           </p>
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs text-stone-600 mb-1">
+              <label className="block text-xs text-[var(--ink-muted)] mb-1">
                 Makes *
               </label>
               <input
@@ -384,17 +384,17 @@ export function SubRecipeForm({
                 value={yieldAmount}
                 onChange={(e) => setYieldAmount(e.target.value)}
                 placeholder="e.g. 12"
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               />
             </div>
             <div>
-              <label className="block text-xs text-stone-600 mb-1">
+              <label className="block text-xs text-[var(--ink-muted)] mb-1">
                 Unit
               </label>
               <select
                 value={yieldUnitCode}
                 onChange={(e) => setYieldUnitCode(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               >
                 {YIELD_UNITS.map((u) => (
                   <option key={u.value} value={u.value}>
@@ -404,7 +404,7 @@ export function SubRecipeForm({
               </select>
             </div>
             <div>
-              <label className="block text-xs text-stone-600 mb-1">
+              <label className="block text-xs text-[var(--ink-muted)] mb-1">
                 Shelf Life (days)
               </label>
               <input
@@ -413,18 +413,18 @@ export function SubRecipeForm({
                 value={shelfLifeDays}
                 onChange={(e) => setShelfLifeDays(e.target.value)}
                 placeholder="e.g. 7"
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               />
             </div>
           </div>
 
           {/* Live cost estimate */}
           {costEstimate.total > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
-              <p className="font-medium text-amber-800 text-sm">
+            <div className="bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-lg p-3 space-y-2">
+              <p className="font-medium text-[var(--brand-olive-hover)] text-sm">
                 💰 Estimated Cost
               </p>
-              <div className="space-y-1 text-xs text-amber-700">
+              <div className="space-y-1 text-xs text-[var(--brand-olive-hover)]">
                 {costEstimate.items.map((item, i) => (
                   <div key={i} className="flex justify-between">
                     <span>{item.name}</span>
@@ -432,12 +432,12 @@ export function SubRecipeForm({
                   </div>
                 ))}
               </div>
-              <div className="border-t border-amber-300 pt-2 flex justify-between text-sm font-semibold text-amber-900">
+              <div className="border-t border-[var(--brand-olive)] pt-2 flex justify-between text-sm font-semibold text-[var(--brand-olive-hover)]">
                 <span>Total batch cost</span>
                 <span>${costEstimate.total.toFixed(2)}</span>
               </div>
               {parseFloat(yieldAmount) > 0 && (
-                <div className="flex justify-between text-sm text-amber-800">
+                <div className="flex justify-between text-sm text-[var(--brand-olive-hover)]">
                   <span>
                     Cost per{" "}
                     {YIELD_UNITS.find((u) => u.value === yieldUnitCode)?.label ||
@@ -453,20 +453,20 @@ export function SubRecipeForm({
         </div>
 
         {/* Prep instructions */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-3">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-3">
           <h2 className="font-semibold">How to make it</h2>
           <textarea
             value={prepInstructions}
             onChange={(e) => setPrepInstructions(e.target.value)}
             rows={4}
             placeholder="Step-by-step instructions for making this..."
-            className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y text-sm"
+            className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] resize-y text-sm"
           />
         </div>
 
         {/* Notes */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4">
-          <label className="block text-sm font-medium text-stone-700 mb-1">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4">
+          <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
             Notes
           </label>
           <textarea
@@ -474,7 +474,7 @@ export function SubRecipeForm({
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
             placeholder="Any additional notes..."
-            className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none text-sm"
+            className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] resize-none text-sm"
           />
         </div>
 
@@ -492,7 +492,7 @@ export function SubRecipeForm({
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+          className="w-full py-3 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
         >
           {loading
             ? "Saving..."

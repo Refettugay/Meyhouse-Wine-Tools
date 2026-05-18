@@ -60,18 +60,18 @@ export function LocationsManager({
       )}
 
       {/* Add new location */}
-      <div className="bg-white border border-stone-200 rounded-xl p-4">
+      <div className="bg-white border border-[var(--line)] rounded-xl p-4">
         <h2 className="font-semibold mb-3">Add New Location</h2>
         <form onSubmit={handleAddLocation} className="flex gap-2">
           <input
             value={newLocName}
             onChange={(e) => setNewLocName(e.target.value)}
             placeholder="e.g. Meyhouse Palo Alto"
-            className="flex-1 px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="flex-1 px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
           />
           <button
             type="submit"
-            className="flex items-center gap-1 px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-1 px-4 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] rounded-lg text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add
@@ -83,13 +83,13 @@ export function LocationsManager({
       {locations.map((loc) => (
         <div
           key={loc.id}
-          className="bg-white border border-stone-200 rounded-xl overflow-hidden"
+          className="bg-white border border-[var(--line)] rounded-xl overflow-hidden"
         >
-          <div className="p-4 border-b border-stone-200 flex items-center justify-between">
+          <div className="p-4 border-b border-[var(--line)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-amber-500" />
+              <MapPin className="w-5 h-5 text-[var(--brand-olive)]" />
               <h3 className="font-semibold">{loc.name}</h3>
-              <span className="text-xs text-stone-500 ml-2">
+              <span className="text-xs text-[var(--ink-muted)] ml-2">
                 ({loc._count.inventoryItems} items)
               </span>
             </div>
@@ -103,19 +103,19 @@ export function LocationsManager({
                   await deleteLocation(loc.id);
                 }
               }}
-              className="p-2 text-stone-500 hover:text-red-600 transition-colors"
+              className="p-2 text-[var(--ink-muted)] hover:text-red-600 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
 
           <div className="p-4">
-            <p className="text-xs text-stone-500 mb-2">Storage Areas</p>
+            <p className="text-xs text-[var(--ink-muted)] mb-2">Storage Areas</p>
             <div className="flex flex-wrap gap-2 mb-3">
               {loc.storageAreas.map((area) => (
                 <div
                   key={area.id}
-                  className="flex items-center gap-1 bg-stone-100 rounded-full pl-3 pr-1 py-1 text-sm"
+                  className="flex items-center gap-1 bg-[var(--brand-cream)] rounded-full pl-3 pr-1 py-1 text-sm"
                 >
                   <span>{area.name}</span>
                   <button
@@ -124,14 +124,14 @@ export function LocationsManager({
                         await deleteStorageArea(area.id);
                       }
                     }}
-                    className="p-1 text-stone-500 hover:text-red-600"
+                    className="p-1 text-[var(--ink-muted)] hover:text-red-600"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
               ))}
               {loc.storageAreas.length === 0 && (
-                <p className="text-xs text-stone-400">No storage areas yet</p>
+                <p className="text-xs text-[var(--ink-muted)]">No storage areas yet</p>
               )}
             </div>
 
@@ -142,11 +142,11 @@ export function LocationsManager({
                   setNewAreaByLoc({ ...newAreaByLoc, [loc.id]: e.target.value })
                 }
                 placeholder="e.g. Bar, Red Cabin, Dry Storage"
-                className="flex-1 px-3 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="flex-1 px-3 py-1.5 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               />
               <button
                 onClick={() => handleAddArea(loc.id)}
-                className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 rounded-lg text-sm text-stone-700 transition-colors"
+                className="px-3 py-1.5 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-sm text-[var(--brand-brown)] transition-colors"
               >
                 Add Area
               </button>

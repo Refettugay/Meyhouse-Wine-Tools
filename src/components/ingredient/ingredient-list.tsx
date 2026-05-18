@@ -32,19 +32,19 @@ export function IngredientList({ ingredients }: { ingredients: Ingredient[] }) {
       {/* Search & filter */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
           <input
             type="text"
             placeholder="Search ingredients..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
           />
         </div>
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Types</option>
           <option value="LIQUID">Liquids</option>
@@ -56,7 +56,7 @@ export function IngredientList({ ingredients }: { ingredients: Ingredient[] }) {
       {/* List */}
       <div className="space-y-2">
         {filtered.length === 0 ? (
-          <div className="text-center py-12 text-stone-500">
+          <div className="text-center py-12 text-[var(--ink-muted)]">
             {ingredients.length === 0
               ? "No ingredients yet. Add your first one!"
               : "No ingredients match your search."}
@@ -65,12 +65,12 @@ export function IngredientList({ ingredients }: { ingredients: Ingredient[] }) {
           filtered.map((ing) => (
             <div
               key={ing.id}
-              className="bg-white border border-stone-200 rounded-lg p-4 flex items-center justify-between"
+              className="bg-white border border-[var(--line)] rounded-lg p-4 flex items-center justify-between"
             >
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{ing.name}</p>
-                <div className="flex items-center gap-2 mt-1 text-sm text-stone-500">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-stone-100">
+                <div className="flex items-center gap-2 mt-1 text-sm text-[var(--ink-muted)]">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-[var(--brand-cream)]">
                     {ing.type.toLowerCase()}
                   </span>
                   {ing.bottleCostCents && (
@@ -85,7 +85,7 @@ export function IngredientList({ ingredients }: { ingredients: Ingredient[] }) {
               <div className="flex items-center gap-2 ml-3">
                 <Link
                   href={`/dashboard/ingredients/${ing.id}/edit`}
-                  className="p-2 text-stone-500 hover:text-stone-900 transition-colors"
+                  className="p-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] transition-colors"
                 >
                   <Edit className="w-4 h-4" />
                 </Link>
@@ -95,7 +95,7 @@ export function IngredientList({ ingredients }: { ingredients: Ingredient[] }) {
                       await deleteIngredient(ing.id);
                     }
                   }}
-                  className="p-2 text-stone-500 hover:text-red-600 transition-colors"
+                  className="p-2 text-[var(--ink-muted)] hover:text-red-600 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

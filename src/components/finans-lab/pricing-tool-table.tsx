@@ -58,9 +58,9 @@ const STATUS_CONFIG: Record<
   },
   near: {
     label: "Near Target",
-    color: "text-amber-700",
-    bg: "bg-amber-50",
-    border: "border-amber-200",
+    color: "text-[var(--brand-olive-hover)]",
+    bg: "bg-[#FAF7F1]",
+    border: "border-[var(--brand-olive)]",
     icon: AlertTriangle,
   },
   "on-target": {
@@ -79,23 +79,23 @@ const STATUS_CONFIG: Record<
   },
   "no-price": {
     label: "No Price",
-    color: "text-stone-600",
-    bg: "bg-stone-100",
-    border: "border-stone-200",
+    color: "text-[var(--ink-muted)]",
+    bg: "bg-[var(--brand-cream)]",
+    border: "border-[var(--line)]",
     icon: Edit3,
   },
   "no-cost": {
     label: "No Cost",
-    color: "text-stone-600",
-    bg: "bg-stone-100",
-    border: "border-stone-200",
+    color: "text-[var(--ink-muted)]",
+    bg: "bg-[var(--brand-cream)]",
+    border: "border-[var(--line)]",
     icon: Edit3,
   },
   "no-target": {
     label: "No Target",
-    color: "text-stone-600",
-    bg: "bg-stone-100",
-    border: "border-stone-200",
+    color: "text-[var(--ink-muted)]",
+    bg: "bg-[var(--brand-cream)]",
+    border: "border-[var(--line)]",
     icon: Edit3,
   },
 };
@@ -387,18 +387,18 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search recipe…"
-            className="w-full pl-9 pr-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
+            className="w-full pl-9 pr-3 py-2 border border-[var(--line)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] focus:border-[var(--brand-olive)]"
           />
         </div>
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
+          className="w-full px-3 py-2 border border-[var(--line)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] focus:border-[var(--brand-olive)]"
         >
           <option value="all">All Categories</option>
           {cats.map((c) => (
@@ -414,7 +414,7 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
             setCategoryFilter("all");
             setStatusFilter("all");
           }}
-          className="px-3 py-2 border border-stone-300 rounded-lg text-sm text-stone-600 hover:bg-stone-50"
+          className="px-3 py-2 border border-[var(--line)] rounded-lg text-sm text-[var(--ink-muted)] hover:bg-[var(--brand-cream)]"
         >
           Clear filters
         </button>
@@ -426,11 +426,11 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
         if (!cat) return null;
         const editing = editingCategoryTarget === cat.id;
         return (
-          <div className="bg-amber-50/70 border border-amber-200 rounded-lg p-3 flex items-center justify-between">
+          <div className="bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-lg p-3 flex items-center justify-between">
             <div className="text-sm">
-              <span className="font-medium text-amber-900">{cat.name}</span>
-              <span className="text-amber-700 mx-2">·</span>
-              <span className="text-stone-600">Category default target:</span>
+              <span className="font-medium text-[var(--brand-olive-hover)]">{cat.name}</span>
+              <span className="text-[var(--brand-olive-hover)] mx-2">·</span>
+              <span className="text-[var(--ink-muted)]">Category default target:</span>
               {editing ? (
                 <input
                   type="number"
@@ -443,7 +443,7 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
                     if (e.key === "Enter") saveCategoryTarget(cat.id);
                     if (e.key === "Escape") setEditingCategoryTarget(null);
                   }}
-                  className="ml-2 w-20 px-2 py-0.5 border border-amber-400 rounded text-sm"
+                  className="ml-2 w-20 px-2 py-0.5 border border-[var(--brand-olive)] rounded text-sm"
                   placeholder="%"
                 />
               ) : (
@@ -452,14 +452,14 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
                     setEditingCategoryTarget(cat.id);
                     setTargetDraft(cat.defaultCostTargetPct?.toString() ?? "");
                   }}
-                  className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-amber-100 font-medium text-amber-900"
+                  className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-[rgba(74,93,39,0.12)] font-medium text-[var(--brand-olive-hover)]"
                 >
                   {cat.defaultCostTargetPct !== null ? `${cat.defaultCostTargetPct}%` : "Set…"}
                   <Pencil className="w-3 h-3" />
                 </button>
               )}
             </div>
-            <p className="text-xs text-amber-700/80">
+            <p className="text-xs text-[var(--brand-olive-hover)]/80">
               Applies to all recipes in this category unless the recipe has its own target.
             </p>
           </div>
@@ -467,11 +467,11 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
       })()}
 
       {/* Table */}
-      <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-[var(--line)] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-stone-50 border-b border-stone-200">
-              <tr className="text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">
+            <thead className="bg-[var(--brand-cream)] border-b border-[var(--line)]">
+              <tr className="text-left text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide">
                 <th className="px-3 py-2 cursor-pointer whitespace-nowrap" onClick={() => toggleSort("category")}>
                   Category <SortIcon field="category" />
                 </th>
@@ -498,10 +498,10 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody className="divide-y divide-[var(--line)]">
               {filteredSorted.length === 0 && (
                 <tr>
-                  <td colSpan={readOnly ? 4 : 8} className="px-3 py-12 text-center text-stone-400 italic">
+                  <td colSpan={readOnly ? 4 : 8} className="px-3 py-12 text-center text-[var(--ink-muted)] italic">
                     No recipes match your filters.
                   </td>
                 </tr>
@@ -513,11 +513,11 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
                   row.suggestedPriceCents !== null &&
                   row.suggestedPriceCents !== row.menuPriceCents;
                 return (
-                  <tr key={row.recipeId} className="hover:bg-stone-50/70">
-                    <td className="px-3 py-2 text-stone-600 whitespace-nowrap">{row.categoryName}</td>
-                    <td className="px-3 py-2 text-stone-900 font-medium">{row.name}</td>
+                  <tr key={row.recipeId} className="hover:bg-[var(--brand-cream)]">
+                    <td className="px-3 py-2 text-[var(--ink-muted)] whitespace-nowrap">{row.categoryName}</td>
+                    <td className="px-3 py-2 text-[var(--brand-brown)] font-medium">{row.name}</td>
                     {!readOnly && (
-                      <td className="px-3 py-2 text-right text-stone-700 font-mono tabular-nums">
+                      <td className="px-3 py-2 text-right text-[var(--brand-brown)] font-mono tabular-nums">
                         {row.costCents === 0 ? "—" : formatCents(row.costCents)}
                       </td>
                     )}
@@ -534,16 +534,16 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
                             if (e.key === "Enter") savePrice(row.recipeId);
                             if (e.key === "Escape") setEditingPrice(null);
                           }}
-                          className="w-24 px-2 py-0.5 border border-amber-400 rounded text-right text-sm font-mono"
+                          className="w-24 px-2 py-0.5 border border-[var(--brand-olive)] rounded text-right text-sm font-mono"
                         />
                       ) : readOnly ? (
-                        <span className="font-mono tabular-nums text-stone-900 font-medium">
+                        <span className="font-mono tabular-nums text-[var(--brand-brown)] font-medium">
                           {formatCents(row.menuPriceCents)}
                         </span>
                       ) : (
                         <button
                           onClick={() => startEditPrice(row)}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-amber-50 font-mono tabular-nums"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-[#FAF7F1] font-mono tabular-nums"
                         >
                           {formatCents(row.menuPriceCents)}
                           <Pencil className="w-3 h-3 opacity-40" />
@@ -556,12 +556,12 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
                           row.status === "over"
                             ? "text-red-700 font-semibold"
                             : row.status === "near"
-                            ? "text-amber-700"
+                            ? "text-[var(--brand-olive-hover)]"
                             : row.status === "on-target"
                             ? "text-emerald-700"
                             : row.status === "under"
                             ? "text-blue-700"
-                            : "text-stone-400"
+                            : "text-[var(--ink-muted)]"
                         }`}
                       >
                         {row.actualCostPct !== null ? `${row.actualCostPct.toFixed(1)}%` : "—"}
@@ -581,13 +581,13 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
                               if (e.key === "Enter") saveRecipeTarget(row.recipeId);
                               if (e.key === "Escape") setEditingTarget(null);
                             }}
-                            className="w-20 px-2 py-0.5 border border-amber-400 rounded text-right text-sm font-mono"
+                            className="w-20 px-2 py-0.5 border border-[var(--brand-olive)] rounded text-right text-sm font-mono"
                           />
                         ) : (
                           <button
                             onClick={() => startEditTarget(row)}
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-amber-50 font-mono tabular-nums ${
-                              row.costTargetSource === "category" ? "text-stone-500 italic" : ""
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-[#FAF7F1] font-mono tabular-nums ${
+                              row.costTargetSource === "category" ? "text-[var(--ink-muted)] italic" : ""
                             }`}
                             title={
                               row.costTargetSource === "category"
@@ -604,7 +604,7 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
                       </td>
                     )}
                     {!readOnly && (
-                      <td className="px-3 py-2 text-right text-stone-700 font-mono tabular-nums">
+                      <td className="px-3 py-2 text-right text-[var(--brand-brown)] font-mono tabular-nums">
                         {row.suggestedPriceCents !== null ? (
                           <div className="flex items-center justify-end gap-1">
                             <span>{formatCents(row.suggestedPriceCents)}</span>
@@ -612,7 +612,7 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
                               <button
                                 onClick={() => applySuggestion(row.recipeId)}
                                 disabled={isPending}
-                                className="p-1 rounded hover:bg-amber-100 text-amber-600"
+                                className="p-1 rounded hover:bg-[rgba(74,93,39,0.12)] text-[var(--brand-olive)]"
                                 title="Apply suggested price"
                               >
                                 <Sparkles className="w-3.5 h-3.5" />
@@ -641,7 +641,7 @@ export function PricingToolTable({ initialRows, categories, readOnly = false }: 
       </div>
 
       {!readOnly && (
-        <p className="text-xs text-stone-400 text-center">
+        <p className="text-xs text-[var(--ink-muted)] text-center">
           Over Target = actual cost % is more than 3% above target · Near Target = within 3% above · On Target
           = up to 5% below target · Under Target = more than 5% below (you can charge more)
         </p>
@@ -669,12 +669,12 @@ function StatPill({
     <button
       onClick={() => (active ? onClick() : onClick())}
       className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-colors ${
-        active ? `${cfg.bg} ${cfg.border} shadow-sm` : "bg-white border-stone-200 hover:border-stone-300"
+        active ? `${cfg.bg} ${cfg.border} shadow-sm` : "bg-white border-[var(--line)] hover:border-[var(--line)]"
       }`}
     >
       <Icon className={`w-4 h-4 ${cfg.color}`} />
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-stone-500 truncate">{label}</p>
+        <p className="text-xs text-[var(--ink-muted)] truncate">{label}</p>
         <p className={`text-base font-bold ${cfg.color}`}>{count}</p>
       </div>
     </button>

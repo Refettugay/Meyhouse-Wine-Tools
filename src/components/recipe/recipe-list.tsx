@@ -87,19 +87,19 @@ export function RecipeList({
       {/* Search & filter */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
           <input
             type="text"
             placeholder="Search recipes..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
           />
         </div>
         <select
           value={categoryFilter}
           onChange={(e) => handleCategoryChange(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Categories</option>
           {categories.map((cat) => (
@@ -116,8 +116,8 @@ export function RecipeList({
           onClick={() => handleCategoryChange("ALL")}
           className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
             categoryFilter === "ALL"
-              ? "bg-amber-600 text-white"
-              : "bg-stone-100 text-stone-500 hover:text-stone-900"
+              ? "bg-[var(--brand-olive)] text-white"
+              : "bg-[var(--brand-cream)] text-[var(--ink-muted)] hover:text-[var(--brand-brown)]"
           }`}
         >
           All
@@ -128,8 +128,8 @@ export function RecipeList({
             onClick={() => handleCategoryChange(cat.id)}
             className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
               categoryFilter === cat.id
-                ? "bg-amber-600 text-white"
-                : "bg-stone-100 text-stone-500 hover:text-stone-900"
+                ? "bg-[var(--brand-olive)] text-white"
+                : "bg-[var(--brand-cream)] text-[var(--ink-muted)] hover:text-[var(--brand-brown)]"
             }`}
           >
             {cat.name}
@@ -139,7 +139,7 @@ export function RecipeList({
 
       {/* Recipe grid */}
       {filtered.length === 0 ? (
-        <div className="text-center py-12 text-stone-500">
+        <div className="text-center py-12 text-[var(--ink-muted)]">
           {recipes.length === 0
             ? "No recipes yet. Add your first cocktail!"
             : "No recipes match your search."}
@@ -163,11 +163,11 @@ export function RecipeList({
               <Link
                 key={recipe.id}
                 href={`/dashboard/recipes/${recipe.id}`}
-                className="bg-white border border-stone-200 rounded-xl p-4 hover:border-amber-500/30 transition-colors"
+                className="bg-white border border-[var(--line)] rounded-xl p-4 hover:border-[var(--brand-olive)] transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Wine className="w-5 h-5 text-amber-500" />
+                    <Wine className="w-5 h-5 text-[var(--brand-olive)]" />
                     <h3 className="font-semibold">{recipe.name}</h3>
                   </div>
                   <div className="flex gap-1">
@@ -179,21 +179,21 @@ export function RecipeList({
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-stone-500 mb-2">
+                <p className="text-xs text-[var(--ink-muted)] mb-2">
                   {recipe.category.name}
                 </p>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-stone-500">
+                  <span className="text-[var(--ink-muted)]">
                     {recipe.ingredients.length} ingredients
                   </span>
                   {cost > 0 && (
-                    <span className="text-amber-600 font-medium">
+                    <span className="text-[var(--brand-olive)] font-medium">
                       {formatCents(cost)}
                     </span>
                   )}
                 </div>
                 {recipe.glassType && (
-                  <p className="text-xs text-stone-400 mt-2">
+                  <p className="text-xs text-[var(--ink-muted)] mt-2">
                     {recipe.glassType}
                     {recipe.garnish && ` - ${recipe.garnish}`}
                   </p>

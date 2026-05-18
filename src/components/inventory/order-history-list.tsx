@@ -86,17 +86,17 @@ export function OrderHistoryList({
     <div>
       {/* Filters + stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <div className="bg-white border border-stone-200 rounded-xl p-3">
-          <p className="text-xs text-stone-500">Orders</p>
+        <div className="bg-white border border-[var(--line)] rounded-xl p-3">
+          <p className="text-xs text-[var(--ink-muted)]">Orders</p>
           <p className="text-xl font-bold">{filtered.length}</p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-xl p-3">
-          <p className="text-xs text-stone-500">Total Bottles</p>
+        <div className="bg-white border border-[var(--line)] rounded-xl p-3">
+          <p className="text-xs text-[var(--ink-muted)]">Total Bottles</p>
           <p className="text-xl font-bold">{totalBottles}</p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-xl p-3 col-span-2">
-          <p className="text-xs text-stone-500">Total Cost (est.)</p>
-          <p className="text-xl font-bold text-amber-600">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-3 col-span-2">
+          <p className="text-xs text-[var(--ink-muted)]">Total Cost (est.)</p>
+          <p className="text-xl font-bold text-[var(--brand-olive)]">
             {totalCost > 0 ? formatCents(totalCost) : "—"}
           </p>
         </div>
@@ -106,7 +106,7 @@ export function OrderHistoryList({
         <select
           value={locFilter}
           onChange={(e) => setLocFilter(e.target.value)}
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Locations</option>
           {locations.map((l) => (
@@ -120,7 +120,7 @@ export function OrderHistoryList({
           onChange={(e) =>
             setWeekFilter(e.target.value as "ALL" | "1" | "2" | "4")
           }
-          className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">Last 8 weeks</option>
           <option value="4">Last 4 weeks</option>
@@ -139,34 +139,34 @@ export function OrderHistoryList({
           return (
             <div
               key={week.weekStart.toISOString()}
-              className="bg-white border border-stone-200 rounded-xl overflow-hidden"
+              className="bg-white border border-[var(--line)] rounded-xl overflow-hidden"
             >
-              <div className="px-4 py-3 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
+              <div className="px-4 py-3 border-b border-[var(--line)] bg-[var(--brand-cream)] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-amber-600" />
+                  <Calendar className="w-4 h-4 text-[var(--brand-olive)]" />
                   <h3 className="font-semibold text-sm">{week.label}</h3>
-                  <span className="text-xs text-stone-500">
+                  <span className="text-xs text-[var(--ink-muted)]">
                     ({week.orders.length}{" "}
                     {week.orders.length === 1 ? "order" : "orders"})
                   </span>
                 </div>
                 {weekCost > 0 && (
-                  <span className="text-sm font-medium text-amber-600">
+                  <span className="text-sm font-medium text-[var(--brand-olive)]">
                     {formatCents(weekCost)}
                   </span>
                 )}
               </div>
-              <div className="divide-y divide-stone-200">
+              <div className="divide-y divide-[var(--line)]">
                 {week.orders.map((order) => {
                   const d = new Date(order.createdAt);
                   return (
                     <Link
                       key={order.id}
                       href={`/dashboard/inventory/orders/${order.id}`}
-                      className="px-4 py-3 flex items-center justify-between hover:bg-stone-50 transition-colors"
+                      className="px-4 py-3 flex items-center justify-between hover:bg-[var(--brand-cream)] transition-colors"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <ShoppingCart className="w-4 h-4 text-stone-400 flex-shrink-0" />
+                        <ShoppingCart className="w-4 h-4 text-[var(--ink-muted)] flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="font-medium text-sm">
@@ -179,14 +179,14 @@ export function OrderHistoryList({
                                   : order.status === "RECEIVED"
                                   ? "bg-blue-100 text-blue-700"
                                   : order.status === "COMPLETED"
-                                  ? "bg-stone-100 text-stone-700"
-                                  : "bg-amber-100 text-amber-700"
+                                  ? "bg-[var(--brand-cream)] text-[var(--brand-brown)]"
+                                  : "bg-[rgba(74,93,39,0.12)] text-[var(--brand-olive-hover)]"
                               }`}
                             >
                               {order.status}
                             </span>
                           </div>
-                          <p className="text-xs text-stone-500">
+                          <p className="text-xs text-[var(--ink-muted)]">
                             {d.toLocaleDateString()} at{" "}
                             {d.toLocaleTimeString([], {
                               hour: "2-digit",
@@ -200,7 +200,7 @@ export function OrderHistoryList({
                       </div>
                       <div className="text-right">
                         {order.totalCostCents > 0 && (
-                          <p className="text-sm font-medium text-amber-600">
+                          <p className="text-sm font-medium text-[var(--brand-olive)]">
                             {formatCents(order.totalCostCents)}
                           </p>
                         )}

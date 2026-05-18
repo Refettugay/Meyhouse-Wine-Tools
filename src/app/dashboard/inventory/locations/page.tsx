@@ -24,7 +24,7 @@ export default async function LocationsPage() {
     <div className="p-4 lg:p-8 max-w-3xl">
       <Link
         href="/dashboard/inventory"
-        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 text-sm"
+        className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Inventory

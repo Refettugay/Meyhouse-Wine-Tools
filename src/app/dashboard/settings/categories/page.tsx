@@ -29,7 +29,7 @@ export default async function CategoriesPage() {
     <div className="p-4 lg:p-8 max-w-4xl">
       <Link
         href="/dashboard/settings"
-        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 text-sm"
+        className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Settings
@@ -37,7 +37,7 @@ export default async function CategoriesPage() {
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Product Categories</h1>
-        <p className="text-stone-500 text-sm mt-1">
+        <p className="text-[var(--ink-muted)] text-sm mt-1">
           {config.parents.length} parent categories, {config.subs.length} sub-categories across {totalProducts} products.
           Click any category to configure pour sizes and serving style.
         </p>

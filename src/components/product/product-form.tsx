@@ -236,7 +236,7 @@ export function ProductForm({
       <button
         type="button"
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 text-sm"
+        className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Products
@@ -250,11 +250,11 @@ export function ProductForm({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic info */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
           <h2 className="font-semibold">Product Info</h2>
 
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
+            <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
               Name *
             </label>
             <input
@@ -262,18 +262,18 @@ export function ProductForm({
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="e.g. Haku Vodka"
-              className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
+            <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
               Type
             </label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
             >
               <option value="LIQUID">Liquid (Spirit, Mixer, Juice)</option>
               <option value="SOLID">Solid (Sugar, Food Items)</option>
@@ -283,7 +283,7 @@ export function ProductForm({
 
           {/* Vendor dropdown */}
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
+            <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
               Vendor
             </label>
             {!showNewVendor ? (
@@ -291,7 +291,7 @@ export function ProductForm({
                 <select
                   value={vendorId}
                   onChange={(e) => setVendorId(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="flex-1 px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 >
                   <option value="">— Select vendor —</option>
                   {vendors.map((v) => (
@@ -303,7 +303,7 @@ export function ProductForm({
                 <button
                   type="button"
                   onClick={() => setShowNewVendor(true)}
-                  className="px-3 py-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-sm text-stone-700 whitespace-nowrap"
+                  className="px-3 py-2 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-sm text-[var(--brand-brown)] whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4 inline mr-1" />
                   New
@@ -315,12 +315,12 @@ export function ProductForm({
                   value={newVendorName}
                   onChange={(e) => setNewVendorName(e.target.value)}
                   placeholder="New vendor name"
-                  className="flex-1 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="flex-1 px-3 py-2 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 />
                 <button
                   type="button"
                   onClick={handleCreateVendor}
-                  className="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm"
+                  className="px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm"
                 >
                   Create
                 </button>
@@ -330,7 +330,7 @@ export function ProductForm({
                     setShowNewVendor(false);
                     setNewVendorName("");
                   }}
-                  className="p-2 text-stone-500"
+                  className="p-2 text-[var(--ink-muted)]"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -340,7 +340,7 @@ export function ProductForm({
 
           {/* Category dropdown */}
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
+            <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
               Category
             </label>
             {!showNewCategory ? (
@@ -348,7 +348,7 @@ export function ProductForm({
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="flex-1 px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 >
                   <option value="">— Select category —</option>
                   {categories.map((c) => (
@@ -360,7 +360,7 @@ export function ProductForm({
                 <button
                   type="button"
                   onClick={() => setShowNewCategory(true)}
-                  className="px-3 py-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-sm text-stone-700 whitespace-nowrap"
+                  className="px-3 py-2 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-sm text-[var(--brand-brown)] whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4 inline mr-1" />
                   New
@@ -372,12 +372,12 @@ export function ProductForm({
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   placeholder="e.g. Bourbon, Gin, Cordial"
-                  className="flex-1 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="flex-1 px-3 py-2 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 />
                 <button
                   type="button"
                   onClick={handleAddCategory}
-                  className="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm"
+                  className="px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm"
                 >
                   Add
                 </button>
@@ -387,7 +387,7 @@ export function ProductForm({
                     setShowNewCategory(false);
                     setNewCategoryName("");
                   }}
-                  className="p-2 text-stone-500"
+                  className="p-2 text-[var(--ink-muted)]"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -398,7 +398,7 @@ export function ProductForm({
           {/* Bottle Size & Case Pack Size */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                 Bottle Size (ml)
               </label>
               {!showNewSize ? (
@@ -406,7 +406,7 @@ export function ProductForm({
                   <select
                     value={bottleSizeMl}
                     onChange={(e) => setBottleSizeMl(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="flex-1 px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                   >
                     <option value="">—</option>
                     {bottleSizes.map((s) => (
@@ -418,7 +418,7 @@ export function ProductForm({
                   <button
                     type="button"
                     onClick={() => setShowNewSize(true)}
-                    className="px-2 py-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-sm text-stone-700"
+                    className="px-2 py-2 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-sm text-[var(--brand-brown)]"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -430,19 +430,19 @@ export function ProductForm({
                     value={newSizeMl}
                     onChange={(e) => setNewSizeMl(e.target.value)}
                     placeholder="ml"
-                    className="flex-1 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="flex-1 px-3 py-2 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                   />
                   <button
                     type="button"
                     onClick={handleAddSize}
-                    className="px-2 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm"
+                    className="px-2 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm"
                   >
                     Add
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowNewSize(false)}
-                    className="p-2 text-stone-500"
+                    className="p-2 text-[var(--ink-muted)]"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -451,7 +451,7 @@ export function ProductForm({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                 Case Pack Size
               </label>
               {!showNewCaseSize ? (
@@ -459,7 +459,7 @@ export function ProductForm({
                   <select
                     value={casePackSize}
                     onChange={(e) => setCasePackSize(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="flex-1 px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                   >
                     {caseSizes.map((s) => (
                       <option key={s} value={s}>
@@ -470,7 +470,7 @@ export function ProductForm({
                   <button
                     type="button"
                     onClick={() => setShowNewCaseSize(true)}
-                    className="px-2 py-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-sm text-stone-700"
+                    className="px-2 py-2 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-sm text-[var(--brand-brown)]"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -482,19 +482,19 @@ export function ProductForm({
                     value={newCaseSize}
                     onChange={(e) => setNewCaseSize(e.target.value)}
                     placeholder="#"
-                    className="flex-1 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="flex-1 px-3 py-2 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                   />
                   <button
                     type="button"
                     onClick={handleAddCaseSize}
-                    className="px-2 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm"
+                    className="px-2 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm"
                   >
                     Add
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowNewCaseSize(false)}
-                    className="p-2 text-stone-500"
+                    className="p-2 text-[var(--ink-muted)]"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -506,7 +506,7 @@ export function ProductForm({
           {/* Costs */}
           {(type === "LIQUID" || type === "GARNISH") && (
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                 Bottle Cost ($)
               </label>
               <input
@@ -516,7 +516,7 @@ export function ProductForm({
                 value={bottleCost}
                 onChange={(e) => setBottleCost(e.target.value)}
                 placeholder="30.00"
-                className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
               />
             </div>
           )}
@@ -524,7 +524,7 @@ export function ProductForm({
           {type === "SOLID" && (
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                   Purchase Cost ($)
                 </label>
                 <input
@@ -533,11 +533,11 @@ export function ProductForm({
                   min="0"
                   value={purchaseCost}
                   onChange={(e) => setPurchaseCost(e.target.value)}
-                  className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                   Quantity
                 </label>
                 <input
@@ -546,18 +546,18 @@ export function ProductForm({
                   min="0"
                   value={purchaseQty}
                   onChange={(e) => setPurchaseQty(e.target.value)}
-                  className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                   Unit
                 </label>
                 <input
                   value={purchaseUnit}
                   onChange={(e) => setPurchaseUnit(e.target.value)}
                   placeholder="each"
-                  className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 />
               </div>
             </div>
@@ -565,10 +565,10 @@ export function ProductForm({
         </div>
 
         {/* Notes / Tasting notes */}
-        <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-3">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-3">
           <div>
             <h2 className="font-semibold">Notes / Tasting Notes</h2>
-            <p className="text-xs text-stone-500 mt-1">
+            <p className="text-xs text-[var(--ink-muted)] mt-1">
               Add tasting notes, flavor profile, rep info, or anything to
               remember about this product.
             </p>
@@ -578,26 +578,26 @@ export function ProductForm({
             onChange={(e) => setNotes(e.target.value)}
             rows={5}
             placeholder="e.g. Oaky vanilla with a smoky finish. Great in old fashioneds. Tasted 2024-03-15 with Sarah from SWS."
-            className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
+            className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] resize-y"
           />
         </div>
 
         {/* Location selection — only for menu products */}
         {(mode === "menu" || (existingProduct && existingProduct.onMenu)) && (
-          <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+          <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold">Available At Stores</h2>
               <button
                 type="button"
                 onClick={toggleAllLocations}
-                className="text-xs text-amber-600 hover:text-amber-700"
+                className="text-xs text-[var(--brand-olive)] hover:text-[var(--brand-olive-hover)]"
               >
                 {selectedLocIds.size === locations.length
                   ? "Deselect all"
                   : "Select all"}
               </button>
             </div>
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-[var(--ink-muted)]">
               Select which stores carry this product. It will be added to each
               store&apos;s inventory.
             </p>
@@ -609,8 +609,8 @@ export function ProductForm({
                   onClick={() => toggleLocation(loc.id)}
                   className={`p-3 rounded-lg text-sm font-medium text-left transition-colors border ${
                     selectedLocIds.has(loc.id)
-                      ? "bg-amber-50 border-amber-500 text-amber-800"
-                      : "bg-stone-100 border-stone-200 text-stone-700 hover:bg-stone-200"
+                      ? "bg-[#FAF7F1] border-[var(--brand-olive)] text-[var(--brand-olive-hover)]"
+                      : "bg-[var(--brand-cream)] border-[var(--line)] text-[var(--brand-brown)] hover:bg-[var(--line)]"
                   }`}
                 >
                   {selectedLocIds.has(loc.id) ? "✓ " : ""}
@@ -621,7 +621,7 @@ export function ProductForm({
 
             {selectedLocIds.size > 0 && (
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                   Par Level (applied to all selected stores)
                 </label>
                 <input
@@ -631,9 +631,9 @@ export function ProductForm({
                   value={parLevel}
                   onChange={(e) => setParLevel(e.target.value)}
                   placeholder="e.g. 2"
-                  className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 />
-                <p className="text-xs text-stone-400 mt-1">
+                <p className="text-xs text-[var(--ink-muted)] mt-1">
                   You can adjust individual store par levels later from the
                   Inventory page.
                 </p>
@@ -657,7 +657,7 @@ export function ProductForm({
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+          className="w-full py-3 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
         >
           {loading
             ? "Saving..."

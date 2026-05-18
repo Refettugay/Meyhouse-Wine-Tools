@@ -36,8 +36,8 @@ export default async function FoodPricingPage() {
   return (
     <div className="max-w-7xl">
       <div className="mb-4">
-        <h2 className="text-lg font-semibold text-stone-900">Food</h2>
-        <p className="text-sm text-stone-500 mt-0.5">
+        <h2 className="text-lg font-semibold text-[var(--brand-brown)]">Food</h2>
+        <p className="text-sm text-[var(--ink-muted)] mt-0.5">
           Food recipes (mezze, mains, sides, desserts). Cost comes from the
           recipe&apos;s ingredients; suggested price uses the category cost
           target.

@@ -161,24 +161,24 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
   return (
     <div className="space-y-6">
       {/* Upload card */}
-      <section className="bg-white border border-stone-200 rounded-xl p-5">
-        <h2 className="font-semibold text-stone-900 mb-1 flex items-center gap-2">
-          <Upload className="w-4 h-4 text-amber-600" />
+      <section className="bg-white border border-[var(--line)] rounded-xl p-5">
+        <h2 className="font-semibold text-[var(--brand-brown)] mb-1 flex items-center gap-2">
+          <Upload className="w-4 h-4 text-[var(--brand-olive)]" />
           Upload Toast Product Mix CSV
         </h2>
-        <p className="text-xs text-stone-500 mb-4">
+        <p className="text-xs text-[var(--ink-muted)] mb-4">
           Select the folder you exported from Toast (contains{" "}
-          <code className="text-[11px] px-1 bg-stone-100 rounded">All levels.csv</code>
+          <code className="text-[11px] px-1 bg-[var(--brand-cream)] rounded">All levels.csv</code>
           ). Sales data will be tied to the selected location and date range.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           <div>
-            <label className="block text-xs text-stone-500 mb-1">Location</label>
+            <label className="block text-xs text-[var(--ink-muted)] mb-1">Location</label>
             <select
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
-              className="w-full px-3 py-1.5 border border-stone-300 rounded-lg text-sm"
+              className="w-full px-3 py-1.5 border border-[var(--line)] rounded-lg text-sm"
             >
               {locations.map((l) => (
                 <option key={l.id} value={l.id}>
@@ -188,26 +188,26 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
             </select>
           </div>
           <div>
-            <label className="block text-xs text-stone-500 mb-1">Period Start</label>
+            <label className="block text-xs text-[var(--ink-muted)] mb-1">Period Start</label>
             <input
               type="date"
               value={periodStart}
               onChange={(e) => setPeriodStart(e.target.value)}
-              className="w-full px-3 py-1.5 border border-stone-300 rounded-lg text-sm"
+              className="w-full px-3 py-1.5 border border-[var(--line)] rounded-lg text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs text-stone-500 mb-1">Period End</label>
+            <label className="block text-xs text-[var(--ink-muted)] mb-1">Period End</label>
             <input
               type="date"
               value={periodEnd}
               onChange={(e) => setPeriodEnd(e.target.value)}
-              className="w-full px-3 py-1.5 border border-stone-300 rounded-lg text-sm"
+              className="w-full px-3 py-1.5 border border-[var(--line)] rounded-lg text-sm"
             />
           </div>
         </div>
 
-        <div className="border-2 border-dashed border-stone-300 rounded-lg p-6 text-center hover:border-amber-500/50 transition-colors">
+        <div className="border-2 border-dashed border-[var(--line)] rounded-lg p-6 text-center hover:border-[var(--brand-olive)] transition-colors">
           <input
             type="file"
             id="folder-upload"
@@ -220,12 +220,12 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
           />
           <label
             htmlFor="folder-upload"
-            className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium"
+            className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium"
           >
             <Upload className="w-4 h-4" />
             Select Toast PMIX folder
           </label>
-          <p className="text-xs text-stone-500 mt-2">
+          <p className="text-xs text-[var(--ink-muted)] mt-2">
             or drag-drop the folder here
           </p>
         </div>
@@ -238,20 +238,20 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
         )}
 
         {isPending && !preview && (
-          <p className="mt-3 text-sm text-stone-500">Parsing CSV…</p>
+          <p className="mt-3 text-sm text-[var(--ink-muted)]">Parsing CSV…</p>
         )}
       </section>
 
       {/* Preview */}
       {preview && (
-        <section className="bg-white border border-amber-300 rounded-xl p-5 space-y-4">
+        <section className="bg-white border border-[var(--brand-olive)] rounded-xl p-5 space-y-4">
           <div className="flex items-start justify-between flex-wrap gap-2">
             <div>
-              <h2 className="font-semibold text-stone-900 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-amber-600" />
+              <h2 className="font-semibold text-[var(--brand-brown)] flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[var(--brand-olive)]" />
                 Preview — not yet saved
               </h2>
-              <p className="text-xs text-stone-500 mt-0.5">
+              <p className="text-xs text-[var(--ink-muted)] mt-0.5">
                 {preview.locationName ?? "All locations"} ·{" "}
                 {preview.periodStart} to {preview.periodEnd}
                 {sourceFilename && <> · {sourceFilename}</>}
@@ -263,7 +263,7 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
                   setPreview(null);
                   setSourceFilename(null);
                 }}
-                className="px-3 py-1.5 border border-stone-300 text-stone-600 rounded-lg text-sm"
+                className="px-3 py-1.5 border border-[var(--line)] text-[var(--ink-muted)] rounded-lg text-sm"
               >
                 Cancel
               </button>
@@ -287,21 +287,21 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
 
           {/* Unmatched section (prominent) */}
           {unmatchedItems.length > 0 && (
-            <div className="bg-amber-50/40 border border-amber-200 rounded-lg">
+            <div className="bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-lg">
               <button
                 onClick={() => setShowUnmatched((x) => !x)}
                 className="w-full px-4 py-3 flex items-center justify-between text-left"
               >
-                <span className="font-semibold text-amber-900 flex items-center gap-2">
+                <span className="font-semibold text-[var(--brand-olive-hover)] flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" />
                   {unmatchedItems.length} unmatched items (click to review)
                 </span>
                 {showUnmatched ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
               {showUnmatched && (
-                <div className="border-t border-amber-200 max-h-96 overflow-y-auto">
+                <div className="border-t border-[var(--brand-olive)] max-h-96 overflow-y-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-amber-100/50 text-xs text-amber-900 uppercase sticky top-0">
+                    <thead className="bg-[rgba(74,93,39,0.12)] text-xs text-[var(--brand-olive-hover)] uppercase sticky top-0">
                       <tr>
                         <th className="px-3 py-2 text-left">Toast Item Name</th>
                         <th className="px-3 py-2 text-left">Menu Group</th>
@@ -309,13 +309,13 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
                         <th className="px-3 py-2 text-right">Net $</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-amber-100">
+                    <tbody className="divide-y divide-[var(--brand-olive)]">
                       {unmatchedItems.map((it, idx) => {
                         const realIdx = preview.items.indexOf(it);
                         return (
-                          <tr key={realIdx} className="hover:bg-amber-50">
-                            <td className="px-3 py-1.5 text-stone-900">{it.rawName}</td>
-                            <td className="px-3 py-1.5 text-stone-500 text-xs">
+                          <tr key={realIdx} className="hover:bg-[#FAF7F1]">
+                            <td className="px-3 py-1.5 text-[var(--brand-brown)]">{it.rawName}</td>
+                            <td className="px-3 py-1.5 text-[var(--ink-muted)] text-xs">
                               {it.menu} · {it.menuGroup}
                             </td>
                             <td className="px-3 py-1.5 text-right font-mono">{it.qtySold.toFixed(0)}</td>
@@ -325,7 +325,7 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
                       })}
                     </tbody>
                   </table>
-                  <p className="px-3 py-2 text-xs text-amber-800/70 bg-amber-50/60 border-t border-amber-200">
+                  <p className="px-3 py-2 text-xs text-[var(--brand-olive-hover)]/70 bg-[#FAF7F1] border-t border-[var(--brand-olive)]">
                     These items couldn&apos;t be automatically matched to your product database.
                     They&apos;ll still be saved (raw name only) and can be matched later.
                   </p>
@@ -336,21 +336,21 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
 
           {/* Matched section (collapsed by default) */}
           {matchedItems.length > 0 && (
-            <div className="bg-stone-50/40 border border-stone-200 rounded-lg">
+            <div className="bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg">
               <button
                 onClick={() => setShowMatched((x) => !x)}
                 className="w-full px-4 py-3 flex items-center justify-between text-left"
               >
-                <span className="font-semibold text-stone-800 flex items-center gap-2">
+                <span className="font-semibold text-[var(--brand-brown)] flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600" />
                   {matchedItems.length} matched items
                 </span>
                 {showMatched ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
               {showMatched && (
-                <div className="border-t border-stone-200 max-h-96 overflow-y-auto">
+                <div className="border-t border-[var(--line)] max-h-96 overflow-y-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-stone-100 text-xs text-stone-600 uppercase sticky top-0">
+                    <thead className="bg-[var(--brand-cream)] text-xs text-[var(--ink-muted)] uppercase sticky top-0">
                       <tr>
                         <th className="px-3 py-2 text-left">Toast Name</th>
                         <th className="px-3 py-2 text-left">Matched to</th>
@@ -359,13 +359,13 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
                         <th className="px-3 py-2 text-right">Net $</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-100">
+                    <tbody className="divide-y divide-[var(--line)]">
                       {matchedItems.map((it) => (
-                        <tr key={it.rawName + it.menuGroup} className="hover:bg-stone-50">
-                          <td className="px-3 py-1.5 text-stone-600">{it.rawName}</td>
-                          <td className="px-3 py-1.5 text-stone-900 font-medium">
+                        <tr key={it.rawName + it.menuGroup} className="hover:bg-[var(--brand-cream)]">
+                          <td className="px-3 py-1.5 text-[var(--ink-muted)]">{it.rawName}</td>
+                          <td className="px-3 py-1.5 text-[var(--brand-brown)] font-medium">
                             {it.matchName}
-                            <span className="text-[10px] ml-1 text-stone-400 uppercase">
+                            <span className="text-[10px] ml-1 text-[var(--ink-muted)] uppercase">
                               {it.matchType}
                             </span>
                           </td>
@@ -386,12 +386,12 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
           {/* Menu group summary */}
           {preview.menuGroupSummary.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-stone-700 mb-2">
+              <h3 className="text-sm font-semibold text-[var(--brand-brown)] mb-2">
                 Menu Group Totals ({preview.menuGroupSummary.length} groups)
               </h3>
-              <div className="bg-stone-50 border border-stone-200 rounded-lg max-h-64 overflow-y-auto">
+              <div className="bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg max-h-64 overflow-y-auto">
                 <table className="w-full text-sm">
-                  <thead className="text-xs text-stone-500 uppercase sticky top-0 bg-stone-50">
+                  <thead className="text-xs text-[var(--ink-muted)] uppercase sticky top-0 bg-[var(--brand-cream)]">
                     <tr>
                       <th className="px-3 py-2 text-left">Menu</th>
                       <th className="px-3 py-2 text-left">Group</th>
@@ -399,11 +399,11 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
                       <th className="px-3 py-2 text-right">Net $</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-stone-100">
+                  <tbody className="divide-y divide-[var(--line)]">
                     {preview.menuGroupSummary.map((g) => (
                       <tr key={g.menu + g.menuGroup}>
-                        <td className="px-3 py-1 text-stone-600 text-xs">{g.menu}</td>
-                        <td className="px-3 py-1 text-stone-900 text-xs">{g.menuGroup}</td>
+                        <td className="px-3 py-1 text-[var(--ink-muted)] text-xs">{g.menu}</td>
+                        <td className="px-3 py-1 text-[var(--brand-brown)] text-xs">{g.menuGroup}</td>
                         <td className="px-3 py-1 text-right font-mono text-xs">{g.qty.toFixed(0)}</td>
                         <td className="px-3 py-1 text-right font-mono text-xs">{formatCents(g.netCents)}</td>
                       </tr>
@@ -417,19 +417,19 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
       )}
 
       {/* History — past uploads */}
-      <section className="bg-white border border-stone-200 rounded-xl p-5">
-        <h2 className="font-semibold text-stone-900 mb-3 flex items-center gap-2">
-          <FileText className="w-4 h-4 text-amber-600" />
+      <section className="bg-white border border-[var(--line)] rounded-xl p-5">
+        <h2 className="font-semibold text-[var(--brand-brown)] mb-3 flex items-center gap-2">
+          <FileText className="w-4 h-4 text-[var(--brand-olive)]" />
           Past Uploads ({snapshots.length})
         </h2>
         {snapshots.length === 0 ? (
-          <p className="text-sm text-stone-400 italic">
+          <p className="text-sm text-[var(--ink-muted)] italic">
             No uploads yet. Upload your first Toast PMIX above.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-xs text-stone-500 uppercase">
+              <thead className="text-xs text-[var(--ink-muted)] uppercase">
                 <tr>
                   <th className="px-3 py-2 text-left">Location</th>
                   <th className="px-3 py-2 text-left">Period</th>
@@ -441,13 +441,13 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
                   <th></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-[var(--line)]">
                 {snapshots.map((s) => (
-                  <tr key={s.id} className="hover:bg-stone-50/50">
+                  <tr key={s.id} className="hover:bg-[var(--brand-cream)]">
                     <td className="px-3 py-2 font-medium">
                       {s.location?.name ?? "All locations"}
                     </td>
-                    <td className="px-3 py-2 text-stone-600">
+                    <td className="px-3 py-2 text-[var(--ink-muted)]">
                       {formatDate(s.periodStart)} → {formatDate(s.periodEnd)}
                     </td>
                     <td className="px-3 py-2 text-right font-mono">
@@ -456,16 +456,16 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
                     <td className="px-3 py-2 text-right">
                       <span className="text-emerald-700">{s.itemsMatched}</span>
                       {s.itemsUnmatched > 0 && (
-                        <span className="text-amber-700"> / {s.itemsUnmatched} unmatched</span>
+                        <span className="text-[var(--brand-olive-hover)]"> / {s.itemsUnmatched} unmatched</span>
                       )}
                     </td>
                     <td className="px-3 py-2 text-right font-mono">{s.totalQtySold.toFixed(0)}</td>
                     <td className="px-3 py-2 text-right font-mono">{formatCents(s.totalNetCents)}</td>
-                    <td className="px-3 py-2 text-stone-500 text-xs">{formatDate(s.createdAt)}</td>
+                    <td className="px-3 py-2 text-[var(--ink-muted)] text-xs">{formatDate(s.createdAt)}</td>
                     <td className="px-3 py-2 text-right">
                       <button
                         onClick={() => onDelete(s.id)}
-                        className="p-1 rounded hover:bg-red-50 text-stone-400 hover:text-red-500"
+                        className="p-1 rounded hover:bg-red-50 text-[var(--ink-muted)] hover:text-red-500"
                         title="Delete snapshot"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -492,9 +492,9 @@ function Stat({
   color: "stone" | "emerald" | "amber";
 }) {
   const styles = {
-    stone: "bg-white border-stone-200 text-stone-900",
+    stone: "bg-white border-[var(--line)] text-[var(--brand-brown)]",
     emerald: "bg-emerald-50 border-emerald-200 text-emerald-900",
-    amber: "bg-amber-50 border-amber-200 text-amber-900",
+    amber: "bg-[#FAF7F1] border-[var(--brand-olive)] text-[var(--brand-olive-hover)]",
   }[color];
   return (
     <div className={`rounded-lg border px-3 py-2 ${styles}`}>

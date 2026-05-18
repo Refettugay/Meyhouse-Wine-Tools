@@ -41,7 +41,7 @@ export function ResizableTable({
           ))}
         </colgroup>
         <thead>
-          <tr className="bg-stone-50 border-b border-stone-200 text-[10px] text-stone-500 uppercase font-medium">
+          <tr className="bg-[var(--brand-cream)] border-b border-[var(--line)] text-[10px] text-[var(--ink-muted)] uppercase font-medium">
             {columns.map((col, i) => (
               <th
                 key={col.key}
@@ -51,7 +51,7 @@ export function ResizableTable({
                     : col.align === "center"
                     ? "text-center"
                     : "text-left"
-                } ${col.sortable ? "cursor-pointer hover:text-stone-900" : ""}`}
+                } ${col.sortable ? "cursor-pointer hover:text-[var(--brand-brown)]" : ""}`}
                 onClick={col.onSort}
               >
                 <span className="flex items-center gap-1" style={{
@@ -62,7 +62,7 @@ export function ResizableTable({
                 </span>
                 {/* Resize handle */}
                 <div
-                  className="absolute top-0 right-0 bottom-0 w-[5px] cursor-col-resize hover:bg-amber-400/40 active:bg-amber-500/60 z-10"
+                  className="absolute top-0 right-0 bottom-0 w-[5px] cursor-col-resize hover:bg-[var(--brand-olive)] active:bg-[var(--brand-olive)] z-10"
                   onMouseDown={(e) => onMouseDown(i, e)}
                   onDoubleClick={() => onDoubleClick(i)}
                   title="Drag to resize, double-click to auto-fit"

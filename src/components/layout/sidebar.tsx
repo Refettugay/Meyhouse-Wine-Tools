@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -38,8 +39,9 @@ interface SidebarProps {
   permissions?: Record<string, unknown>;
 }
 
-export function Sidebar({ organizationName, userName, role, permissions }: SidebarProps) {
+export function Sidebar({ organizationName: _organizationName, userName, role, permissions }: SidebarProps) {
   const pathname = usePathname();
+  void _organizationName;
 
   const navItems = [
     ...baseNavItems,
@@ -48,17 +50,31 @@ export function Sidebar({ organizationName, userName, role, permissions }: Sideb
   ];
 
   return (
-    <aside className="flex flex-col w-16 fixed inset-y-0 left-0 bg-white border-r border-stone-200 z-40 overflow-visible">
-      {/* Logo — clickable, jumps back to the Sophra launcher where the user
-          can switch between Beverage, Schedule, and any future tool. Plain
-          anchor (not Next Link) because the launcher is on a different
-          subdomain. */}
+    <aside
+      className="flex flex-col w-16 fixed inset-y-0 left-0 z-40 overflow-visible"
+      style={{
+        background: "var(--brand-cream)",
+        borderRight: "1px solid var(--line)",
+      }}
+    >
+      {/* Sophra icon — clickable, jumps back to the launcher where users can
+          switch between Beverage, Schedule, and any future tool. Plain
+          anchor (not Next Link) because launcher is on a different subdomain. */}
       <a
         href="https://app.runsophra.com"
         title="Sophra home · switch apps"
-        className="p-3 border-b border-stone-200 relative group block hover:bg-amber-50 transition-colors"
+        className="p-3 relative group block transition-colors"
+        style={{ borderBottom: "1px solid var(--line)" }}
       >
-        <h1 className="text-lg font-bold text-amber-500 text-center">M</h1>
+        <div className="flex items-center justify-center h-7">
+          <Image
+            src="/brand/icon.svg"
+            alt="Sophra"
+            width={28}
+            height={28}
+            priority
+          />
+        </div>
       </a>
 
       {/* Navigation */}
@@ -72,14 +88,31 @@ export function Sidebar({ organizationName, userName, role, permissions }: Sideb
             <Link
               key={item.href}
               href={item.href}
-              className={`group/item relative flex items-center h-10 rounded-lg whitespace-nowrap transition-all duration-200 w-full hover:w-48 hover:z-50 hover:shadow-lg hover:border hover:border-stone-200 ${
+              className="group/item relative flex items-center h-10 rounded-lg whitespace-nowrap transition-all duration-200 w-full hover:w-48 hover:z-50 hover:shadow-lg"
+              style={
                 isActive
-                  ? "bg-amber-600/10 text-amber-500 hover:bg-amber-50"
-                  : "text-stone-500 hover:text-stone-900 hover:bg-white"
-              }`}
+                  ? {
+                      background: "var(--brand-olive)",
+                      color: "var(--brand-cream)",
+                    }
+                  : {
+                      color: "var(--brand-brown)",
+                      background: "transparent",
+                    }
+              }
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.6)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = "transparent";
+                }
+              }}
             >
               <div className="w-14 flex items-center justify-center flex-shrink-0">
-                <Icon className="w-5 h-5" />
+                <Icon className="w-5 h-5" strokeWidth={1.7} />
               </div>
               <span className="text-sm font-medium hidden group-hover/item:inline pr-4">
                 {item.label}
@@ -90,9 +123,19 @@ export function Sidebar({ organizationName, userName, role, permissions }: Sideb
       </nav>
 
       {/* User info */}
-      <div className="p-2 border-t border-stone-200" title={`${userName} · ${role}`}>
+      <div
+        className="p-2"
+        style={{ borderTop: "1px solid var(--line)" }}
+        title={`${userName} · ${role}`}
+      >
         <div className="flex items-center justify-center">
-          <div className="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0"
+            style={{
+              background: "var(--brand-olive)",
+              color: "var(--brand-cream)",
+            }}
+          >
             {userName.charAt(0).toUpperCase()}
           </div>
         </div>

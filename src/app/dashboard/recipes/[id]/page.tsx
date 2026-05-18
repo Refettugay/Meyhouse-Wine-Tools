@@ -33,7 +33,7 @@ export default async function RecipeDetailPage({
         <BackToRecipes />
         <Link
           href={`/dashboard/recipes/${id}/edit`}
-          className="flex items-center gap-2 px-4 py-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-sm transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-sm transition-colors"
         >
           <Edit className="w-4 h-4" />
           Edit

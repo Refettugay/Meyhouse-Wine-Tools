@@ -17,8 +17,8 @@ export default async function PricingHubLayout({
     <div className="p-4 lg:p-6">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">Pricing Hub</h1>
-          <p className="text-sm text-stone-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-[var(--brand-brown)]">Pricing Hub</h1>
+          <p className="text-sm text-[var(--ink-muted)] mt-0.5">
             Set menu prices, cost targets, and margin for every category.
           </p>
         </div>

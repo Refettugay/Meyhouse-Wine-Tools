@@ -58,7 +58,7 @@ export default async function OrderHistoryPage() {
     <div className="p-4 lg:p-8">
       <Link
         href="/dashboard/inventory"
-        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 text-sm"
+        className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Inventory & Ordering
@@ -66,19 +66,19 @@ export default async function OrderHistoryPage() {
 
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <History className="w-6 h-6 text-amber-600" />
+          <History className="w-6 h-6 text-[var(--brand-olive)]" />
           <h1 className="text-2xl font-bold">Order History</h1>
         </div>
-        <p className="text-stone-500 text-sm">
+        <p className="text-[var(--ink-muted)] text-sm">
           Last 8 weeks of orders across all locations — {orders.length} orders
         </p>
       </div>
 
       {orders.length === 0 ? (
-        <div className="bg-white border border-stone-200 rounded-xl p-8 text-center">
-          <ShoppingCart className="w-12 h-12 text-stone-300 mx-auto mb-3" />
-          <p className="text-stone-500">No orders yet.</p>
-          <p className="text-stone-400 text-sm mt-1">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-8 text-center">
+          <ShoppingCart className="w-12 h-12 text-[var(--ink-muted)] mx-auto mb-3" />
+          <p className="text-[var(--ink-muted)]">No orders yet.</p>
+          <p className="text-[var(--ink-muted)] text-sm mt-1">
             Complete a count & order at one of your locations to get started.
           </p>
         </div>

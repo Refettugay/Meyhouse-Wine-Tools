@@ -65,9 +65,9 @@ const STATUS_CONFIG: Record<
   },
   near: {
     label: "Near Target",
-    color: "text-amber-700",
-    bg: "bg-amber-50",
-    border: "border-amber-200",
+    color: "text-[var(--brand-olive-hover)]",
+    bg: "bg-[#FAF7F1]",
+    border: "border-[var(--brand-olive)]",
     icon: AlertTriangle,
   },
   "on-target": {
@@ -86,23 +86,23 @@ const STATUS_CONFIG: Record<
   },
   "no-price": {
     label: "No Price",
-    color: "text-stone-600",
-    bg: "bg-stone-100",
-    border: "border-stone-200",
+    color: "text-[var(--ink-muted)]",
+    bg: "bg-[var(--brand-cream)]",
+    border: "border-[var(--line)]",
     icon: Edit3,
   },
   "no-cost": {
     label: "No Cost",
-    color: "text-stone-600",
-    bg: "bg-stone-100",
-    border: "border-stone-200",
+    color: "text-[var(--ink-muted)]",
+    bg: "bg-[var(--brand-cream)]",
+    border: "border-[var(--line)]",
     icon: Edit3,
   },
   "no-target": {
     label: "No Target",
-    color: "text-stone-600",
-    bg: "bg-stone-100",
-    border: "border-stone-200",
+    color: "text-[var(--ink-muted)]",
+    bg: "bg-[var(--brand-cream)]",
+    border: "border-[var(--line)]",
     icon: Edit3,
   },
 };
@@ -371,11 +371,11 @@ export function BeveragePricingTable({
   return (
     <div className="space-y-4">
       {/* Tab default banner */}
-      <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 flex items-center justify-between flex-wrap gap-2">
+      <div className="bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-xl p-3 flex items-center justify-between flex-wrap gap-2">
         <div className="text-sm">
-          <span className="font-semibold text-amber-900 capitalize">{tabLabel(tab)}</span>
-          <span className="text-amber-700 mx-2">·</span>
-          <span className="text-stone-600">Default target cost %:</span>
+          <span className="font-semibold text-[var(--brand-olive-hover)] capitalize">{tabLabel(tab)}</span>
+          <span className="text-[var(--brand-olive-hover)] mx-2">·</span>
+          <span className="text-[var(--ink-muted)]">Default target cost %:</span>
           {editingTabDefault ? (
             <input
               type="number"
@@ -388,7 +388,7 @@ export function BeveragePricingTable({
                 if (e.key === "Enter") saveTabDefault();
                 if (e.key === "Escape") setEditingTabDefault(false);
               }}
-              className="ml-2 w-20 px-2 py-0.5 border border-amber-400 rounded text-sm"
+              className="ml-2 w-20 px-2 py-0.5 border border-[var(--brand-olive)] rounded text-sm"
               placeholder="%"
             />
           ) : (
@@ -397,14 +397,14 @@ export function BeveragePricingTable({
                 setEditingTabDefault(true);
                 setTabDefaultDraft(tabDefault.toString());
               }}
-              className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-amber-100 font-bold text-amber-900"
+              className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-[rgba(74,93,39,0.12)] font-bold text-[var(--brand-olive-hover)]"
             >
               {tabDefault}%
               <Pencil className="w-3 h-3" />
             </button>
           )}
         </div>
-        <p className="text-xs text-amber-700/80">
+        <p className="text-xs text-[var(--brand-olive-hover)]/80">
           Applies to every pour unless the row has its own override.
         </p>
       </div>
@@ -423,12 +423,12 @@ export function BeveragePricingTable({
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search ingredient or vendor…"
-            className="w-full pl-9 pr-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
+            className="w-full pl-9 pr-3 py-2 border border-[var(--line)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] focus:border-[var(--brand-olive)]"
           />
         </div>
         <button
@@ -436,7 +436,7 @@ export function BeveragePricingTable({
             setSearch("");
             setStatusFilter("all");
           }}
-          className="px-3 py-2 border border-stone-300 rounded-lg text-sm text-stone-600 hover:bg-stone-50"
+          className="px-3 py-2 border border-[var(--line)] rounded-lg text-sm text-[var(--ink-muted)] hover:bg-[var(--brand-cream)]"
         >
           Clear filters
         </button>
@@ -444,7 +444,7 @@ export function BeveragePricingTable({
           <button
             onClick={seedAllOrphans}
             disabled={isPending}
-            className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium disabled:opacity-50"
           >
             <Sparkles className="w-4 h-4" />
             Seed default pours ({orphans.length} items)
@@ -454,20 +454,20 @@ export function BeveragePricingTable({
 
       {/* Orphans — items without any pour row yet, shown as a compact table */}
       {orphans.length > 0 && (
-        <div className="bg-white border border-dashed border-stone-300 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-stone-200 bg-stone-50/70 flex items-center gap-2">
-            <RefreshCw className="w-4 h-4 text-amber-600" />
+        <div className="bg-white border border-dashed border-[var(--line)] rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-[var(--line)] bg-[var(--brand-cream)] flex items-center gap-2">
+            <RefreshCw className="w-4 h-4 text-[var(--brand-olive)]" />
             <h3 className="font-semibold text-sm">
               Items without pour sizes yet ({orphans.length})
             </h3>
-            <span className="text-xs text-stone-500">
+            <span className="text-xs text-[var(--ink-muted)]">
               · Click any row to seed its default pour sizes
             </span>
           </div>
           <div className="overflow-x-auto max-h-96 overflow-y-auto">
             <table className="w-full text-sm">
-              <thead className="bg-stone-50 border-b border-stone-200 sticky top-0">
-                <tr className="text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">
+              <thead className="bg-[var(--brand-cream)] border-b border-[var(--line)] sticky top-0">
+                <tr className="text-left text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide">
                   <th className="px-3 py-2 whitespace-nowrap">Product</th>
                   <th className="px-3 py-2 whitespace-nowrap">Vendor</th>
                   <th className="px-3 py-2 text-right whitespace-nowrap">Bottle $</th>
@@ -475,28 +475,28 @@ export function BeveragePricingTable({
                   <th className="px-3 py-2 text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-[var(--line)]">
                 {orphans.map((o) => (
-                  <tr key={o.ingredientId} className="hover:bg-amber-50/40">
-                    <td className="px-3 py-1.5 text-stone-900 font-medium">
+                  <tr key={o.ingredientId} className="hover:bg-[#FAF7F1]">
+                    <td className="px-3 py-1.5 text-[var(--brand-brown)] font-medium">
                       {o.ingredientName}
                     </td>
-                    <td className="px-3 py-1.5 text-stone-500 whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-[var(--ink-muted)] whitespace-nowrap">
                       {o.vendorName ?? "—"}
                     </td>
-                    <td className="px-3 py-1.5 text-right text-stone-700 font-mono tabular-nums">
+                    <td className="px-3 py-1.5 text-right text-[var(--brand-brown)] font-mono tabular-nums">
                       {o.bottleCostCents !== null
                         ? `$${(o.bottleCostCents / 100).toFixed(2)}`
                         : "—"}
                     </td>
-                    <td className="px-3 py-1.5 text-right text-stone-700 font-mono tabular-nums whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-right text-[var(--brand-brown)] font-mono tabular-nums whitespace-nowrap">
                       {o.bottleSizeMl !== null ? `${o.bottleSizeMl}ml` : "—"}
                     </td>
                     <td className="px-3 py-1.5 text-right whitespace-nowrap">
                       <button
                         onClick={() => seedOrphan(o.ingredientId)}
                         disabled={isPending}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium disabled:opacity-50"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white text-xs font-medium disabled:opacity-50"
                       >
                         <Plus className="w-3 h-3" />
                         Seed default pours
@@ -511,11 +511,11 @@ export function BeveragePricingTable({
       )}
 
       {/* Main table */}
-      <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-[var(--line)] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-stone-50 border-b border-stone-200">
-              <tr className="text-left text-xs font-semibold text-stone-500 uppercase tracking-wide">
+            <thead className="bg-[var(--brand-cream)] border-b border-[var(--line)]">
+              <tr className="text-left text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide">
                 <th className="px-3 py-2 cursor-pointer whitespace-nowrap" onClick={() => toggleSort("ingredient")}>
                   Ingredient <SortIcon field="ingredient" />
                 </th>
@@ -539,10 +539,10 @@ export function BeveragePricingTable({
                 <th className="px-3 py-2 whitespace-nowrap text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody className="divide-y divide-[var(--line)]">
               {filteredSorted.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-3 py-12 text-center text-stone-400 italic">
+                  <td colSpan={9} className="px-3 py-12 text-center text-[var(--ink-muted)] italic">
                     {rows.length === 0
                       ? "No pour rows yet. Seed defaults above, or add a pour size from the orphans list."
                       : "No rows match your filters."}
@@ -556,20 +556,20 @@ export function BeveragePricingTable({
                   row.suggestedPriceCents !== null &&
                   row.suggestedPriceCents !== row.menuPriceCents;
                 return (
-                  <tr key={row.priceId} className="hover:bg-stone-50/70">
-                    <td className="px-3 py-2 text-stone-900 font-medium">
+                  <tr key={row.priceId} className="hover:bg-[var(--brand-cream)]">
+                    <td className="px-3 py-2 text-[var(--brand-brown)] font-medium">
                       <div>{row.ingredientName}</div>
                       {row.vendorName && (
-                        <div className="text-xs text-stone-400">{row.vendorName}</div>
+                        <div className="text-xs text-[var(--ink-muted)]">{row.vendorName}</div>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-stone-700 whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-100 text-xs">
+                    <td className="px-3 py-2 text-[var(--brand-brown)] whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--brand-cream)] text-xs">
                         {row.label}
-                        <span className="text-stone-400">· {row.pourMl}ml</span>
+                        <span className="text-[var(--ink-muted)]">· {row.pourMl}ml</span>
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-right text-stone-700 font-mono tabular-nums">
+                    <td className="px-3 py-2 text-right text-[var(--brand-brown)] font-mono tabular-nums">
                       {formatCents(row.costPerPourCents)}
                     </td>
                     <td className="px-3 py-2 text-right">
@@ -585,7 +585,7 @@ export function BeveragePricingTable({
                             if (e.key === "Enter") savePrice(row.priceId);
                             if (e.key === "Escape") setEditingPrice(null);
                           }}
-                          className="w-24 px-2 py-0.5 border border-amber-400 rounded text-right text-sm font-mono"
+                          className="w-24 px-2 py-0.5 border border-[var(--brand-olive)] rounded text-right text-sm font-mono"
                         />
                       ) : (
                         <button
@@ -597,7 +597,7 @@ export function BeveragePricingTable({
                                 : ""
                             );
                           }}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-amber-50 font-mono tabular-nums"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-[#FAF7F1] font-mono tabular-nums"
                         >
                           {formatCents(row.menuPriceCents)}
                           <Pencil className="w-3 h-3 opacity-40" />
@@ -609,12 +609,12 @@ export function BeveragePricingTable({
                         row.status === "over"
                           ? "text-red-700 font-semibold"
                           : row.status === "near"
-                          ? "text-amber-700"
+                          ? "text-[var(--brand-olive-hover)]"
                           : row.status === "on-target"
                           ? "text-emerald-700"
                           : row.status === "under"
                           ? "text-blue-700"
-                          : "text-stone-400"
+                          : "text-[var(--ink-muted)]"
                       }`}
                     >
                       {row.actualCostPct !== null ? `${row.actualCostPct.toFixed(1)}%` : "—"}
@@ -632,7 +632,7 @@ export function BeveragePricingTable({
                             if (e.key === "Enter") saveRowTarget(row.priceId);
                             if (e.key === "Escape") setEditingTarget(null);
                           }}
-                          className="w-20 px-2 py-0.5 border border-amber-400 rounded text-right text-sm font-mono"
+                          className="w-20 px-2 py-0.5 border border-[var(--brand-olive)] rounded text-right text-sm font-mono"
                         />
                       ) : (
                         <button
@@ -649,8 +649,8 @@ export function BeveragePricingTable({
                               ? `Inherited from tab default (${tabDefault}%)`
                               : "Custom override for this pour"
                           }
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-amber-50 font-mono tabular-nums ${
-                            row.costTargetSource === "tab" ? "text-stone-500 italic" : ""
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-[#FAF7F1] font-mono tabular-nums ${
+                            row.costTargetSource === "tab" ? "text-[var(--ink-muted)] italic" : ""
                           }`}
                         >
                           {row.costTargetPct !== null ? `${row.costTargetPct.toFixed(1)}%` : "—"}
@@ -658,7 +658,7 @@ export function BeveragePricingTable({
                         </button>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-right text-stone-700 font-mono tabular-nums">
+                    <td className="px-3 py-2 text-right text-[var(--brand-brown)] font-mono tabular-nums">
                       {row.suggestedPriceCents !== null ? (
                         <div className="flex items-center justify-end gap-1">
                           <span>{formatCents(row.suggestedPriceCents)}</span>
@@ -666,7 +666,7 @@ export function BeveragePricingTable({
                             <button
                               onClick={() => applySuggestion(row.priceId)}
                               disabled={isPending}
-                              className="p-1 rounded hover:bg-amber-100 text-amber-600"
+                              className="p-1 rounded hover:bg-[rgba(74,93,39,0.12)] text-[var(--brand-olive)]"
                               title="Apply suggested price"
                             >
                               <Sparkles className="w-3.5 h-3.5" />
@@ -704,7 +704,7 @@ export function BeveragePricingTable({
                             });
                           }}
                           disabled={isPending}
-                          className="p-1 rounded hover:bg-stone-100 text-stone-500 mr-1"
+                          className="p-1 rounded hover:bg-[var(--brand-cream)] text-[var(--ink-muted)] mr-1"
                           title="Reset to tab default"
                         >
                           <Undo2 className="w-3.5 h-3.5" />
@@ -729,32 +729,32 @@ export function BeveragePricingTable({
 
       {/* Add pour size picker (appears when clicking "add" on a row-expanded ingredient) */}
       {showAddFor && (
-        <div className="bg-white border border-amber-300 rounded-xl p-4">
+        <div className="bg-white border border-[var(--brand-olive)] rounded-xl p-4">
           <h3 className="font-semibold text-sm mb-3">Add pour size</h3>
           <div className="flex flex-wrap gap-2 items-end">
             <div>
-              <label className="block text-xs text-stone-500 mb-1">Label</label>
+              <label className="block text-xs text-[var(--ink-muted)] mb-1">Label</label>
               <input
                 value={newLabel}
                 onChange={(e) => setNewLabel(e.target.value)}
                 placeholder="e.g. 2oz"
-                className="px-3 py-1.5 border border-stone-300 rounded-lg text-sm w-32"
+                className="px-3 py-1.5 border border-[var(--line)] rounded-lg text-sm w-32"
               />
             </div>
             <div>
-              <label className="block text-xs text-stone-500 mb-1">Pour (ml)</label>
+              <label className="block text-xs text-[var(--ink-muted)] mb-1">Pour (ml)</label>
               <input
                 type="number"
                 value={newPourMl}
                 onChange={(e) => setNewPourMl(e.target.value)}
                 placeholder="59"
-                className="px-3 py-1.5 border border-stone-300 rounded-lg text-sm w-28"
+                className="px-3 py-1.5 border border-[var(--line)] rounded-lg text-sm w-28"
               />
             </div>
             <button
               onClick={() => handleAddPour(showAddFor)}
               disabled={isPending}
-              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+              className="px-3 py-1.5 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium disabled:opacity-50"
             >
               Add
             </button>
@@ -765,7 +765,7 @@ export function BeveragePricingTable({
                 setNewPourMl("");
                 setAddError(null);
               }}
-              className="px-3 py-1.5 border border-stone-300 text-stone-600 rounded-lg text-sm"
+              className="px-3 py-1.5 border border-[var(--line)] text-[var(--ink-muted)] rounded-lg text-sm"
             >
               Cancel
             </button>
@@ -774,7 +774,7 @@ export function BeveragePricingTable({
         </div>
       )}
 
-      <p className="text-xs text-stone-400 text-center">
+      <p className="text-xs text-[var(--ink-muted)] text-center">
         Over = 3%+ above target · Near = within 3% above · On Target = up to 5% below · Under = 5%+ below (room to charge more)
       </p>
     </div>
@@ -817,12 +817,12 @@ function StatPill({
     <button
       onClick={onClick}
       className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-colors ${
-        active ? `${cfg.bg} ${cfg.border} shadow-sm` : "bg-white border-stone-200 hover:border-stone-300"
+        active ? `${cfg.bg} ${cfg.border} shadow-sm` : "bg-white border-[var(--line)] hover:border-[var(--line)]"
       }`}
     >
       <Icon className={`w-4 h-4 ${cfg.color}`} />
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-stone-500 truncate">{label}</p>
+        <p className="text-xs text-[var(--ink-muted)] truncate">{label}</p>
         <p className={`text-base font-bold ${cfg.color}`}>{count}</p>
       </div>
     </button>

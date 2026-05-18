@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100" role="img" aria-label="Sophra wordmark">
+  <title>Sophra wordmark</title>
+  <desc>Lowercase wordmark with the o letter replaced by an olive ring icon containing a fork and knife</desc>
+  <text x="72" y="74" text-anchor="end" font-family="Inter, Poppins, system-ui, sans-serif" font-size="80" font-weight="500" fill="#3D2614">s</text>
+  <g transform="translate(100, 49)">
+    <circle r="27.5" fill="none" stroke="#4A5D27" stroke-width="10"/>
+    <line x1="-5.5" y1="13" x2="-5.5" y2="-5" stroke="#4A5D27" stroke-width="1.7" stroke-linecap="round"/>
+    <line x1="-8.5" y1="-5" x2="-8.5" y2="-15" stroke="#4A5D27" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="-5.5" y1="-5" x2="-5.5" y2="-16" stroke="#4A5D27" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="-2.5" y1="-5" x2="-2.5" y2="-15" stroke="#4A5D27" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="5.5" y1="13" x2="5.5" y2="-3" stroke="#4A5D27" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M5.5,-3 L9,-4 L9,-15 L3,-15 L3,-5.5 Z" fill="#4A5D27"/>
+  </g>
+  <text x="130" y="74" text-anchor="start" font-family="Inter, Poppins, system-ui, sans-serif" font-size="80" font-weight="500" fill="#3D2614" letter-spacing="-3">phra</text>
+</svg>

@@ -294,7 +294,7 @@ export function ProductFormV2({
       <button
         type="button"
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 text-sm"
+        className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back
@@ -309,9 +309,9 @@ export function ProductFormV2({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* ===== STEP 1: What is it? ===== */}
         {showTypeSelector ? (
-          <div className="bg-white border border-stone-200 rounded-xl p-4">
+          <div className="bg-white border border-[var(--line)] rounded-xl p-4">
             <h2 className="font-semibold mb-1">What are you adding?</h2>
-            <p className="text-xs text-stone-500 mb-4">
+            <p className="text-xs text-[var(--ink-muted)] mb-4">
               Pick a type to pre-fill smart defaults
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
@@ -320,15 +320,15 @@ export function ProductFormV2({
                   key={tpl.type}
                   type="button"
                   onClick={() => selectType(tpl.type)}
-                  className={`p-3 rounded-lg border text-left transition-colors hover:border-amber-500/50 ${
+                  className={`p-3 rounded-lg border text-left transition-colors hover:border-[var(--brand-olive)] ${
                     selectedType === tpl.type
-                      ? "border-amber-500 bg-amber-50"
-                      : "border-stone-200 bg-white"
+                      ? "border-[var(--brand-olive)] bg-[#FAF7F1]"
+                      : "border-[var(--line)] bg-white"
                   }`}
                 >
                   <div className="text-2xl mb-1">{tpl.icon}</div>
                   <p className="font-medium text-sm">{tpl.label}</p>
-                  <p className="text-xs text-stone-500 mt-0.5 line-clamp-2">
+                  <p className="text-xs text-[var(--ink-muted)] mt-0.5 line-clamp-2">
                     {tpl.description}
                   </p>
                 </button>
@@ -336,13 +336,13 @@ export function ProductFormV2({
             </div>
           </div>
         ) : (
-          <div className="bg-white border border-stone-200 rounded-xl p-4">
+          <div className="bg-white border border-[var(--line)] rounded-xl p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">{template?.icon || "📦"}</span>
                 <div>
                   <p className="font-semibold">{template?.label || selectedType}</p>
-                  <p className="text-xs text-stone-500">
+                  <p className="text-xs text-[var(--ink-muted)]">
                     {template?.description}
                   </p>
                 </div>
@@ -350,7 +350,7 @@ export function ProductFormV2({
               <button
                 type="button"
                 onClick={() => setShowTypeSelector(true)}
-                className="text-xs text-amber-600 hover:text-amber-700"
+                className="text-xs text-[var(--brand-olive)] hover:text-[var(--brand-olive-hover)]"
               >
                 Change type
               </button>
@@ -362,12 +362,12 @@ export function ProductFormV2({
         {selectedType && (
           <>
             {/* ===== STEP 2: The Basics ===== */}
-            <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+            <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
               <h2 className="font-semibold">Product Info</h2>
 
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                   Name *
                 </label>
                 <input
@@ -383,7 +383,7 @@ export function ProductFormV2({
                       ? "Fresh Mint"
                       : "Product name"
                   }`}
-                  className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                   autoFocus
                 />
               </div>
@@ -392,7 +392,7 @@ export function ProductFormV2({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Vendor */}
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                     Vendor
                   </label>
                   {!showNewVendor ? (
@@ -400,7 +400,7 @@ export function ProductFormV2({
                       <select
                         value={vendorId}
                         onChange={(e) => setVendorId(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="flex-1 px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                       >
                         <option value="">— Select —</option>
                         {vendors.map((v) => (
@@ -412,7 +412,7 @@ export function ProductFormV2({
                       <button
                         type="button"
                         onClick={() => setShowNewVendor(true)}
-                        className="px-2 py-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-stone-700"
+                        className="px-2 py-2 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-[var(--brand-brown)]"
                         title="Add new vendor"
                       >
                         <Plus className="w-4 h-4" />
@@ -424,13 +424,13 @@ export function ProductFormV2({
                         value={newVendorName}
                         onChange={(e) => setNewVendorName(e.target.value)}
                         placeholder="Vendor name"
-                        className="flex-1 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="flex-1 px-3 py-2 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                         autoFocus
                       />
                       <button
                         type="button"
                         onClick={handleCreateVendor}
-                        className="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm"
+                        className="px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm"
                       >
                         Add
                       </button>
@@ -440,7 +440,7 @@ export function ProductFormV2({
                           setShowNewVendor(false);
                           setNewVendorName("");
                         }}
-                        className="p-2 text-stone-500"
+                        className="p-2 text-[var(--ink-muted)]"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -450,7 +450,7 @@ export function ProductFormV2({
 
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--brand-brown)] mb-1">
                     Category
                   </label>
                   {!showNewCategory ? (
@@ -458,7 +458,7 @@ export function ProductFormV2({
                       <select
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="flex-1 px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                       >
                         <option value="">— Select —</option>
                         {suggestedCategories.map((c) => (
@@ -470,7 +470,7 @@ export function ProductFormV2({
                       <button
                         type="button"
                         onClick={() => setShowNewCategory(true)}
-                        className="px-2 py-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-stone-700"
+                        className="px-2 py-2 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-[var(--brand-brown)]"
                         title="Add new category"
                       >
                         <Plus className="w-4 h-4" />
@@ -482,13 +482,13 @@ export function ProductFormV2({
                         value={newCategoryName}
                         onChange={(e) => setNewCategoryName(e.target.value)}
                         placeholder="Category name"
-                        className="flex-1 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="flex-1 px-3 py-2 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                         autoFocus
                       />
                       <button
                         type="button"
                         onClick={handleAddCategory}
-                        className="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm"
+                        className="px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm"
                       >
                         Add
                       </button>
@@ -498,7 +498,7 @@ export function ProductFormV2({
                           setShowNewCategory(false);
                           setNewCategoryName("");
                         }}
-                        className="p-2 text-stone-500"
+                        className="p-2 text-[var(--ink-muted)]"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -509,19 +509,19 @@ export function ProductFormV2({
             </div>
 
             {/* ===== STEP 2b: How do you buy it? ===== */}
-            <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-4">
+            <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-4">
               <h2 className="font-semibold">How do you buy it?</h2>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {/* Container / Package type */}
                 <div>
-                  <label className="block text-xs text-stone-600 mb-1">
+                  <label className="block text-xs text-[var(--ink-muted)] mb-1">
                     Container / Package
                   </label>
                   <select
                     value={containerType}
                     onChange={(e) => setContainerType(e.target.value)}
-                    className="w-full px-2 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-2 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                   >
                     {CONTAINER_TYPES.map((ct) => (
                       <option key={ct.value} value={ct.value}>
@@ -534,13 +534,13 @@ export function ProductFormV2({
                 {/* Units per pack (for cases/packs) */}
                 {(containerType === "case" || containerType === "pack") && (
                   <div>
-                    <label className="block text-xs text-stone-600 mb-1">
+                    <label className="block text-xs text-[var(--ink-muted)] mb-1">
                       How many in {containerType === "case" ? "a case" : "a pack"}?
                     </label>
                     <select
                       value={unitsPerPack}
                       onChange={(e) => setUnitsPerPack(e.target.value)}
-                      className="w-full px-2 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-2 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                     >
                       {[1, 2, 3, 4, 6, 8, 10, 12, 15, 18, 24, 30, 32, 36, 48].map(
                         (n) => (
@@ -555,7 +555,7 @@ export function ProductFormV2({
 
                 {/* Cost */}
                 <div>
-                  <label className="block text-xs text-stone-600 mb-1">
+                  <label className="block text-xs text-[var(--ink-muted)] mb-1">
                     Cost ($)
                     {containerType === "case" || containerType === "pack"
                       ? " per unit"
@@ -568,14 +568,14 @@ export function ProductFormV2({
                     value={costDollars}
                     onChange={(e) => setCostDollars(e.target.value)}
                     placeholder="0.00"
-                    className="w-full px-2 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-2 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                   />
                 </div>
               </div>
 
               {/* Size row: number input + unit dropdown */}
               <div>
-                <label className="block text-xs text-stone-600 mb-1">
+                <label className="block text-xs text-[var(--ink-muted)] mb-1">
                   Size per unit
                 </label>
                 <div className="flex gap-2">
@@ -586,12 +586,12 @@ export function ProductFormV2({
                     value={innerSize}
                     onChange={(e) => setInnerSize(e.target.value)}
                     placeholder="e.g. 750"
-                    className="w-28 px-2 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-28 px-2 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                   />
                   <select
                     value={innerUnitCode}
                     onChange={(e) => setInnerUnitCode(e.target.value)}
-                    className="flex-1 px-2 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="flex-1 px-2 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                   >
                     {Object.entries(groupedUnits).map(([type, unitsList]) =>
                       unitsList.length > 0 ? (
@@ -618,7 +618,7 @@ export function ProductFormV2({
                 {/* Quick-pick chips for suggested sizes */}
                 {suggestedSizes.length > 1 && (
                   <div className="flex flex-wrap gap-1 mt-2">
-                    <span className="text-xs text-stone-400">Quick:</span>
+                    <span className="text-xs text-[var(--ink-muted)]">Quick:</span>
                     {suggestedSizes.map((s) => (
                       <button
                         key={s}
@@ -626,8 +626,8 @@ export function ProductFormV2({
                         onClick={() => setInnerSize(s.toString())}
                         className={`px-2 py-0.5 rounded text-xs transition-colors ${
                           innerSize === s.toString()
-                            ? "bg-amber-600 text-white"
-                            : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                            ? "bg-[var(--brand-olive)] text-white"
+                            : "bg-[var(--brand-cream)] text-[var(--ink-muted)] hover:bg-[var(--line)]"
                         }`}
                       >
                         {s}
@@ -639,7 +639,7 @@ export function ProductFormV2({
 
               {/* Cost summary */}
               {costDollars && parseFloat(costDollars) > 0 && (
-                <div className="text-xs text-stone-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <div className="text-xs text-[var(--ink-muted)] bg-[#FAF7F1] border border-[var(--brand-olive)] rounded-lg px-3 py-2">
                   {(containerType === "case" || containerType === "pack") &&
                   parseInt(unitsPerPack) > 1
                     ? `💰 $${costDollars}/unit × ${unitsPerPack} = $${(
@@ -663,13 +663,13 @@ export function ProductFormV2({
             {/* ===== Stores ===== */}
             {(mode === "menu" ||
               (existingProduct && existingProduct.onMenu)) && (
-              <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-3">
+              <div className="bg-white border border-[var(--line)] rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <h2 className="font-semibold">Available at stores</h2>
                   <button
                     type="button"
                     onClick={toggleAllLocations}
-                    className="text-xs text-amber-600 hover:text-amber-700"
+                    className="text-xs text-[var(--brand-olive)] hover:text-[var(--brand-olive-hover)]"
                   >
                     {selectedLocIds.size === locations.length
                       ? "Deselect all"
@@ -684,8 +684,8 @@ export function ProductFormV2({
                       onClick={() => toggleLocation(loc.id)}
                       className={`p-3 rounded-lg text-sm font-medium text-left transition-colors border ${
                         selectedLocIds.has(loc.id)
-                          ? "bg-amber-50 border-amber-500 text-amber-800"
-                          : "bg-stone-100 border-stone-200 text-stone-700 hover:bg-stone-200"
+                          ? "bg-[#FAF7F1] border-[var(--brand-olive)] text-[var(--brand-olive-hover)]"
+                          : "bg-[var(--brand-cream)] border-[var(--line)] text-[var(--brand-brown)] hover:bg-[var(--line)]"
                       }`}
                     >
                       {selectedLocIds.has(loc.id) ? "✓ " : ""}
@@ -695,7 +695,7 @@ export function ProductFormV2({
                 </div>
                 {selectedLocIds.size > 0 && (
                   <div>
-                    <label className="block text-xs text-stone-600 mb-1">
+                    <label className="block text-xs text-[var(--ink-muted)] mb-1">
                       Par level (all stores)
                     </label>
                     <input
@@ -705,9 +705,9 @@ export function ProductFormV2({
                       value={parLevel}
                       onChange={(e) => setParLevel(e.target.value)}
                       placeholder="e.g. 2"
-                      className="w-32 px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-32 px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                     />
-                    <p className="text-xs text-stone-400 mt-1">
+                    <p className="text-xs text-[var(--ink-muted)] mt-1">
                       Adjust per store later from Inventory
                     </p>
                   </div>
@@ -727,33 +727,33 @@ export function ProductFormV2({
             )}
 
             {/* ===== Advanced (collapsible) ===== */}
-            <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-[var(--line)] rounded-xl overflow-hidden">
               <button
                 type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="w-full px-4 py-3 flex items-center justify-between hover:bg-stone-50 transition-colors"
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-[var(--brand-cream)] transition-colors"
               >
-                <span className="text-sm font-medium text-stone-700">
+                <span className="text-sm font-medium text-[var(--brand-brown)]">
                   Advanced options
                 </span>
                 {showAdvanced ? (
-                  <ChevronUp className="w-4 h-4 text-stone-400" />
+                  <ChevronUp className="w-4 h-4 text-[var(--ink-muted)]" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-stone-400" />
+                  <ChevronDown className="w-4 h-4 text-[var(--ink-muted)]" />
                 )}
               </button>
               {showAdvanced && (
-                <div className="px-4 pb-4 border-t border-stone-200 pt-4 space-y-4">
+                <div className="px-4 pb-4 border-t border-[var(--line)] pt-4 space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs text-stone-600 mb-1">
+                      <label className="block text-xs text-[var(--ink-muted)] mb-1">
                         Cost Update Method
                       </label>
                       <select
                         defaultValue={
                           existingProduct?.costUpdateMethod || "MANUAL"
                         }
-                        className="w-full px-2 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-full px-2 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                       >
                         <option value="MANUAL">Manual (I set the price)</option>
                         <option value="LAST_RECEIVED">
@@ -762,12 +762,12 @@ export function ProductFormV2({
                       </select>
                     </div>
                     <div className="flex items-end">
-                      <label className="flex items-center gap-2 text-sm text-stone-700">
+                      <label className="flex items-center gap-2 text-sm text-[var(--brand-brown)]">
                         <input
                           type="checkbox"
                           checked={isKeyItem}
                           onChange={(e) => setIsKeyItem(e.target.checked)}
-                          className="w-4 h-4 rounded bg-stone-100 border-stone-300 text-amber-500 focus:ring-amber-500"
+                          className="w-4 h-4 rounded bg-[var(--brand-cream)] border-[var(--line)] text-[var(--brand-olive)] focus:ring-[var(--brand-olive)]"
                         />
                         Key Item (track closely)
                       </label>
@@ -776,7 +776,7 @@ export function ProductFormV2({
 
                   {/* Notes */}
                   <div>
-                    <label className="block text-xs text-stone-600 mb-1">
+                    <label className="block text-xs text-[var(--ink-muted)] mb-1">
                       Notes / Tasting Notes
                     </label>
                     <textarea
@@ -784,7 +784,7 @@ export function ProductFormV2({
                       onChange={(e) => setNotes(e.target.value)}
                       rows={3}
                       placeholder="Tasting notes, rep info, or anything to remember"
-                      className="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y text-sm"
+                      className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] resize-y text-sm"
                     />
                   </div>
                 </div>
@@ -796,7 +796,7 @@ export function ProductFormV2({
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+                className="flex-1 py-3 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
               >
                 {loading
                   ? "Saving..."

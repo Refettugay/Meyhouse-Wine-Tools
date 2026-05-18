@@ -95,7 +95,7 @@ export function RecipeDetail({ recipe }: RecipeProps) {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <Wine className="w-6 h-6 text-amber-500" />
+          <Wine className="w-6 h-6 text-[var(--brand-olive)]" />
           <h1 className="text-2xl font-bold">{recipe.name}</h1>
           {recipe.storageType === "FREEZER" && (
             <span className="flex items-center gap-1 text-xs bg-blue-500/10 text-blue-600 px-2 py-1 rounded">
@@ -113,7 +113,7 @@ export function RecipeDetail({ recipe }: RecipeProps) {
             </span>
           )}
         </div>
-        <p className="text-sm text-stone-500">{recipe.category.name}</p>
+        <p className="text-sm text-[var(--ink-muted)]">{recipe.category.name}</p>
       </div>
 
       {/* Tab toggle */}
@@ -122,8 +122,8 @@ export function RecipeDetail({ recipe }: RecipeProps) {
           onClick={() => setActiveTab("single")}
           className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
             activeTab === "single"
-              ? "bg-amber-600 text-white"
-              : "text-stone-500 hover:text-stone-900"
+              ? "bg-[var(--brand-olive)] text-white"
+              : "text-[var(--ink-muted)] hover:text-[var(--brand-brown)]"
           }`}
         >
           Single Serving
@@ -133,8 +133,8 @@ export function RecipeDetail({ recipe }: RecipeProps) {
             onClick={() => setActiveTab("batch")}
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
               activeTab === "batch"
-                ? "bg-amber-600 text-white"
-                : "text-stone-500 hover:text-stone-900"
+                ? "bg-[var(--brand-olive)] text-white"
+                : "text-[var(--ink-muted)] hover:text-[var(--brand-brown)]"
             }`}
           >
             Batch Calculator
@@ -146,11 +146,11 @@ export function RecipeDetail({ recipe }: RecipeProps) {
       {activeTab === "single" && (
         <div className="space-y-4">
           {/* Ingredients table */}
-          <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-stone-200">
+          <div className="bg-white border border-[var(--line)] rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-[var(--line)]">
               <h2 className="font-semibold">Ingredients</h2>
             </div>
-            <div className="divide-y divide-stone-200">
+            <div className="divide-y divide-[var(--line)]">
               {recipe.ingredients.map((ri) => {
                 const cost = calculateIngredientCost({
                   type: ri.ingredient.type,
@@ -167,21 +167,21 @@ export function RecipeDetail({ recipe }: RecipeProps) {
                     className="flex items-center justify-between px-4 py-3"
                   >
                     <div className="flex-1">
-                      <span className="text-stone-900">{ri.ingredient.name}</span>
+                      <span className="text-[var(--brand-brown)]">{ri.ingredient.name}</span>
                       {ri.isTopOff && (
-                        <span className="text-xs text-stone-400 ml-2">
+                        <span className="text-xs text-[var(--ink-muted)] ml-2">
                           (top off)
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-4 text-sm">
-                      <span className="text-stone-700">
+                      <span className="text-[var(--brand-brown)]">
                         {ri.isTopOff
                           ? "top off"
                           : `${ri.amount} ${formatUnit(ri.unit)}`}
                       </span>
                       {cost > 0 && (
-                        <span className="text-stone-400 w-16 text-right">
+                        <span className="text-[var(--ink-muted)] w-16 text-right">
                           {formatCents(cost)}
                         </span>
                       )}
@@ -191,10 +191,10 @@ export function RecipeDetail({ recipe }: RecipeProps) {
               })}
             </div>
             {singleCost > 0 && (
-              <div className="px-4 py-3 border-t border-stone-300 bg-stone-100/50">
+              <div className="px-4 py-3 border-t border-[var(--line)] bg-[var(--brand-cream)]">
                 <div className="flex justify-between font-medium">
                   <span>Total Cost</span>
-                  <span className="text-amber-600">{formatCents(singleCost)}</span>
+                  <span className="text-[var(--brand-olive)]">{formatCents(singleCost)}</span>
                 </div>
               </div>
             )}
@@ -202,20 +202,20 @@ export function RecipeDetail({ recipe }: RecipeProps) {
 
           {/* Cost & pricing */}
           {singleCost > 0 && (
-            <div className="bg-white border border-stone-200 rounded-xl p-4">
+            <div className="bg-white border border-[var(--line)] rounded-xl p-4">
               <div className="flex items-center gap-2 mb-3">
-                <DollarSign className="w-5 h-5 text-amber-500" />
+                <DollarSign className="w-5 h-5 text-[var(--brand-olive)]" />
                 <h2 className="font-semibold">Pricing</h2>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-stone-500">Ingredient Cost</p>
-                  <p className="text-lg font-bold text-stone-900">
+                  <p className="text-[var(--ink-muted)]">Ingredient Cost</p>
+                  <p className="text-lg font-bold text-[var(--brand-brown)]">
                     {formatCents(singleCost)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-stone-500">
+                  <p className="text-[var(--ink-muted)]">
                     Suggested Price ({costTargetPct}% cost)
                   </p>
                   <p className="text-lg font-bold text-green-600">
@@ -224,15 +224,15 @@ export function RecipeDetail({ recipe }: RecipeProps) {
                 </div>
                 {recipe.menuPrice && (
                   <div>
-                    <p className="text-stone-500">Menu Price</p>
-                    <p className="text-lg font-bold text-stone-900">
+                    <p className="text-[var(--ink-muted)]">Menu Price</p>
+                    <p className="text-lg font-bold text-[var(--brand-brown)]">
                       {formatCents(Math.round(recipe.menuPrice * 100))}
                     </p>
                   </div>
                 )}
                 <div>
-                  <p className="text-stone-500">Actual Cost %</p>
-                  <p className="text-lg font-bold text-stone-900">
+                  <p className="text-[var(--ink-muted)]">Actual Cost %</p>
+                  <p className="text-lg font-bold text-[var(--brand-brown)]">
                     {recipe.menuPrice
                       ? (
                           (singleCost / (recipe.menuPrice * 100)) *
@@ -249,31 +249,31 @@ export function RecipeDetail({ recipe }: RecipeProps) {
           )}
 
           {/* Build info */}
-          <div className="bg-white border border-stone-200 rounded-xl p-4">
+          <div className="bg-white border border-[var(--line)] rounded-xl p-4">
             <h2 className="font-semibold mb-3">Build</h2>
             <div className="space-y-2 text-sm">
               {recipe.glassType && (
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Glass</span>
+                  <span className="text-[var(--ink-muted)]">Glass</span>
                   <span>{recipe.glassType}</span>
                 </div>
               )}
               {recipe.iceType && (
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Ice</span>
+                  <span className="text-[var(--ink-muted)]">Ice</span>
                   <span>{recipe.iceType}</span>
                 </div>
               )}
               {recipe.garnish && (
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Garnish</span>
+                  <span className="text-[var(--ink-muted)]">Garnish</span>
                   <span>{recipe.garnish}</span>
                 </div>
               )}
               {recipe.howTo && (
-                <div className="pt-2 border-t border-stone-200">
-                  <p className="text-stone-500 mb-1">How to</p>
-                  <p className="text-stone-900">{recipe.howTo}</p>
+                <div className="pt-2 border-t border-[var(--line)]">
+                  <p className="text-[var(--ink-muted)] mb-1">How to</p>
+                  <p className="text-[var(--brand-brown)]">{recipe.howTo}</p>
                 </div>
               )}
             </div>
@@ -285,20 +285,20 @@ export function RecipeDetail({ recipe }: RecipeProps) {
       {activeTab === "batch" && !recipe.noBatching && (
         <div className="space-y-4">
           {/* Portion control */}
-          <div className="bg-white border border-stone-200 rounded-xl p-4">
+          <div className="bg-white border border-[var(--line)] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-4">
-              <Calculator className="w-5 h-5 text-amber-500" />
+              <Calculator className="w-5 h-5 text-[var(--brand-olive)]" />
               <h2 className="font-semibold">Batch Settings</h2>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-stone-500 mb-2">
+                <label className="block text-sm text-[var(--ink-muted)] mb-2">
                   Number of Servings
                 </label>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setPortions(Math.max(1, portions - 1))}
-                    className="w-10 h-10 flex items-center justify-center bg-stone-100 rounded-lg hover:bg-stone-200 transition-colors"
+                    className="w-10 h-10 flex items-center justify-center bg-[var(--brand-cream)] rounded-lg hover:bg-[var(--line)] transition-colors"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
@@ -308,18 +308,18 @@ export function RecipeDetail({ recipe }: RecipeProps) {
                     onChange={(e) =>
                       setPortions(Math.max(1, parseInt(e.target.value) || 1))
                     }
-                    className="w-20 text-center text-xl font-bold bg-stone-100 border border-stone-300 rounded-lg py-2 text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-20 text-center text-xl font-bold bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg py-2 text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                   />
                   <button
                     onClick={() => setPortions(portions + 1)}
-                    className="w-10 h-10 flex items-center justify-center bg-stone-100 rounded-lg hover:bg-stone-200 transition-colors"
+                    className="w-10 h-10 flex items-center justify-center bg-[var(--brand-cream)] rounded-lg hover:bg-[var(--line)] transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-stone-500 mb-2">
+                <label className="block text-sm text-[var(--ink-muted)] mb-2">
                   Dilution %
                 </label>
                 <input
@@ -328,35 +328,35 @@ export function RecipeDetail({ recipe }: RecipeProps) {
                   onChange={(e) =>
                     setDilution(Math.max(0, parseFloat(e.target.value) || 0))
                   }
-                  className="w-24 text-center text-xl font-bold bg-stone-100 border border-stone-300 rounded-lg py-2 text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-24 text-center text-xl font-bold bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg py-2 text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                 />
               </div>
             </div>
           </div>
 
           {/* Batch ingredients */}
-          <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-stone-200">
+          <div className="bg-white border border-[var(--line)] rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-[var(--line)]">
               <h2 className="font-semibold">
                 Batch Recipe ({portions} servings)
               </h2>
             </div>
-            <div className="divide-y divide-stone-200">
+            <div className="divide-y divide-[var(--line)]">
               {batchResult.ingredients.map((ing, i) => (
                 <div
                   key={i}
                   className="flex items-center justify-between px-4 py-3"
                 >
-                  <span className="flex-1 text-stone-900">
+                  <span className="flex-1 text-[var(--brand-brown)]">
                     {ing.name}
                     {ing.isTopOff && (
-                      <span className="text-xs text-stone-400 ml-2">
+                      <span className="text-xs text-[var(--ink-muted)] ml-2">
                         (per serving)
                       </span>
                     )}
                   </span>
                   <div className="text-right">
-                    <span className="text-amber-600 font-medium">
+                    <span className="text-[var(--brand-olive)] font-medium">
                       {ing.isTopOff
                         ? "top off"
                         : `${ing.batchAmount.toFixed(2)} ${formatUnit(
@@ -364,7 +364,7 @@ export function RecipeDetail({ recipe }: RecipeProps) {
                           )}`}
                     </span>
                     {!ing.isTopOff && ing.unit === "OZ" && (
-                      <span className="block text-xs text-stone-400">
+                      <span className="block text-xs text-[var(--ink-muted)]">
                         {ozToMl(ing.batchAmount)} ml
                       </span>
                     )}
@@ -372,14 +372,14 @@ export function RecipeDetail({ recipe }: RecipeProps) {
                 </div>
               ))}
             </div>
-            <div className="px-4 py-3 border-t border-stone-300 bg-stone-100/50 space-y-1">
+            <div className="px-4 py-3 border-t border-[var(--line)] bg-[var(--brand-cream)] space-y-1">
               <div className="flex justify-between text-sm">
-                <span className="text-stone-500">Total</span>
+                <span className="text-[var(--ink-muted)]">Total</span>
                 <span>{batchResult.totalOz} oz ({ozToMl(batchResult.totalOz)} ml)</span>
               </div>
               {batchResult.dilutionOz > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-stone-500">
+                  <span className="text-[var(--ink-muted)]">
                     Dilution ({dilution}%)
                   </span>
                   <span>
@@ -387,9 +387,9 @@ export function RecipeDetail({ recipe }: RecipeProps) {
                   </span>
                 </div>
               )}
-              <div className="flex justify-between font-medium pt-1 border-t border-stone-300">
+              <div className="flex justify-between font-medium pt-1 border-t border-[var(--line)]">
                 <span>Final Volume</span>
-                <span className="text-amber-600">
+                <span className="text-[var(--brand-olive)]">
                   {batchResult.finalVolumeOz} oz ({ozToMl(batchResult.finalVolumeOz)} ml)
                 </span>
               </div>
@@ -398,17 +398,17 @@ export function RecipeDetail({ recipe }: RecipeProps) {
 
           {/* Batch cost */}
           {batchCost > 0 && (
-            <div className="bg-white border border-stone-200 rounded-xl p-4">
+            <div className="bg-white border border-[var(--line)] rounded-xl p-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-stone-500">Cost per Serving</p>
+                  <p className="text-[var(--ink-muted)]">Cost per Serving</p>
                   <p className="text-lg font-bold">{formatCents(singleCost)}</p>
                 </div>
                 <div>
-                  <p className="text-stone-500">
+                  <p className="text-[var(--ink-muted)]">
                     Total Batch Cost ({portions} servings)
                   </p>
-                  <p className="text-lg font-bold text-amber-600">
+                  <p className="text-lg font-bold text-[var(--brand-olive)]">
                     {formatCents(batchCost)}
                   </p>
                 </div>
@@ -418,35 +418,35 @@ export function RecipeDetail({ recipe }: RecipeProps) {
 
           {/* Build info for batch */}
           {recipe.pourFromBatch && (
-            <div className="bg-white border border-stone-200 rounded-xl p-4">
+            <div className="bg-white border border-[var(--line)] rounded-xl p-4">
               <h2 className="font-semibold mb-3">Serving from Batch</h2>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Pour from Batch</span>
+                  <span className="text-[var(--ink-muted)]">Pour from Batch</span>
                   <span>{recipe.pourFromBatch}</span>
                 </div>
                 {recipe.glassType && (
                   <div className="flex justify-between">
-                    <span className="text-stone-500">Glass</span>
+                    <span className="text-[var(--ink-muted)]">Glass</span>
                     <span>{recipe.glassType}</span>
                   </div>
                 )}
                 {recipe.iceType && (
                   <div className="flex justify-between">
-                    <span className="text-stone-500">Ice</span>
+                    <span className="text-[var(--ink-muted)]">Ice</span>
                     <span>{recipe.iceType}</span>
                   </div>
                 )}
                 {recipe.garnish && (
                   <div className="flex justify-between">
-                    <span className="text-stone-500">Garnish</span>
+                    <span className="text-[var(--ink-muted)]">Garnish</span>
                     <span>{recipe.garnish}</span>
                   </div>
                 )}
                 {recipe.howTo && (
-                  <div className="pt-2 border-t border-stone-200">
-                    <p className="text-stone-500 mb-1">How to</p>
-                    <p className="text-stone-900">{recipe.howTo}</p>
+                  <div className="pt-2 border-t border-[var(--line)]">
+                    <p className="text-[var(--ink-muted)] mb-1">How to</p>
+                    <p className="text-[var(--brand-brown)]">{recipe.howTo}</p>
                   </div>
                 )}
               </div>
@@ -457,9 +457,9 @@ export function RecipeDetail({ recipe }: RecipeProps) {
 
       {/* Notes */}
       {recipe.notes && (
-        <div className="mt-4 bg-white border border-stone-200 rounded-xl p-4">
+        <div className="mt-4 bg-white border border-[var(--line)] rounded-xl p-4">
           <h2 className="font-semibold mb-2">Notes</h2>
-          <p className="text-sm text-stone-700">{recipe.notes}</p>
+          <p className="text-sm text-[var(--brand-brown)]">{recipe.notes}</p>
         </div>
       )}
     </div>

@@ -124,21 +124,21 @@ export function MergedOrderView({ items }: { items: MergedItem[] }) {
     <div>
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 print:hidden">
-        <div className="bg-white border border-stone-200 rounded-xl p-3">
-          <p className="text-xs text-stone-500">Vendors</p>
+        <div className="bg-white border border-[var(--line)] rounded-xl p-3">
+          <p className="text-xs text-[var(--ink-muted)]">Vendors</p>
           <p className="text-xl font-bold">{grouped.length}</p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-xl p-3">
-          <p className="text-xs text-stone-500">Line Items</p>
+        <div className="bg-white border border-[var(--line)] rounded-xl p-3">
+          <p className="text-xs text-[var(--ink-muted)]">Line Items</p>
           <p className="text-xl font-bold">{items.length}</p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-xl p-3">
-          <p className="text-xs text-stone-500">Total Bottles</p>
+        <div className="bg-white border border-[var(--line)] rounded-xl p-3">
+          <p className="text-xs text-[var(--ink-muted)]">Total Bottles</p>
           <p className="text-xl font-bold">{totalBottles}</p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-xl p-3">
-          <p className="text-xs text-stone-500">Total Cost (est.)</p>
-          <p className="text-xl font-bold text-amber-600">
+        <div className="bg-white border border-[var(--line)] rounded-xl p-3">
+          <p className="text-xs text-[var(--ink-muted)]">Total Cost (est.)</p>
+          <p className="text-xl font-bold text-[var(--brand-olive)]">
             {totalCost > 0 ? formatCents(totalCost) : "—"}
           </p>
         </div>
@@ -147,7 +147,7 @@ export function MergedOrderView({ items }: { items: MergedItem[] }) {
       <div className="flex justify-end mb-4 print:hidden">
         <button
           onClick={handlePrint}
-          className="flex items-center gap-2 px-4 py-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-sm transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-sm transition-colors"
         >
           <Printer className="w-4 h-4" />
           Print Merged Order
@@ -159,20 +159,20 @@ export function MergedOrderView({ items }: { items: MergedItem[] }) {
         {grouped.map((vg) => (
           <div
             key={vg.vendor}
-            className="bg-white border border-stone-200 rounded-xl overflow-hidden print:border print:border-black"
+            className="bg-white border border-[var(--line)] rounded-xl overflow-hidden print:border print:border-black"
           >
-            <div className="px-4 py-3 border-b-2 border-amber-500 bg-amber-50 print:bg-white">
+            <div className="px-4 py-3 border-b-2 border-[var(--brand-olive)] bg-[#FAF7F1] print:bg-white">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5 text-amber-600 print:text-black" />
+                  <ShoppingCart className="w-5 h-5 text-[var(--brand-olive)] print:text-black" />
                   <h2 className="text-lg font-bold">{vg.vendor}</h2>
-                  <span className="text-xs text-stone-600 print:text-black">
+                  <span className="text-xs text-[var(--ink-muted)] print:text-black">
                     ({vg.totalBottles} bottles across{" "}
                     {vg.locationGroups.length} stores)
                   </span>
                 </div>
                 {vg.totalCost > 0 && (
-                  <span className="text-sm font-semibold text-amber-700 print:text-black">
+                  <span className="text-sm font-semibold text-[var(--brand-olive-hover)] print:text-black">
                     {formatCents(vg.totalCost)}
                   </span>
                 )}
@@ -182,23 +182,23 @@ export function MergedOrderView({ items }: { items: MergedItem[] }) {
             {vg.locationGroups.map((lg) => (
               <div
                 key={lg.locationName}
-                className="border-b border-stone-200 last:border-b-0"
+                className="border-b border-[var(--line)] last:border-b-0"
               >
-                <div className="px-4 py-2 bg-stone-50 flex items-center justify-between print:bg-white">
+                <div className="px-4 py-2 bg-[var(--brand-cream)] flex items-center justify-between print:bg-white">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-stone-500 print:text-black" />
+                    <MapPin className="w-4 h-4 text-[var(--ink-muted)] print:text-black" />
                     <h3 className="text-sm font-semibold">{lg.locationName}</h3>
-                    <span className="text-xs text-stone-500 print:text-black">
+                    <span className="text-xs text-[var(--ink-muted)] print:text-black">
                       ({lg.items.length} items, {lg.subtotalBottles} bottles)
                     </span>
                   </div>
                   {lg.subtotalCost > 0 && (
-                    <span className="text-xs text-stone-600 print:text-black">
+                    <span className="text-xs text-[var(--ink-muted)] print:text-black">
                       {formatCents(lg.subtotalCost)}
                     </span>
                   )}
                 </div>
-                <div className="divide-y divide-stone-200">
+                <div className="divide-y divide-[var(--line)]">
                   {lg.items.map((item) => {
                     const lineCost = lineCostOf(item);
                     return (
@@ -208,7 +208,7 @@ export function MergedOrderView({ items }: { items: MergedItem[] }) {
                       >
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium">{item.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-stone-500 print:text-black">
+                          <div className="flex items-center gap-2 text-xs text-[var(--ink-muted)] print:text-black">
                             {item.parSnapshot !== null &&
                               item.countedStock !== null && (
                                 <span>
@@ -225,10 +225,10 @@ export function MergedOrderView({ items }: { items: MergedItem[] }) {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-base font-bold text-amber-600 print:text-black">
+                          <p className="text-base font-bold text-[var(--brand-olive)] print:text-black">
                             {item.quantityNeeded}
                           </p>
-                          <p className="text-xs text-stone-500 print:text-black">
+                          <p className="text-xs text-[var(--ink-muted)] print:text-black">
                             {item.unit}
                             {item.unit === "case" &&
                             item.casePackSize &&
@@ -240,7 +240,7 @@ export function MergedOrderView({ items }: { items: MergedItem[] }) {
                           </p>
                         </div>
                         {lineCost > 0 && (
-                          <div className="w-16 text-right text-xs text-stone-600 print:text-black">
+                          <div className="w-16 text-right text-xs text-[var(--ink-muted)] print:text-black">
                             {formatCents(lineCost)}
                           </div>
                         )}
@@ -266,9 +266,9 @@ export function MergedOrderView({ items }: { items: MergedItem[] }) {
             display: none !important;
           }
           .bg-white,
-          .bg-stone-100,
-          .bg-stone-50,
-          .bg-amber-50 {
+          .bg-[var(--brand-cream)],
+          .bg-[var(--brand-cream)],
+          .bg-[#FAF7F1] {
             background: white !important;
           }
           * {

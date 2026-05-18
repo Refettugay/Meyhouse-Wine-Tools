@@ -14,7 +14,7 @@ export default async function CostingMethodSettingsPage() {
     <div className="p-4 lg:p-8 max-w-2xl">
       <Link
         href="/dashboard/settings"
-        className="inline-flex items-center gap-1 text-sm text-stone-500 hover:text-stone-900 mb-4"
+        className="inline-flex items-center gap-1 text-sm text-[var(--ink-muted)] hover:text-[var(--brand-brown)] mb-4"
       >
         <ChevronLeft className="w-4 h-4" />
         Back to Settings
