@@ -20,10 +20,10 @@ export default async function DashboardPage() {
           Sophra Beverage · {session.organizationName}
         </div>
         <h1
-          className="text-2xl"
+          className="mt-1 text-3xl"
           style={{
             fontWeight: 500,
-            letterSpacing: "-0.01em",
+            letterSpacing: "-0.02em",
             color: "var(--brand-brown)",
           }}
         >
@@ -60,13 +60,8 @@ export default async function DashboardPage() {
       </div>
 
       {/* Quick actions */}
-      <div className="space-y-4">
-        <h2
-          className="text-xs font-semibold uppercase tracking-wider"
-          style={{ color: "var(--brand-olive)" }}
-        >
-          Quick Actions
-        </h2>
+      <div className="space-y-3">
+        <h2 className="eyebrow">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <QuickActionCard
             href="/dashboard/recipes/new"
@@ -98,21 +93,20 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="rounded-xl p-4 bg-white border border-[var(--line)] hover:border-[var(--brand-olive)] transition-colors"
+      className="canvas p-5 transition-all hover:-translate-y-0.5 hover:border-[var(--brand-olive)] hover:shadow-sm"
     >
       {icon}
       <p
-        className="text-2xl"
-        style={{ fontWeight: 500, color: "var(--brand-brown)" }}
+        className="tnum text-3xl mt-2"
+        style={{
+          fontWeight: 500,
+          letterSpacing: "-0.02em",
+          color: "var(--brand-brown)",
+        }}
       >
         {count}
       </p>
-      <p
-        className="text-xs font-semibold uppercase tracking-wide mt-1"
-        style={{ color: "var(--ink-muted)" }}
-      >
-        {label}
-      </p>
+      <p className="eyebrow mt-2">{label}</p>
     </Link>
   );
 }
@@ -129,9 +123,12 @@ function QuickActionCard({
   return (
     <Link
       href={href}
-      className="rounded-xl p-4 bg-white border border-[var(--line)] hover:border-[var(--brand-olive)] transition-colors"
+      className="canvas p-5 transition-all hover:-translate-y-0.5 hover:border-[var(--brand-olive)] hover:shadow-sm"
     >
-      <p className="font-medium" style={{ color: "var(--brand-brown)" }}>
+      <p
+        className="text-base"
+        style={{ fontWeight: 500, color: "var(--brand-brown)" }}
+      >
         {title}
       </p>
       <p className="text-sm mt-1" style={{ color: "var(--ink-muted)" }}>

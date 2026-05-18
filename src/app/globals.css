@@ -156,6 +156,25 @@
   --sidebar-ring: var(--brand-cream);
 }
 
+/* Match Schedule's typography setup — explicit font-family on html/body so
+   Inter actually wins against shadcn's base layer. Schedule sets these the
+   same way. */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+}
+
+body {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+}
+
+::selection {
+  background: var(--brand-olive);
+  color: var(--brand-cream);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -163,19 +182,31 @@
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
-  }
 }
 
 /* ── Reusable Sophra utility classes (match Schedule's vocabulary) ──────── */
 @layer components {
+  /* Eyebrow — same proportions as Schedule (10px / 500 / 0.12em). */
   .eyebrow {
-    font-size: 9px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--ink-muted);
+    line-height: 1.2;
+  }
+
+  /* Tabular numerals so big stat numbers don't shift width as they update. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* White canvas panel — Schedule's "tucked panel" surface for content.
+     Beverage adopts the same pattern so the visual language matches. */
+  .canvas {
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 12px;
   }
 
   .btn-pill {
