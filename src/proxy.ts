@@ -9,7 +9,17 @@ const SCHEDULE_URL =
 const ALLOWED_ROLES = new Set(["owner", "manager", "supervisor"]);
 
 export async function proxy(request: NextRequest) {
-  const { response, supabase, user } = await updateSession(request);
+  const { response, supabase, user, isRotationRace } = await updateSession(
+    request,
+  );
+
+  // Token rotation race (see updateSession's comment): user IS signed in,
+  // just lost the refresh race on this request. Let the request through —
+  // the next click will have fresh cookies. Bouncing to /login here was
+  // the cause of the "random logout + rate-limit lockout" bug.
+  if (isRotationRace) {
+    return response;
+  }
 
   // No session → bounce to launcher's login. The launcher will route the
   // user back to Beverage (or wherever) after a successful sign-in.

@@ -40,9 +40,23 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  return { response: supabaseResponse, supabase, user };
+  // Supabase rotates the refresh token on every refresh. Two concurrent
+  // requests racing to refresh the same token (rapid clicks, multi-tab,
+  // prefetch) cause one to win and the other to fail with
+  // `Invalid Refresh Token: Already Used`. The user is STILL authenticated
+  // — the winning request set the new tokens on its own response. Don't
+  // bounce them to /login: that triggers a login retry, burns through
+  // Supabase's per-IP auth rate limit, and locks them out for ~30 min.
+  // See memory/project_auth_bug.md for the full diagnosis. proxy.ts reads
+  // this flag and skips its redirect-to-launcher branch when set.
+  const isRotationRace = !!error && (
+    /already[\s_]?used/i.test(error.message ?? "") ||
+    /refresh[\s_]?token[\s_]?already[\s_]?used/i.test(
+      (error as { code?: string }).code ?? "",
+    )
+  );
+
+  return { response: supabaseResponse, supabase, user, isRotationRace };
 }
