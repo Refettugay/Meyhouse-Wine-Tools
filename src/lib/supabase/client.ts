@@ -21,19 +21,30 @@ let cached: BrowserClient | null = null;
 export function createClient() {
   if (cached) return cached;
 
+  // PLAN B (2026-05-22): disable client-side autoRefreshToken. Even with
+  // the singleton above, the Supabase JS library still retries failed
+  // refreshes immediately with no backoff, which kept hammering
+  // /auth/v1/token to a 429 in Mert's tab. Server middleware
+  // (updateSession) refreshes the token on every request, so the client
+  // doesn't need to. Trade-off: realtime subscriptions need a fresh
+  // token client-side; beverage doesn't use realtime, so this is safe.
+  // See memory/planb_disable_client_autorefresh.md.
   cached = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    cookieDomain
-      ? {
-          cookieOptions: {
-            domain: cookieDomain,
-            path: "/",
-            sameSite: "lax",
-            secure: true,
-          },
-        }
-      : undefined,
+    {
+      ...(cookieDomain
+        ? {
+            cookieOptions: {
+              domain: cookieDomain,
+              path: "/",
+              sameSite: "lax",
+              secure: true,
+            },
+          }
+        : {}),
+      auth: { autoRefreshToken: false },
+    },
   );
   return cached;
 }
