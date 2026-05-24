@@ -58,5 +58,29 @@ export async function updateSession(request: NextRequest) {
     )
   );
 
-  return { response: supabaseResponse, supabase, user, isRotationRace };
+  // LAYER #5 (2026-05-24): "Refresh Token Not Found" / "Invalid Refresh
+  // Token" sanitization. Stale refresh-token cookie + Supabase JS client
+  // = infinite refresh-retry loop in the browser that hammers
+  // /auth/v1/token to a 429 IP lockout. Detect that specific error,
+  // clear the dead sb-* cookies on the response, and signal proxy.ts to
+  // redirect to launcher login. Browser deletes the cookies on the
+  // redirect; next request is clean, no loop. See memory/project_auth_bug.md.
+  const isInvalidToken = !!error && !isRotationRace && (
+    /refresh[\s_]?token/i.test(error.message ?? "") ||
+    /refresh[\s_]?token/i.test((error as { code?: string }).code ?? "")
+  );
+
+  if (isInvalidToken) {
+    for (const cookie of request.cookies.getAll()) {
+      if (cookie.name.startsWith("sb-")) {
+        supabaseResponse.cookies.set(cookie.name, "", {
+          maxAge: 0,
+          path: "/",
+          ...(cookieDomain ? { domain: cookieDomain } : {}),
+        });
+      }
+    }
+  }
+
+  return { response: supabaseResponse, supabase, user, isRotationRace, isInvalidToken };
 }
