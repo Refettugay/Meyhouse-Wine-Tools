@@ -241,4 +241,130 @@ body {
     background: var(--brand-brown);
     color: var(--brand-cream);
   }
+
+  /* =========================================================================
+     Phase 2 Stage B chrome — Sophra rail + section tabs + top-bar utilities.
+     Ported from scheduling/src/app/globals.css so Beverage and Schedule share
+     one chrome vocabulary. Update both files together when these change.
+     ========================================================================= */
+
+  /* Sophra rail — 76px column on the outermost left of every app. */
+  .rail-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    padding: 9px 4px;
+    border-radius: 8px;
+    color: var(--brand-brown);
+    background: transparent;
+    text-decoration: none;
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.15;
+    cursor: pointer;
+    transition:
+      background-color 180ms cubic-bezier(0.4, 0, 0.2, 1),
+      color 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .rail-button:hover {
+    background: rgba(255, 255, 255, 0.55);
+  }
+  .rail-button[aria-current="page"] {
+    background: var(--brand-olive);
+    color: var(--brand-cream);
+  }
+  .rail-button-disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .rail-button-disabled:hover {
+    background: transparent;
+  }
+
+  /* Section tabs in SophraTopBar — pill style, olive when active. */
+  .section-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--brand-brown);
+    background: transparent;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+    transition:
+      background-color 180ms cubic-bezier(0.4, 0, 0.2, 1),
+      color 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .section-tab:hover {
+    background: rgba(74, 93, 39, 0.08);
+  }
+  .section-tab[aria-current="page"] {
+    background: var(--brand-olive);
+    color: var(--brand-cream);
+  }
+
+  /* Icon button — 32x32 round (Settings gear in top-right). */
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--brand-brown);
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: background-color 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .icon-btn:hover {
+    background: rgba(74, 93, 39, 0.08);
+  }
+
+  /* Role pill — small badge next to user name in top bar. */
+  .role-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    background: var(--brand-olive);
+    color: var(--brand-cream);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+
+  /* Sign-out link — ghost feel in the top bar. */
+  .signout-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    border-radius: 9999px;
+    font-size: 13px;
+    color: var(--ink-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition:
+      color 180ms cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .signout-link:hover {
+    color: var(--brand-brown);
+    background: rgba(74, 93, 39, 0.06);
+  }
 }
