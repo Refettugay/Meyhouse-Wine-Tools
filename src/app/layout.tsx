@@ -53,7 +53,12 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      {/* Phase 2 Stage B chrome: dashboard/layout.tsx flexes (rail + content
+          column with sticky top bar + scrolling main). `h-full overflow-hidden
+          flex flex-col` here matches Schedule and gives the inner `flex-1
+          min-h-0` chain a height constraint to flex against. Auth pages stay
+          fine because they render their own full-height containers. */}
+      <body className="h-full overflow-hidden flex flex-col">{children}</body>
     </html>
   );
 }
