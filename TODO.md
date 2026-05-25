@@ -47,3 +47,15 @@
 ### 9. Shelf Label Creator in Settings
 - Build UI in Settings → Lookup Values for managing shelf labels
 - Same pattern as bottle sizes and case sizes
+
+### 10. Mobile cross-tool switch
+- SophraRail is `hidden sm:flex` (76px rail collapses on <640px screens)
+- On mobile users have no way to jump between Beverage and Schedule
+- Schedule has the same gap; fix once for both apps
+- Options: hamburger menu in top bar, or a small floating tool-switcher
+
+### 11. Local dev .env Postgres password refresh
+- `.env` DATABASE_URL has a stale Supabase Postgres password
+- Local `npm run dev` boots, but `/dashboard` throws PrismaClientKnownRequestError on first DB query
+- Get fresh password from Supabase project `rcigqnzxikslmswszqvo` settings → Database
+- Production isn't affected; this only blocks local development
