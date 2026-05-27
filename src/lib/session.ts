@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "./supabase/server";
 import { prisma } from "./db";
+import { BEVERAGE_FEATURES, hasFeature } from "./permissions";
+import type { ProfileAppAccess, ProfileFeatureOverride } from "./types";
 
 // URLs of the other Sophra apps. Defaults match production; override in
 // .env for local dev (e.g. http://localhost:3001 for the launcher).
@@ -104,6 +106,32 @@ export async function requireAuth() {
     redirect(STAFF_LANDING_URL);
   }
 
+  // Hydrate the per-feature permission map from the new app-permission
+  // tables (migrations 0033-0035). When profile_app_access has rows for
+  // this user we trust the new system fully; when it doesn't, we leave
+  // permissions={} and the legacy role-based check in permissions.ts
+  // takes over (see canSeePricingHub / canEditPricing).
+  const [appAccessResult, overridesResult] = await Promise.all([
+    supabase
+      .from("profile_app_access")
+      .select("user_id, app, role, granted_at, granted_by")
+      .eq("user_id", user.id),
+    supabase
+      .from("profile_feature_overrides")
+      .select("user_id, feature_key, allowed, granted_at, granted_by")
+      .eq("user_id", user.id),
+  ]);
+
+  const appAccess = (appAccessResult.data ?? []) as ProfileAppAccess[];
+  const overrides = (overridesResult.data ?? []) as ProfileFeatureOverride[];
+
+  const permissions: Record<string, unknown> = {};
+  if (appAccess.length > 0) {
+    for (const key of BEVERAGE_FEATURES) {
+      permissions[key] = hasFeature(key, appAccess, overrides);
+    }
+  }
+
   const org = await getMeyhouseOrg();
 
   return {
@@ -113,6 +141,6 @@ export async function requireAuth() {
     organizationId: org.id,
     organizationName: org.name,
     role: mapScheduleRoleToBeverageRole(profile.role),
-    permissions: {} as Record<string, unknown>,
+    permissions,
   };
 }
