@@ -333,6 +333,123 @@ export async function permanentlyDeleteProduct(id: string) {
   return { success: true };
 }
 
+// Bulk: add many products to a single location.
+// Skips (productId, locationId) pairs that already have an InventoryItem.
+// Returns { success, count } where count = number of NEW rows created.
+export async function bulkAddProductsToLocation({
+  productIds,
+  locationId,
+  parLevel,
+}: {
+  productIds: string[];
+  locationId: string;
+  parLevel?: number;
+}): Promise<{ success: true; count: number } | { error: string }> {
+  const orgId = await getOrganizationId();
+  if (productIds.length === 0) return { success: true, count: 0 };
+
+  // Verify the location belongs to this org
+  const location = await prisma.location.findFirst({
+    where: { id: locationId, organizationId: orgId },
+    select: { id: true },
+  });
+  if (!location) return { error: "Location not found" };
+
+  // Verify all productIds belong to this org. Only operate on the verified set.
+  const ownedProducts = await prisma.ingredient.findMany({
+    where: { id: { in: productIds }, organizationId: orgId },
+    select: { id: true },
+  });
+  const ownedIds = ownedProducts.map((p) => p.id);
+  if (ownedIds.length === 0) return { error: "No matching products found" };
+
+  // Find which already have an inventoryItem at this location — skip those.
+  const existing = await prisma.inventoryItem.findMany({
+    where: { locationId, ingredientId: { in: ownedIds } },
+    select: { ingredientId: true },
+  });
+  const existingSet = new Set(existing.map((e) => e.ingredientId));
+  const toCreate = ownedIds.filter((id) => !existingSet.has(id));
+  if (toCreate.length === 0) {
+    return { success: true, count: 0 };
+  }
+
+  const par = parLevel && parLevel >= 0 ? parLevel : 0;
+  await prisma.inventoryItem.createMany({
+    data: toCreate.map((ingredientId) => ({
+      organizationId: orgId,
+      locationId,
+      ingredientId,
+      parLevel: par,
+      currentStock: 0,
+      unit: "bottle",
+    })),
+    skipDuplicates: true,
+  });
+
+  revalidatePath("/dashboard/products");
+  revalidatePath("/dashboard/inventory");
+  return { success: true, count: toCreate.length };
+}
+
+// Bulk: remove many products from a single location.
+// Deletes the InventoryItem rows (and their StockCounts) for the (productId, locationId)
+// pairs that exist; missing pairs are ignored.
+// Returns { success, count } where count = number of InventoryItem rows deleted.
+export async function bulkRemoveProductsFromLocation({
+  productIds,
+  locationId,
+}: {
+  productIds: string[];
+  locationId: string;
+}): Promise<{ success: true; count: number } | { error: string }> {
+  const orgId = await getOrganizationId();
+  if (productIds.length === 0) return { success: true, count: 0 };
+
+  // Verify the location belongs to this org
+  const location = await prisma.location.findFirst({
+    where: { id: locationId, organizationId: orgId },
+    select: { id: true },
+  });
+  if (!location) return { error: "Location not found" };
+
+  // Verify all productIds belong to this org.
+  const ownedProducts = await prisma.ingredient.findMany({
+    where: { id: { in: productIds }, organizationId: orgId },
+    select: { id: true },
+  });
+  const ownedIds = ownedProducts.map((p) => p.id);
+  if (ownedIds.length === 0) return { error: "No matching products found" };
+
+  // Find the inventory items to remove so we can also clear their StockCounts
+  // (StockCount FK is onDelete: Cascade, but mirror hardDeleteProduct's explicit
+  // cleanup for consistency and safety).
+  const invItems = await prisma.inventoryItem.findMany({
+    where: {
+      locationId,
+      ingredientId: { in: ownedIds },
+      organizationId: orgId,
+    },
+    select: { id: true },
+  });
+  if (invItems.length === 0) {
+    return { success: true, count: 0 };
+  }
+  const invIds = invItems.map((i) => i.id);
+
+  await prisma.stockCount.deleteMany({
+    where: { inventoryItemId: { in: invIds } },
+  });
+
+  const result = await prisma.inventoryItem.deleteMany({
+    where: { id: { in: invIds } },
+  });
+
+  revalidatePath("/dashboard/products");
+  revalidatePath("/dashboard/inventory");
+  return { success: true, count: result.count };
+}
+
 export async function updateProductNotes(id: string, notes: string) {
   const orgId = await getOrganizationId();
   await prisma.ingredient.update({

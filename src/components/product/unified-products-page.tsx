@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { updateProduct, moveProductToDatabase, moveProductToMenu, hardDeleteProduct, toggleMarkForRemoval, toggleProductTag } from "@/lib/actions/products";
+import { updateProduct, moveProductToDatabase, moveProductToMenu, hardDeleteProduct, toggleMarkForRemoval, toggleProductTag, bulkAddProductsToLocation, bulkRemoveProductsFromLocation } from "@/lib/actions/products";
 import { saveSingleCount, saveSinglePar, updateProductStorageArea, updateProductShelf, generateOrderFromCart, createStorageArea } from "@/lib/actions/inventory";
 import { generateOrderEmails, sendOrderEmails } from "@/lib/actions/email-orders";
 import { addBottleSize } from "@/lib/actions/settings";
@@ -278,6 +278,34 @@ export function UnifiedProductsPage({
   const [statusFilter, setStatusFilter] = useState(
     searchParams.get("status") || "onMenu"
   );
+
+  // ===== BULK SELECTION (Products mode) =====
+  // Multi-select for bulk add/remove products to/from a location.
+  // Lives in component state only — does NOT persist across reloads.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkAddLocationId, setBulkAddLocationId] = useState<string>("");
+  const [bulkAddPar, setBulkAddPar] = useState<string>("");
+  const [bulkRemoveLocationId, setBulkRemoveLocationId] = useState<string>("");
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkBanner, setBulkBanner] = useState<{
+    kind: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  // Clear selection whenever the user switches away from Products mode —
+  // selection is meaningless outside the products table.
+  useEffect(() => {
+    if (mode !== "products" && selectedIds.size > 0) {
+      setSelectedIds(new Set());
+    }
+  }, [mode, selectedIds.size]);
+
+  // Auto-dismiss the bulk action banner after a few seconds.
+  useEffect(() => {
+    if (!bulkBanner) return;
+    const t = setTimeout(() => setBulkBanner(null), 3500);
+    return () => clearTimeout(t);
+  }, [bulkBanner]);
   // Sort: stored in URL params for robust navigation persistence (survives router.back())
   const [sortField, setSortFieldRaw] = useState<SortField>(() => {
     const f = searchParams.get("sort") as SortField | null;
@@ -1199,6 +1227,123 @@ export function UnifiedProductsPage({
     sortDir,
   ]);
 
+  // ===== BULK SELECTION HELPERS (Products mode) =====
+  // visibleIds = the products currently passing the filters/sort in Products mode.
+  // Select-all only operates on this set, never the whole 374-product universe.
+  const visibleIds = useMemo(() => filtered.map((p) => p.id), [filtered]);
+  const allVisibleSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+  const someVisibleSelected =
+    !allVisibleSelected && visibleIds.some((id) => selectedIds.has(id));
+
+  function toggleSelectAllVisible() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        // Unselect all currently-visible rows (keeps any selections outside the filter)
+        for (const id of visibleIds) next.delete(id);
+      } else {
+        for (const id of visibleIds) next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function toggleSelectOne(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  async function applyBulkAdd() {
+    if (selectedIds.size === 0 || !bulkAddLocationId) return;
+    const loc = locations.find((l) => l.id === bulkAddLocationId);
+    if (!loc) return;
+    const parsedPar =
+      bulkAddPar.trim() === "" ? undefined : parseFloat(bulkAddPar);
+    if (parsedPar !== undefined && (isNaN(parsedPar) || parsedPar < 0)) {
+      setBulkBanner({ kind: "error", text: "Par level must be 0 or higher." });
+      return;
+    }
+    setBulkBusy(true);
+    try {
+      const result = await bulkAddProductsToLocation({
+        productIds: Array.from(selectedIds),
+        locationId: bulkAddLocationId,
+        parLevel: parsedPar,
+      });
+      if ("error" in result) {
+        setBulkBanner({ kind: "error", text: result.error });
+      } else {
+        const total = selectedIds.size;
+        const added = result.count;
+        const skipped = total - added;
+        const shortName = loc.name.replace("Meyhouse ", "");
+        const msg =
+          added === 0
+            ? `All ${total} products were already at ${shortName}.`
+            : skipped > 0
+              ? `Added ${added} products to ${shortName} (${skipped} already there).`
+              : `Added ${added} ${added === 1 ? "product" : "products"} to ${shortName}.`;
+        setBulkBanner({ kind: "success", text: msg });
+        clearSelection();
+        setBulkAddPar("");
+        router.refresh();
+      }
+    } catch (e) {
+      setBulkBanner({
+        kind: "error",
+        text: e instanceof Error ? e.message : "Failed to add products.",
+      });
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  async function applyBulkRemove() {
+    if (selectedIds.size === 0 || !bulkRemoveLocationId) return;
+    const loc = locations.find((l) => l.id === bulkRemoveLocationId);
+    if (!loc) return;
+    const shortName = loc.name.replace("Meyhouse ", "");
+    const ok = confirm(
+      `Remove ${selectedIds.size} ${selectedIds.size === 1 ? "product" : "products"} from ${shortName}? This deletes their inventory rows and stock counts for that location.`
+    );
+    if (!ok) return;
+    setBulkBusy(true);
+    try {
+      const result = await bulkRemoveProductsFromLocation({
+        productIds: Array.from(selectedIds),
+        locationId: bulkRemoveLocationId,
+      });
+      if ("error" in result) {
+        setBulkBanner({ kind: "error", text: result.error });
+      } else {
+        const removed = result.count;
+        const msg =
+          removed === 0
+            ? `None of the selected products were at ${shortName}.`
+            : `Removed ${removed} ${removed === 1 ? "product" : "products"} from ${shortName}.`;
+        setBulkBanner({ kind: "success", text: msg });
+        clearSelection();
+        router.refresh();
+      }
+    } catch (e) {
+      setBulkBanner({
+        kind: "error",
+        text: e instanceof Error ? e.message : "Failed to remove products.",
+      });
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
   function toggleSort(field: SortField) {
     if (sortField === field) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -1706,6 +1851,20 @@ export function UnifiedProductsPage({
             <table className="w-full min-w-[1500px] text-xs table-fixed">
               <thead className="sticky top-0 z-10">
                 <tr className="bg-[var(--brand-cream)] border-b border-[var(--line)] text-[10px] text-[var(--ink-muted)] uppercase font-medium">
+                  {/* Bulk-select column — header checkbox toggles all currently-visible rows */}
+                  <th className="px-2 py-2 w-[2.5%]">
+                    <input
+                      type="checkbox"
+                      aria-label={allVisibleSelected ? "Unselect all visible products" : "Select all visible products"}
+                      checked={allVisibleSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = someVisibleSelected;
+                      }}
+                      onChange={toggleSelectAllVisible}
+                      disabled={visibleIds.length === 0}
+                      className="align-middle accent-[var(--brand-olive)] cursor-pointer"
+                    />
+                  </th>
                   <th className="text-left px-2 py-2 w-[15%] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleSort("name")}>
                     <span className="flex items-center gap-1 whitespace-nowrap">Product <SortIcon field="name" /></span>
                   </th>
@@ -1752,7 +1911,7 @@ export function UnifiedProductsPage({
 
               <tbody className="divide-y divide-[var(--line)]">
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={14} className="p-8 text-center text-[var(--ink-muted)]">No products match your filters</td></tr>
+                  <tr><td colSpan={15} className="p-8 text-center text-[var(--ink-muted)]">No products match your filters</td></tr>
                 ) : (
                   filtered.map((p) => {
                     const catData = getCategoryData(p);
@@ -1799,6 +1958,20 @@ export function UnifiedProductsPage({
                           if (anyDessert) return "bg-emerald-50/70";
                           return "";
                         })()}`}>
+                        {/* Bulk-select checkbox cell — stopPropagation so clicking the
+                            checkbox doesn't also trigger the row's highlight toggle. */}
+                        <td
+                          className="px-2 py-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            aria-label={`Select ${p.name}`}
+                            checked={selectedIds.has(p.id)}
+                            onChange={() => toggleSelectOne(p.id)}
+                            className="align-middle accent-[var(--brand-olive)] cursor-pointer"
+                          />
+                        </td>
                         {/* Product Name — click to edit */}
                         <td className="px-2 py-2">
                           {isEd("name") ? (
@@ -2665,6 +2838,122 @@ export function UnifiedProductsPage({
           </div>
         );
       })()}
+
+      {/* ===== BULK ACTION BAR (Products mode, selection > 0) =====
+          Sticky to the bottom of the viewport. Only shows when 1+ products
+          are selected. Provides bulk Add-to-location (with optional par level)
+          and bulk Remove-from-location (with a confirm dialog). */}
+      {mode === "products" && selectedIds.size > 0 && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 bg-white border-t border-[var(--line)] shadow-[0_-4px_12px_rgba(0,0,0,0.06)]"
+          role="region"
+          aria-label="Bulk product actions"
+        >
+          <div className="max-w-screen-2xl mx-auto px-4 lg:px-8 py-3 flex flex-wrap items-center gap-3">
+            {/* Selection count + Clear */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-sm font-medium text-[var(--brand-brown)]">
+                {selectedIds.size} {selectedIds.size === 1 ? "product" : "products"} selected
+              </span>
+              <button
+                type="button"
+                onClick={clearSelection}
+                disabled={bulkBusy}
+                className="text-xs text-[var(--brand-olive)] hover:underline disabled:opacity-50"
+              >
+                Clear
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="hidden sm:block w-px h-6 bg-[var(--line)]" />
+
+            {/* Add to location */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Plus className="w-3.5 h-3.5 text-[var(--ink-muted)]" aria-hidden="true" />
+              <label className="text-xs text-[var(--ink-muted)]">Add to</label>
+              <select
+                value={bulkAddLocationId}
+                onChange={(e) => setBulkAddLocationId(e.target.value)}
+                disabled={bulkBusy}
+                className="px-2 py-1 bg-white border border-[var(--line)] rounded text-xs text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] disabled:opacity-50"
+                aria-label="Location to add selected products to"
+              >
+                <option value="">Choose location…</option>
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>
+                    {loc.name.replace("Meyhouse ", "")}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={bulkAddPar}
+                onChange={(e) => setBulkAddPar(e.target.value)}
+                disabled={bulkBusy}
+                placeholder="par (optional)"
+                aria-label="Par level for newly added products (optional)"
+                className="w-24 px-2 py-1 bg-white border border-[var(--line)] rounded text-xs text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] disabled:opacity-50"
+              />
+              <button
+                type="button"
+                onClick={applyBulkAdd}
+                disabled={bulkBusy || !bulkAddLocationId}
+                className="px-3 py-1 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive-hover)] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded text-xs font-medium transition-colors"
+              >
+                {bulkBusy ? "Applying…" : "Apply"}
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="hidden sm:block w-px h-6 bg-[var(--line)]" />
+
+            {/* Remove from location */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <XCircle className="w-3.5 h-3.5 text-[var(--ink-muted)]" aria-hidden="true" />
+              <label className="text-xs text-[var(--ink-muted)]">Remove from</label>
+              <select
+                value={bulkRemoveLocationId}
+                onChange={(e) => setBulkRemoveLocationId(e.target.value)}
+                disabled={bulkBusy}
+                className="px-2 py-1 bg-white border border-[var(--line)] rounded text-xs text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] disabled:opacity-50"
+                aria-label="Location to remove selected products from"
+              >
+                <option value="">Choose location…</option>
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>
+                    {loc.name.replace("Meyhouse ", "")}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={applyBulkRemove}
+                disabled={bulkBusy || !bulkRemoveLocationId}
+                className="px-3 py-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded text-xs font-medium transition-colors"
+              >
+                {bulkBusy ? "Applying…" : "Apply"}
+              </button>
+            </div>
+
+            {/* Inline banner */}
+            {bulkBanner && (
+              <div
+                className={`ml-auto text-xs px-3 py-1 rounded ${
+                  bulkBanner.kind === "success"
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
+                }`}
+                role="status"
+              >
+                {bulkBanner.text}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* === MODE 2: INVENTORY (R365-style Variance Review) === */}
       {mode === "inventory" && (
