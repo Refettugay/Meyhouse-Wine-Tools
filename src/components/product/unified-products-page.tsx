@@ -1680,27 +1680,41 @@ export function UnifiedProductsPage({
         <div className="bg-[#FAF7F1] border border-[var(--brand-olive)] text-[var(--brand-olive-hover)] px-3 py-2 rounded-lg text-xs mb-3">{markerError}</div>
       )}
 
-      {/* Mode tabs */}
-      <div className="flex gap-1 bg-[var(--brand-cream)] rounded-lg p-1 mb-4">
+      {/* Mode tabs — segmented control: icon on top, label (11px) below.
+          Active cell is solid Sophra olive; inactive cells are transparent so
+          the warm cream container reads as a single rounded "track" beneath. */}
+      <div
+        className="grid grid-cols-4 gap-1 rounded-[10px] p-1 mb-4"
+        style={{ background: "#EDE5D0" }}
+      >
         {[
-          { key: "ordering" as Mode, label: "Ordering", icon: ShoppingCart },
-          { key: "inventory" as Mode, label: "Inventory Management", icon: ClipboardList },
-          { key: "products" as Mode, label: "Full Product List", icon: Package },
-          { key: "pricing" as Mode, label: "Menu Pricing Tool", icon: DollarSign },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => switchMode(tab.key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors flex-1 justify-center ${
-              mode === tab.key
-                ? "bg-white text-[var(--brand-olive)] shadow-sm"
-                : "text-[var(--ink-muted)] hover:text-[var(--brand-brown)]"
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            <span className="hidden sm:inline">{tab.label}</span>
-          </button>
-        ))}
+          { key: "ordering" as Mode, label: "Order", icon: ShoppingCart },
+          { key: "inventory" as Mode, label: "Count", icon: ClipboardList },
+          { key: "products" as Mode, label: "Inventory", icon: Package },
+          { key: "pricing" as Mode, label: "Pricing", icon: DollarSign },
+        ].map((tab) => {
+          const isActive = mode === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => switchMode(tab.key)}
+              className={`flex flex-col items-center justify-center gap-1 rounded-[8px] transition-colors duration-150 ${
+                isActive
+                  ? "bg-[var(--brand-olive)] text-white"
+                  : "bg-transparent text-[var(--ink-muted)] hover:text-[var(--brand-brown)]"
+              }`}
+              style={{ minHeight: 56 }}
+            >
+              <tab.icon className="w-[22px] h-[22px]" strokeWidth={1.75} />
+              <span
+                className="text-[11px] leading-none"
+                style={{ fontWeight: isActive ? 500 : 400 }}
+              >
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Filters */}

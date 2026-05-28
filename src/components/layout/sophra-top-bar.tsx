@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Settings, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { canSeePricingHub } from "@/lib/permissions";
+import { MobileToolSwitcher } from "./mobile-tool-switcher";
 
 const MARKETING_URL =
   process.env.NEXT_PUBLIC_MARKETING_URL || "https://runsophra.com";
@@ -73,6 +74,12 @@ export function SophraTopBar({
         borderColor: "var(--line)",
       }}
     >
+      {/* Mobile-only cross-tool dropdown — sits left of the eyebrow.
+          Desktop has the sophra-rail sidebar for the same purpose. */}
+      <div className="sm:hidden shrink-0">
+        <MobileToolSwitcher active="beverage" />
+      </div>
+
       <span className="eyebrow shrink-0">Beverage</span>
       <span
         aria-hidden
@@ -80,18 +87,32 @@ export function SophraTopBar({
         style={{ background: "var(--line)" }}
       />
 
-      <nav className="flex flex-1 min-w-0 items-center gap-1 overflow-x-auto">
-        {tabs.map((tab) => (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            className="section-tab"
-            aria-current={isActive(tab.href) ? "page" : undefined}
-          >
-            {tab.label}
-          </Link>
-        ))}
-      </nav>
+      {/* Tab strip. Wrapping div is `relative` so the right-edge fade can sit
+          on top of the nav without clipping the section tabs. Scrollbar is
+          hidden via the .tab-scroll utility — overflow-x-auto stays so wheel
+          + touch scrolling still works. */}
+      <div className="relative flex flex-1 min-w-0">
+        <nav className="tab-scroll flex flex-1 min-w-0 items-center gap-1 overflow-x-auto">
+          {tabs.map((tab) => (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className="section-tab"
+              aria-current={isActive(tab.href) ? "page" : undefined}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </nav>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-0 top-0 bottom-0 w-4"
+          style={{
+            background:
+              "linear-gradient(to right, transparent, var(--brand-cream))",
+          }}
+        />
+      </div>
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <Link
