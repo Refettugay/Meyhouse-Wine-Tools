@@ -341,6 +341,42 @@ export function UnifiedProductsPage({
     });
   };
 
+  // Persist filters to the URL (like sort) so they survive a router.back()
+  // round-trip from the edit page, which unmounts and re-initializes this
+  // component from the URL. Reads the live URL so changing one filter never
+  // clobbers another (or the sort) that was already written.
+  const updateFilterUrl = (key: string, value: string, defaultValue: string) => {
+    const params = new URLSearchParams(window.location.search);
+    if (value === defaultValue) {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+    const url = `${window.location.pathname}${params.toString() ? "?" + params.toString() : ""}`;
+    window.history.replaceState(null, "", url);
+  };
+
+  const setSearchPersisted = (v: string) => {
+    setSearch(v);
+    updateFilterUrl("search", v, "");
+  };
+  const setVendorFilterPersisted = (v: string) => {
+    setVendorFilter(v);
+    updateFilterUrl("vendor", v, "ALL");
+  };
+  const setCategoryFilterPersisted = (v: string) => {
+    setCategoryFilter(v);
+    updateFilterUrl("category", v, "ALL");
+  };
+  const setLocationFilterPersisted = (v: string) => {
+    setLocationFilter(v);
+    updateFilterUrl("location", v, "ALL");
+  };
+  const setStatusFilterPersisted = (v: string) => {
+    setStatusFilter(v);
+    updateFilterUrl("status", v, "onMenu");
+  };
+
   // Restore scroll + highlight from sessionStorage on mount (sort is in URL, no restoration needed)
   useEffect(() => {
     try {
@@ -1725,13 +1761,13 @@ export function UnifiedProductsPage({
             type="text"
             placeholder="Search..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => setSearchPersisted(e.target.value)}
             className="w-full pl-9 pr-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] text-sm"
           />
         </div>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => setStatusFilterPersisted(e.target.value)}
           className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="onMenu">On Menu</option>
@@ -1741,7 +1777,7 @@ export function UnifiedProductsPage({
         </select>
         <select
           value={vendorFilter}
-          onChange={(e) => setVendorFilter(e.target.value)}
+          onChange={(e) => setVendorFilterPersisted(e.target.value)}
           className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Vendors</option>
@@ -1751,7 +1787,7 @@ export function UnifiedProductsPage({
         </select>
         <select
           value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
+          onChange={(e) => setCategoryFilterPersisted(e.target.value)}
           className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Categories</option>
@@ -1761,7 +1797,7 @@ export function UnifiedProductsPage({
         </select>
         <select
           value={locationFilter}
-          onChange={(e) => setLocationFilter(e.target.value)}
+          onChange={(e) => setLocationFilterPersisted(e.target.value)}
           className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="ALL">All Locations</option>
@@ -2013,7 +2049,7 @@ export function UnifiedProductsPage({
                               return stores.length > 0 ? ` (${stores.join(", ")})` : "";
                             };
                             return (
-                              <span className="inline-flex items-center gap-1.5 min-w-0">
+                              <span className="flex items-center gap-1.5 min-w-0 w-full">
                                 {/* ⚡ Quick Edit button — visible per row, at the left so no horizontal scrolling is needed */}
                                 <button
                                   data-floating-edit
@@ -2040,20 +2076,24 @@ export function UnifiedProductsPage({
                                   <Zap className="w-3.5 h-3.5" />
                                 </button>
                                 <span
-                                  className="font-medium text-xs cursor-pointer hover:text-[var(--brand-olive)] truncate"
+                                  className="font-medium text-xs cursor-pointer hover:text-[var(--brand-olive)] truncate min-w-0"
                                   onClick={() => startEdit(p.id, "name", p.name)}
+                                  title={p.name}
                                 >
                                 {p.isKeyItem && <Star className="w-3 h-3 text-[var(--brand-olive)] fill-[var(--brand-olive)] inline mr-1" />}
                                 {p.name}
-                                {p.menuStatus === "DATABASE" && <span className="text-[9px] bg-[rgba(74,93,39,0.12)] text-[var(--brand-olive-hover)] px-1 py-0.5 rounded ml-1">database</span>}
-                                {p.menuStatus === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1">inactive</span>}
-                                {anyDB && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded ml-1" title={`Marked for Database${storeBadgeSuffix((i) => i.markedForRemoval === "DATABASE")}`}>→ DB</span>}
-                                {anyInactive && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1" title={`Marked to Delete${storeBadgeSuffix((i) => i.markedForRemoval === "INACTIVE")}`}>→ ✕</span>}
-                                {anyBTG && <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded ml-1" title={`BTG Wine${storeBadgeSuffix((i) => i.isBTG)}`}>BTG</span>}
-                                {anyCraft && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded ml-1" title={`Craft Cocktail${storeBadgeSuffix((i) => i.isCraftCocktailIngredient)}`}>CC</span>}
-                                {anyWell && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded ml-1" title={`Well Spirit${storeBadgeSuffix((i) => i.isWellSpirit)}`}>Well</span>}
-                                {anyHalf && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded ml-1" title={`Half Bottle${storeBadgeSuffix((i) => i.isHalfBottle)}`}>½</span>}
-                                {anyDessert && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded ml-1" title={`Dessert Wine${storeBadgeSuffix((i) => i.isDessertWine)}`}>🍇</span>}
+                                </span>
+                                {/* Tags — kept on a non-shrinking row so they stay visible even when the name truncates */}
+                                <span className="flex items-center gap-1 flex-shrink-0">
+                                {p.menuStatus === "DATABASE" && <span className="text-[9px] bg-[rgba(74,93,39,0.12)] text-[var(--brand-olive-hover)] px-1 py-0.5 rounded">database</span>}
+                                {p.menuStatus === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded">inactive</span>}
+                                {anyDB && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded" title={`Marked for Database${storeBadgeSuffix((i) => i.markedForRemoval === "DATABASE")}`}>→ DB</span>}
+                                {anyInactive && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded" title={`Marked to Delete${storeBadgeSuffix((i) => i.markedForRemoval === "INACTIVE")}`}>→ ✕</span>}
+                                {anyBTG && <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded" title={`BTG Wine${storeBadgeSuffix((i) => i.isBTG)}`}>BTG</span>}
+                                {anyCraft && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded" title={`Craft Cocktail${storeBadgeSuffix((i) => i.isCraftCocktailIngredient)}`}>CC</span>}
+                                {anyWell && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded" title={`Well Spirit${storeBadgeSuffix((i) => i.isWellSpirit)}`}>Well</span>}
+                                {anyHalf && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded" title={`Half Bottle${storeBadgeSuffix((i) => i.isHalfBottle)}`}>½</span>}
+                                {anyDessert && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded" title={`Dessert Wine${storeBadgeSuffix((i) => i.isDessertWine)}`}>🍇</span>}
                                 </span>
                               </span>
                             );
