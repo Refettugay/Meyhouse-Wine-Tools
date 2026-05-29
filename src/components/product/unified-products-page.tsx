@@ -1185,6 +1185,13 @@ export function UnifiedProductsPage({
         if (statusFilter === "onMenu" && p.menuStatus !== "ON_MENU") return false;
         if (statusFilter === "database" && p.menuStatus !== "DATABASE") return false;
         if (statusFilter === "inactive" && p.menuStatus !== "INACTIVE") return false;
+        // Phasing Out review list: on-menu items flagged "Mark to Remove" in the
+        // currently-scoped store(s). Out-of-stock ones are the ones awaiting a decision.
+        if (statusFilter === "pending") {
+          if (p.menuStatus !== "ON_MENU") return false;
+          const invs = locationFilter === "ALL" ? p.inventory : p.inventory.filter((i) => i.locationId === locationFilter);
+          if (!invs.some((i) => i.markedForRemoval === "PENDING")) return false;
+        }
         // Search
         if (search && !p.name.toLowerCase().includes(search.toLowerCase()))
           return false;
@@ -1206,6 +1213,17 @@ export function UnifiedProductsPage({
       })
       .sort((a, b) => {
         const dir = sortDir === "asc" ? 1 : -1;
+        // In the Phasing Out review list, float items that have run out (awaiting a
+        // decision) to the top, regardless of the chosen sort column.
+        if (statusFilter === "pending") {
+          const outScope = (p: Product) => {
+            const invs = locationFilter === "ALL" ? p.inventory : p.inventory.filter((i) => i.locationId === locationFilter);
+            return invs.some((i) => i.markedForRemoval === "PENDING" && i.currentStock <= 0);
+          };
+          const aOut = outScope(a) ? 1 : 0;
+          const bOut = outScope(b) ? 1 : 0;
+          if (aOut !== bOut) return bOut - aOut;
+        }
         switch (sortField) {
           case "name":
             return a.name.localeCompare(b.name) * dir;
@@ -1761,6 +1779,7 @@ export function UnifiedProductsPage({
           className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
           <option value="onMenu">On Menu</option>
+          <option value="pending">Phasing Out (review)</option>
           <option value="database">Product Database</option>
           <option value="inactive">Inactive (cleanup)</option>
           <option value="all">All Products</option>
@@ -1984,12 +2003,16 @@ export function UnifiedProductsPage({
                           const relevantInvs = isAllLocations ? p.inventory : (activeInv ? [activeInv] : []);
                           const anyInactive = relevantInvs.some((i) => i.markedForRemoval === "INACTIVE");
                           const anyDB = relevantInvs.some((i) => i.markedForRemoval === "DATABASE");
+                          const anyPending = relevantInvs.some((i) => i.markedForRemoval === "PENDING");
+                          const pendingOut = relevantInvs.some((i) => i.markedForRemoval === "PENDING" && i.currentStock <= 0);
                           const anyCraft = relevantInvs.some((i) => i.isCraftCocktailIngredient);
                           const anyWell = relevantInvs.some((i) => i.isWellSpirit);
                           const anyHalf = relevantInvs.some((i) => i.isHalfBottle);
                           const anyDessert = relevantInvs.some((i) => i.isDessertWine);
                           if (anyInactive) return "bg-red-50/60";
                           if (anyDB) return "bg-yellow-50/80";
+                          if (pendingOut) return "bg-rose-100";
+                          if (anyPending) return "bg-amber-50/70";
                           if (anyCraft) return "bg-teal-50/70";
                           if (anyWell) return "bg-blue-50/70";
                           if (anyHalf) return "bg-orange-50/70";
@@ -2025,6 +2048,8 @@ export function UnifiedProductsPage({
                             const relevantInvs = isAllLocations ? p.inventory : (activeInv ? [activeInv] : []);
                             const anyInactive = relevantInvs.some((i) => i.markedForRemoval === "INACTIVE");
                             const anyDB = relevantInvs.some((i) => i.markedForRemoval === "DATABASE");
+                            const anyPending = relevantInvs.some((i) => i.markedForRemoval === "PENDING");
+                            const pendingOut = relevantInvs.some((i) => i.markedForRemoval === "PENDING" && i.currentStock <= 0);
                             const anyCraft = relevantInvs.some((i) => i.isCraftCocktailIngredient);
                             const anyWell = relevantInvs.some((i) => i.isWellSpirit);
                             const anyHalf = relevantInvs.some((i) => i.isHalfBottle);
@@ -2076,6 +2101,8 @@ export function UnifiedProductsPage({
                                 {p.menuStatus === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded">inactive</span>}
                                 {anyDB && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded" title={`Marked for Database${storeBadgeSuffix((i) => i.markedForRemoval === "DATABASE")}`}>→ DB</span>}
                                 {anyInactive && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded" title={`Marked to Delete${storeBadgeSuffix((i) => i.markedForRemoval === "INACTIVE")}`}>→ ✕</span>}
+                                {pendingOut && <span className="text-[9px] bg-rose-200 text-rose-800 px-1 py-0.5 rounded font-semibold" title={`Out of stock — decide to remove or move to database${storeBadgeSuffix((i) => i.markedForRemoval === "PENDING" && i.currentStock <= 0)}`}>OUT ⚠</span>}
+                                {anyPending && !pendingOut && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded" title={`Phasing out — remove when stock runs out${storeBadgeSuffix((i) => i.markedForRemoval === "PENDING")}`}>⏳ phasing out</span>}
                                 {anyCraft && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded" title={`Craft Cocktail${storeBadgeSuffix((i) => i.isCraftCocktailIngredient)}`}>CC</span>}
                                 {anyWell && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded" title={`Well Spirit${storeBadgeSuffix((i) => i.isWellSpirit)}`}>Well</span>}
                                 {anyHalf && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded" title={`Half Bottle${storeBadgeSuffix((i) => i.isHalfBottle)}`}>½</span>}
@@ -2720,7 +2747,33 @@ export function UnifiedProductsPage({
                                 {removeMenuOpen === p.id && (
                                   <>
                                     <div className="fixed inset-0 z-40" onClick={() => setRemoveMenuOpen(null)} />
-                                    <div className="absolute right-0 top-7 bg-white border border-[var(--line)] rounded-lg shadow-lg z-50 w-52 py-1">
+                                    <div className="absolute right-0 top-7 bg-white border border-[var(--line)] rounded-lg shadow-lg z-50 w-60 py-1">
+                                      {(() => {
+                                        // "Mark to Remove" is location-scoped: a specific store (when one is
+                                        // picked) or every store the product lives in (All Locations). The item
+                                        // stays on the menu until its stock runs out, then it surfaces in the
+                                        // Phasing Out review list for a Database-vs-Delete decision.
+                                        const targetInvs = locationFilter === "ALL"
+                                          ? p.inventory
+                                          : p.inventory.filter((i) => i.locationId === locationFilter);
+                                        const allPending = targetInvs.length > 0 && targetInvs.every((i) => i.markedForRemoval === "PENDING");
+                                        const scopeLabel = locationFilter === "ALL" ? "all stores" : "this store";
+                                        return (
+                                          <button
+                                            onClick={async () => {
+                                              saveScroll();
+                                              for (const inv of targetInvs) {
+                                                await toggleMarkForRemoval(p.id, inv.locationId, allPending ? null : "PENDING");
+                                              }
+                                              setRemoveMenuOpen(null);
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-xs hover:bg-amber-50 transition-colors border-b border-[var(--line)]"
+                                          >
+                                            <p className="font-medium text-amber-700">{allPending ? "Cancel Phase-Out" : "Mark to Remove"}</p>
+                                            <p className="text-[10px] text-[var(--ink-muted)]">{allPending ? `Stop phasing out (${scopeLabel})` : `Keep until stock runs out (${scopeLabel}), then decide`}</p>
+                                          </button>
+                                        );
+                                      })()}
                                       <button
                                         onClick={async () => {
                                           await moveProductToDatabase(p.id);

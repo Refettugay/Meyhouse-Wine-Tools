@@ -214,11 +214,13 @@ export async function deleteProduct(id: string) {
   return moveProductToDatabase(id);
 }
 
-// Mark/unmark product for future removal at a SPECIFIC store (per-store flag)
+// Mark/unmark product for future removal at a SPECIFIC store (per-store flag).
+// "PENDING" = phase out: keep on the menu until stock runs out, then decide
+// (Database vs Delete) in the Phasing Out review list.
 export async function toggleMarkForRemoval(
   ingredientId: string,
   locationId: string,
-  target: "INACTIVE" | "DATABASE" | null
+  target: "INACTIVE" | "DATABASE" | "PENDING" | null
 ) {
   const orgId = await getOrganizationId();
   await prisma.inventoryItem.updateMany({
