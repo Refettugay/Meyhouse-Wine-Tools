@@ -28,7 +28,6 @@ import {
   Star,
   Archive,
   XCircle,
-  Wine,
   FlaskConical,
   GlassWater,
   Milk,
@@ -1654,15 +1653,6 @@ export function UnifiedProductsPage({
                 <XCircle className="w-4 h-4" />
                 <span>Delete</span>
               </button>
-              {/* BTG Wine — purple */}
-              <button
-                onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "btg", !selectedInv?.isBTG))}
-                className={`${btnBase} ${btnStyle("purple", !!selectedInv?.isBTG)}`}
-                title={disabled ? disabledTitle : (selected ? (selectedInv?.isBTG ? `Unmark BTG for ${currentStoreName}` : `Tag "${selected.name}" as BTG Wine at ${currentStoreName}`) : "Click a product row first")}
-              >
-                <Wine className="w-4 h-4" />
-                <span>BTG Wine</span>
-              </button>
               {/* Craft Cocktail — teal */}
               <button
                 onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "craft", !selectedInv?.isCraftCocktailIngredient))}
@@ -1994,14 +1984,12 @@ export function UnifiedProductsPage({
                           const relevantInvs = isAllLocations ? p.inventory : (activeInv ? [activeInv] : []);
                           const anyInactive = relevantInvs.some((i) => i.markedForRemoval === "INACTIVE");
                           const anyDB = relevantInvs.some((i) => i.markedForRemoval === "DATABASE");
-                          const anyBTG = relevantInvs.some((i) => i.isBTG);
                           const anyCraft = relevantInvs.some((i) => i.isCraftCocktailIngredient);
                           const anyWell = relevantInvs.some((i) => i.isWellSpirit);
                           const anyHalf = relevantInvs.some((i) => i.isHalfBottle);
                           const anyDessert = relevantInvs.some((i) => i.isDessertWine);
                           if (anyInactive) return "bg-red-50/60";
                           if (anyDB) return "bg-yellow-50/80";
-                          if (anyBTG) return "bg-purple-50/70";
                           if (anyCraft) return "bg-teal-50/70";
                           if (anyWell) return "bg-blue-50/70";
                           if (anyHalf) return "bg-orange-50/70";
@@ -2037,7 +2025,6 @@ export function UnifiedProductsPage({
                             const relevantInvs = isAllLocations ? p.inventory : (activeInv ? [activeInv] : []);
                             const anyInactive = relevantInvs.some((i) => i.markedForRemoval === "INACTIVE");
                             const anyDB = relevantInvs.some((i) => i.markedForRemoval === "DATABASE");
-                            const anyBTG = relevantInvs.some((i) => i.isBTG);
                             const anyCraft = relevantInvs.some((i) => i.isCraftCocktailIngredient);
                             const anyWell = relevantInvs.some((i) => i.isWellSpirit);
                             const anyHalf = relevantInvs.some((i) => i.isHalfBottle);
@@ -2089,7 +2076,6 @@ export function UnifiedProductsPage({
                                 {p.menuStatus === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded">inactive</span>}
                                 {anyDB && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded" title={`Marked for Database${storeBadgeSuffix((i) => i.markedForRemoval === "DATABASE")}`}>→ DB</span>}
                                 {anyInactive && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded" title={`Marked to Delete${storeBadgeSuffix((i) => i.markedForRemoval === "INACTIVE")}`}>→ ✕</span>}
-                                {anyBTG && <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded" title={`BTG Wine${storeBadgeSuffix((i) => i.isBTG)}`}>BTG</span>}
                                 {anyCraft && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded" title={`Craft Cocktail${storeBadgeSuffix((i) => i.isCraftCocktailIngredient)}`}>CC</span>}
                                 {anyWell && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded" title={`Well Spirit${storeBadgeSuffix((i) => i.isWellSpirit)}`}>Well</span>}
                                 {anyHalf && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded" title={`Half Bottle${storeBadgeSuffix((i) => i.isHalfBottle)}`}>½</span>}
@@ -3073,7 +3059,6 @@ export function UnifiedProductsPage({
                                 const invMarkerColor =
                                   item.inv.markedForRemoval === "INACTIVE" ? "bg-red-50/60" :
                                   item.inv.markedForRemoval === "DATABASE" ? "bg-yellow-50/80" :
-                                  item.inv.isBTG ? "bg-purple-50/70" :
                                   item.inv.isCraftCocktailIngredient ? "bg-teal-50/70" :
                                   item.inv.isWellSpirit ? "bg-blue-50/70" :
                                   item.inv.isHalfBottle ? "bg-orange-50/70" :
@@ -3097,11 +3082,9 @@ export function UnifiedProductsPage({
                                         {item.name}
                                         {item.inv.markedForRemoval === "DATABASE" && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded ml-1" title="Marked for Database">→ DB</span>}
                                         {item.inv.markedForRemoval === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1" title="Marked to Delete">→ ✕</span>}
-                                        {item.inv.isBTG && <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded ml-1" title="BTG Wine">BTG</span>}
                                         {item.inv.isCraftCocktailIngredient && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded ml-1" title="Craft Cocktail">CC</span>}
                                         {item.inv.isWellSpirit && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded ml-1" title="Well Spirit">Well</span>}
                                         {item.inv.isHalfBottle && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded ml-1" title="Half Bottle">½</span>}
-                                {item.inv.isDessertWine && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded ml-1" title="Dessert Wine">🍇</span>}
                                         {item.inv.isDessertWine && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded ml-1" title="Dessert Wine">🍇</span>}
                                       </p>
                                     </td>
@@ -3237,7 +3220,6 @@ export function UnifiedProductsPage({
                         const ordMarkerColor =
                           item.inv.markedForRemoval === "INACTIVE" ? "bg-red-50/60" :
                           item.inv.markedForRemoval === "DATABASE" ? "bg-yellow-50/80" :
-                          item.inv.isBTG ? "bg-purple-50/70" :
                           item.inv.isCraftCocktailIngredient ? "bg-teal-50/70" :
                           item.inv.isWellSpirit ? "bg-blue-50/70" :
                           item.inv.isHalfBottle ? "bg-orange-50/70" :
@@ -3259,7 +3241,6 @@ export function UnifiedProductsPage({
                                 {item.name}
                                 {item.inv.markedForRemoval === "DATABASE" && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded ml-1" title="Marked for Database">→ DB</span>}
                                 {item.inv.markedForRemoval === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1" title="Marked to Delete">→ ✕</span>}
-                                {item.inv.isBTG && <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded ml-1" title="BTG Wine">BTG</span>}
                                 {item.inv.isCraftCocktailIngredient && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded ml-1" title="Craft Cocktail">CC</span>}
                                 {item.inv.isWellSpirit && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded ml-1" title="Well Spirit">Well</span>}
                                 {item.inv.isHalfBottle && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded ml-1" title="Half Bottle">½</span>}

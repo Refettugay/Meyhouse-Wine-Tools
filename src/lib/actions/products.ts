@@ -278,16 +278,15 @@ export async function hardDeleteProduct(id: string) {
   return { success: true };
 }
 
-// Toggle product tags per store (BTG Wine, Craft Cocktail Ingredient, Well Spirit)
+// Toggle product tags per store (Craft Cocktail Ingredient, Well Spirit, Half Bottle, Dessert Wine)
 export async function toggleProductTag(
   ingredientId: string,
   locationId: string,
-  tag: "btg" | "craft" | "well" | "half" | "dessert",
+  tag: "craft" | "well" | "half" | "dessert",
   value: boolean
 ) {
   const orgId = await getOrganizationId();
-  const data: { isBTG?: boolean; isCraftCocktailIngredient?: boolean; isWellSpirit?: boolean; isHalfBottle?: boolean; isDessertWine?: boolean } = {};
-  if (tag === "btg") data.isBTG = value;
+  const data: { isCraftCocktailIngredient?: boolean; isWellSpirit?: boolean; isHalfBottle?: boolean; isDessertWine?: boolean } = {};
   if (tag === "craft") data.isCraftCocktailIngredient = value;
   if (tag === "well") data.isWellSpirit = value;
   if (tag === "half") data.isHalfBottle = value;
