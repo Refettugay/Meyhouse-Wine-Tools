@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/db";
 import { getOrganizationId } from "@/lib/session";
 import { revalidatePath } from "next/cache";
+import { resolveProductType } from "@/lib/category-types";
+import { getCategoriesConfig } from "@/lib/actions/settings";
 
 export async function createProduct(data: {
   name: string;
@@ -42,11 +44,17 @@ export async function createProduct(data: {
 
   const onMenu = data.onMenu ?? true;
 
+  // Derive the productType from the chosen category so the product shows up in
+  // the correct Pricing Hub tab (which filters on productType, not category).
+  const config = await getCategoriesConfig();
+  const productType = resolveProductType(data.ingredientCategory, config);
+
   const ingredient = await prisma.ingredient.create({
     data: {
       organizationId: orgId,
       name: data.name.trim(),
       type: data.type || "LIQUID",
+      productType,
       vendorId: data.vendorId || null,
       vendor: vendorName,
       ingredientCategory: data.ingredientCategory || null,
@@ -131,11 +139,17 @@ export async function updateProduct(
     if (vendor) vendorName = vendor.name;
   }
 
+  // Keep productType in sync with the chosen category so the product lands in
+  // the correct Pricing Hub tab (which filters on productType, not category).
+  const config = await getCategoriesConfig();
+  const productType = resolveProductType(data.ingredientCategory, config);
+
   await prisma.ingredient.update({
     where: { id, organizationId: orgId },
     data: {
       name: trimmedName,
       type: data.type,
+      productType,
       vendorId: data.vendorId || null,
       vendor: vendorName,
       ingredientCategory: data.ingredientCategory || null,

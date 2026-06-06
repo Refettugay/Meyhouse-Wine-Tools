@@ -290,6 +290,53 @@ export function pourSizeToOz(ps: PourSize): number {
   }
 }
 
+// Keyword-based inference of a product's type from its category name.
+// Mirrors the migration logic in settings.ts so newly-created products are
+// assigned the same productType the category migration would have given them.
+export function inferProductTypeFromName(catName: string | null | undefined): string {
+  const lower = (catName || "").toLowerCase();
+  if (!lower) return "OTHER";
+  if (lower.includes("bourbon") || lower.includes("vodka") || lower.includes("gin") ||
+      lower.includes("tequila") || lower.includes("rum") || lower.includes("whiskey") ||
+      lower.includes("scotch") || lower.includes("rye") || lower.includes("mezcal") ||
+      lower.includes("cognac")) return "SPIRIT";
+  if (lower.includes("wine") || lower.includes("btg") || lower.includes("btb") ||
+      lower.includes("sparkling") || lower.includes("champagne")) return "WINE";
+  if (lower.includes("beer") || lower.includes("ipa") || lower.includes("ale") ||
+      lower.includes("lager") || lower.includes("draft")) return "BEER";
+  if (lower.includes("cordial") || lower.includes("liqueur") || lower.includes("amaro") ||
+      lower.includes("vermouth") || lower.includes("aperol")) return "CORDIAL";
+  if (lower.includes("bitter")) return "BITTER";
+  if (lower.includes("syrup") || lower.includes("mixer")) return "SYRUP";
+  if (lower.includes("grocery") || lower.includes("supply") || lower.includes("ice")) return "GROCERY";
+  if (lower.includes("produce") || lower.includes("fruit") || lower.includes("herb") || lower.includes("garnish")) return "PRODUCE";
+  if (lower.includes("meat") || lower.includes("seafood")) return "MEAT";
+  if (lower.includes("dairy") || lower.includes("cream")) return "DAIRY";
+  if (lower.includes("dry good") || lower.includes("baking")) return "DRY_GOODS";
+  if (lower.includes("na ") || lower.includes("soda") || lower.includes("juice")) return "NA_BEVERAGE";
+  return "OTHER";
+}
+
+// Resolve the productType code for a chosen category. Prefers the org's
+// structured category config (sub-category → parent → type), so custom-named
+// categories still map correctly, and falls back to keyword inference.
+export function resolveProductType(
+  catName: string | null | undefined,
+  config?: CategoriesConfig | null
+): string {
+  if (config && catName) {
+    const sub = config.subs.find((s) => s.name === catName);
+    if (sub) {
+      const type = PARENT_TO_PRODUCT_TYPE[sub.parent];
+      if (type) return type;
+    }
+    // Allow picking a parent category name directly as the category.
+    const parentType = PARENT_TO_PRODUCT_TYPE[catName];
+    if (parentType) return parentType;
+  }
+  return inferProductTypeFromName(catName);
+}
+
 // Map old productType codes to new parent category names
 export const PRODUCT_TYPE_TO_PARENT: Record<string, string> = {
   SPIRIT: "Spirit",
@@ -306,3 +353,8 @@ export const PRODUCT_TYPE_TO_PARENT: Record<string, string> = {
   DRY_GOODS: "Dry Goods",
   OTHER: "Other",
 };
+
+// Reverse map: parent category name → productType code (for resolveProductType)
+export const PARENT_TO_PRODUCT_TYPE: Record<string, string> = Object.fromEntries(
+  Object.entries(PRODUCT_TYPE_TO_PARENT).map(([type, parent]) => [parent, type])
+);
