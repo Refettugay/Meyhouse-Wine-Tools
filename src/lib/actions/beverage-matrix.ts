@@ -21,6 +21,7 @@ import {
   type CostTier,
   type RoundingMode,
 } from "@/lib/pricing-strategies";
+import { isBTGCategory } from "@/lib/category-types";
 
 // ======================================================================
 // HELPERS
@@ -310,23 +311,12 @@ export async function getBeverageMatrix(
   });
 
   const filtered = ingredients.filter((i) => {
-    // Wine is considered BTG if:
-    //   (a) its global Ingredient.isBTG flag is true, OR
-    //   (b) any InventoryItem (per-store marker) has isBTG, OR
-    //   (c) its ingredientCategory contains "BTG" (e.g. "Wine - BTG Rose")
-    // A wine category is "BTG" only if the category name starts with a BTG
-    // prefix (e.g. "Wine - BTG Red", "Wine - BTG White"). Half-bottle / box /
-    // keg wines are NOT BTG even if they contain the letters somewhere.
-    const categoryStr = (i.ingredientCategory || "").toUpperCase();
-    const categoryHasBTG =
-      categoryStr.includes("WINE - BTG") || categoryStr.startsWith("BTG ");
-    const anyStoreBTG =
-      i.isBTG === true ||
-      i.inventoryItems.some((item) => item.isBTG) ||
-      categoryHasBTG;
+    // BTG vs BTB is determined solely by the category (see isBTGCategory).
+    // The legacy isBTG flags are intentionally ignored so changing a product's
+    // category between BTG and BTB moves it between tabs in both directions.
     return matchesTab(tab, {
       productType: i.productType,
-      anyStoreBTG,
+      anyStoreBTG: isBTGCategory(i.ingredientCategory),
       ingredientCategory: i.ingredientCategory,
     });
   });
@@ -643,19 +633,10 @@ export async function seedDefaultPoursForAllOrphans(tab: BeverageTabKey) {
     },
   });
   const filtered = ingredients.filter((i) => {
-    // A wine category is "BTG" only if the category name starts with a BTG
-    // prefix (e.g. "Wine - BTG Red", "Wine - BTG White"). Half-bottle / box /
-    // keg wines are NOT BTG even if they contain the letters somewhere.
-    const categoryStr = (i.ingredientCategory || "").toUpperCase();
-    const categoryHasBTG =
-      categoryStr.includes("WINE - BTG") || categoryStr.startsWith("BTG ");
-    const anyStoreBTG =
-      i.isBTG ||
-      i.inventoryItems.some((item) => item.isBTG) ||
-      categoryHasBTG;
+    // BTG vs BTB is determined solely by the category (see isBTGCategory).
     return matchesTab(tab, {
       productType: i.productType,
-      anyStoreBTG,
+      anyStoreBTG: isBTGCategory(i.ingredientCategory),
       ingredientCategory: i.ingredientCategory,
     });
   });
@@ -700,14 +681,8 @@ export async function applyCellSuggestedPrice(priceId: string) {
   );
   if (!costPerPour) return { error: "Cannot compute cost — missing bottle cost or size" };
 
-  // Detect tab
-  const categoryStr = (price.ingredient.ingredientCategory || "").toUpperCase();
-  const categoryHasBTG =
-    categoryStr.includes("WINE - BTG") || categoryStr.startsWith("BTG ");
-  const anyStoreBTG =
-    price.ingredient.isBTG ||
-    price.ingredient.inventoryItems.some((i) => i.isBTG) ||
-    categoryHasBTG;
+  // Detect tab. BTG vs BTB is determined solely by the category.
+  const anyStoreBTG = isBTGCategory(price.ingredient.ingredientCategory);
   let tab: BeverageTabKey | null = null;
   if (price.ingredient.productType === "WINE" && anyStoreBTG) tab = "wine-btg";
   else if (price.ingredient.productType === "WINE") tab = "wine-btb";

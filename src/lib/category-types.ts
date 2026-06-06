@@ -290,6 +290,20 @@ export function pourSizeToOz(ps: PourSize): number {
   }
 }
 
+// Whether a wine category is "by the glass" (BTG) rather than by-the-bottle.
+// True when the category name carries a BTG prefix — e.g. "Wine - BTG Red",
+// "Wine - BTG White", or a bare "BTG Red".
+//
+// This is the SINGLE source of truth for BTG vs BTB placement in the Pricing
+// Hub. The legacy Ingredient.isBTG / InventoryItem.isBTG flags are deliberately
+// NOT consulted: there is no UI to manage them, so they go stale and would keep
+// a wine pinned to the BTG tab even after its category is changed to a non-BTG
+// (by-the-bottle) one.
+export function isBTGCategory(category: string | null | undefined): boolean {
+  const c = (category || "").toUpperCase();
+  return c.includes("WINE - BTG") || c.startsWith("BTG ");
+}
+
 // Keyword-based inference of a product's type from its category name.
 // Mirrors the migration logic in settings.ts so newly-created products are
 // assigned the same productType the category migration would have given them.
