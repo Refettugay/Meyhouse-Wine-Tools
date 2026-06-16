@@ -102,10 +102,6 @@ export async function requireAuth() {
     redirect(LOGIN_URL);
   }
 
-  if (profile.role === "staff") {
-    redirect(STAFF_LANDING_URL);
-  }
-
   // Hydrate the per-feature permission map from the new app-permission
   // tables (migrations 0033-0035). When profile_app_access has rows for
   // this user we trust the new system fully; when it doesn't, we leave
@@ -132,6 +128,22 @@ export async function requireAuth() {
     }
   }
 
+  // Who may open the Beverage app. Prefer the new app-permission system: a
+  // user gets in iff they hold beverage.access (granted by a BEVERAGE row in
+  // profile_app_access) — regardless of their global 'staff' role, which here
+  // just means "not a global manager". Fall back to the legacy global-role
+  // gate only when the new system has no rows for this user. Without this, a
+  // Beverage manager who is staff overall (per-app access) was bounced
+  // straight to Schedule and could never open Beverage.
+  const beverageAccess = appAccess.find((a) => a.app === "BEVERAGE");
+  if (appAccess.length > 0) {
+    if (permissions["beverage.access"] !== true) {
+      redirect(STAFF_LANDING_URL);
+    }
+  } else if (profile.role === "staff") {
+    redirect(STAFF_LANDING_URL);
+  }
+
   const org = await getMeyhouseOrg();
 
   return {
@@ -140,7 +152,12 @@ export async function requireAuth() {
     userEmail: user.email || "",
     organizationId: org.id,
     organizationName: org.name,
-    role: mapScheduleRoleToBeverageRole(profile.role),
+    // Beverage role comes from the BEVERAGE app-access grant when present (so
+    // a Beverage manager who is staff overall reads as MANAGER here), else the
+    // global profile role for legacy sessions without app-access rows.
+    role: beverageAccess
+      ? mapScheduleRoleToBeverageRole(beverageAccess.role)
+      : mapScheduleRoleToBeverageRole(profile.role),
     permissions,
   };
 }
