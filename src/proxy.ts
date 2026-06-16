@@ -49,7 +49,24 @@ export async function proxy(request: NextRequest) {
     .eq("id", user.id)
     .single<{ role: string }>();
 
-  if (!profile || !ALLOWED_ROLES.has(profile.role)) {
+  // Two ways to be allowed into Beverage:
+  //   1. Legacy: a global owner/manager/supervisor role.
+  //   2. New per-app system: an explicit BEVERAGE grant in
+  //      profile_app_access, even when the global role is "staff".
+  // Without (2), an invited Beverage manager who is staff overall was
+  // bounced straight to Schedule and could never open Beverage. The
+  // page-level requireAuth() still applies finer feature gates after this.
+  let allowed = !!profile && ALLOWED_ROLES.has(profile.role);
+  if (!allowed) {
+    const { data: bevAccess } = await supabase
+      .from("profile_app_access")
+      .select("app")
+      .eq("user_id", user.id)
+      .eq("app", "BEVERAGE");
+    allowed = !!bevAccess && bevAccess.length > 0;
+  }
+
+  if (!allowed) {
     return NextResponse.redirect(`${SCHEDULE_URL}/my-shifts`);
   }
 
