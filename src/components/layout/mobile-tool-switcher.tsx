@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Home, Calendar, Wine, Users, ChevronDown } from "lucide-react";
+import { Home, Calendar, Wine, Coins, Users, ChevronDown } from "lucide-react";
 
 // Cross-subdomain navigation. Home and Team live on the launcher subdomain,
 // Schedule on its own, Beverage is this app. Plain <a> for all so the full
@@ -16,7 +16,7 @@ const SCHEDULE_URL =
 export function MobileToolSwitcher({
   active = "beverage",
 }: {
-  active?: "home" | "schedule" | "beverage" | "team";
+  active?: "home" | "schedule" | "beverage" | "team" | "tips";
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -44,6 +44,8 @@ export function MobileToolSwitcher({
       <Wine size={14} strokeWidth={1.75} />
     ) : active === "team" ? (
       <Users size={14} strokeWidth={1.75} />
+    ) : active === "tips" ? (
+      <Coins size={14} strokeWidth={1.75} />
     ) : (
       <Home size={14} strokeWidth={1.75} />
     );
@@ -54,7 +56,9 @@ export function MobileToolSwitcher({
         ? "Beverage"
         : active === "team"
           ? "Team"
-          : "Home";
+          : active === "tips"
+            ? "Tips"
+            : "Home";
 
   return (
     <div ref={wrapRef} className="relative">
@@ -99,6 +103,15 @@ export function MobileToolSwitcher({
           >
             <Wine size={16} strokeWidth={1.75} />
             <span>Beverage</span>
+          </a>
+          <a
+            href={`${LAUNCHER_URL}/tips`}
+            aria-current={active === "tips" ? "page" : undefined}
+            className="popdown-item"
+            onClick={() => setOpen(false)}
+          >
+            <Coins size={16} strokeWidth={1.75} />
+            <span>Tips</span>
           </a>
           <a
             href={`${LAUNCHER_URL}/team`}
