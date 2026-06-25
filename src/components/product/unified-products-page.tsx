@@ -269,6 +269,52 @@ export function UnifiedProductsPage({
   const urlMode = searchParams.get("mode") as Mode | null;
   const [mode, setMode] = useState<Mode>(urlMode || "products");
 
+  // ===== FULL SCREEN VIEW =====
+  // Purely additive: when ON, collapses the surrounding chrome so the product
+  // list takes over the screen. When OFF the page is identical to before.
+  // Persisted per device via localStorage.
+  const [fullScreenView, setFullScreenView] = useState(false);
+
+  // Restore the saved preference on mount (guarded for SSR).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (localStorage.getItem("productHub.fullScreenView") === "1") {
+        setFullScreenView(true);
+      }
+    } catch {}
+  }, []);
+
+  const setFullScreenViewPersisted = useCallback((v: boolean) => {
+    setFullScreenView(v);
+    try { localStorage.setItem("productHub.fullScreenView", v ? "1" : "0"); } catch {}
+  }, []);
+
+  // Drive the global top-nav hide via a document-level attribute + scoped CSS
+  // (the top bar lives in the parent layout, outside this component). Always
+  // clean up on unmount so leaving the page restores the nav.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (fullScreenView) {
+      document.documentElement.setAttribute("data-fullscreen", "1");
+    } else {
+      document.documentElement.removeAttribute("data-fullscreen");
+    }
+    return () => {
+      document.documentElement.removeAttribute("data-fullscreen");
+    };
+  }, [fullScreenView]);
+
+  // Esc exits Full Screen View.
+  useEffect(() => {
+    if (!fullScreenView) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFullScreenViewPersisted(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [fullScreenView, setFullScreenViewPersisted]);
+
   // Filters
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [vendorFilter, setVendorFilter] = useState(searchParams.get("vendor") || "ALL");
@@ -1540,7 +1586,8 @@ export function UnifiedProductsPage({
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Sticky top section: header + tabs + filters */}
       <div className="flex-shrink-0 p-4 lg:px-8 lg:pt-8 lg:pb-0">
-      {/* Header */}
+      {/* Header — hidden in Full Screen View */}
+      {!fullScreenView && (
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">Product Hub</h1>
@@ -1719,6 +1766,7 @@ export function UnifiedProductsPage({
           Add Product
         </Link>
       </div>
+      )}
 
       {markerError && mode === "products" && (
         <div className="bg-[#FAF7F1] border border-[var(--brand-olive)] text-[var(--brand-olive-hover)] px-3 py-2 rounded-lg text-xs mb-3">{markerError}</div>
@@ -1728,7 +1776,7 @@ export function UnifiedProductsPage({
           Active cell is solid Sophra olive; inactive cells are transparent so
           the warm cream container reads as a single rounded "track" beneath. */}
       <div
-        className="grid grid-cols-4 gap-1 rounded-[10px] p-1 mb-4"
+        className={`grid grid-cols-4 gap-1 rounded-[10px] p-1 ${fullScreenView ? "mb-2" : "mb-4"}`}
         style={{ background: "#EDE5D0" }}
       >
         {[
@@ -1742,14 +1790,19 @@ export function UnifiedProductsPage({
             <button
               key={tab.key}
               onClick={() => switchMode(tab.key)}
-              className={`flex flex-col items-center justify-center gap-1 rounded-[8px] transition-colors duration-150 ${
+              className={`flex items-center justify-center rounded-[8px] transition-colors duration-150 ${
+                fullScreenView ? "flex-row gap-1.5" : "flex-col gap-1"
+              } ${
                 isActive
                   ? "bg-[var(--brand-olive)] text-white"
                   : "bg-transparent text-[var(--ink-muted)] hover:text-[var(--brand-brown)]"
               }`}
-              style={{ minHeight: 56 }}
+              style={{ minHeight: fullScreenView ? 38 : 56 }}
             >
-              <tab.icon className="w-[22px] h-[22px]" strokeWidth={1.75} />
+              <tab.icon
+                className={fullScreenView ? "w-[18px] h-[18px]" : "w-[22px] h-[22px]"}
+                strokeWidth={1.75}
+              />
               <span
                 className="text-[11px] leading-none"
                 style={{ fontWeight: isActive ? 500 : 400 }}
@@ -1762,7 +1815,7 @@ export function UnifiedProductsPage({
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
+      <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 ${fullScreenView ? "mb-2 [&_select]:py-1 [&_input]:py-1" : "mb-4"}`}>
         <div className="relative col-span-2 sm:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
           <input
@@ -1852,48 +1905,82 @@ export function UnifiedProductsPage({
                 </div>
               )}
             </div>
-            {mode === "ordering" && selectedStoreId && (
-              <button
-                onClick={() => setShowCart(!showCart)}
-                className="flex items-center gap-2 px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors relative"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                {useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}
-                {cartItems.length > 0 && (
-                  <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
-                    {cartItems.length}
-                  </span>
-                )}
-              </button>
-            )}
-          </div>
-          {/* Area filter buttons */}
-          {selectedStoreId && areaNames.length > 0 && (
-            <div className="flex gap-1.5 mt-3 flex-wrap">
-              <button
-                onClick={() => setSelectedArea("ALL")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  selectedArea === "ALL"
-                    ? "bg-[var(--brand-olive)] text-white"
-                    : "bg-[var(--brand-cream)] text-[var(--ink-muted)] hover:bg-[var(--line)]"
-                }`}
-              >
-                All Areas
-              </button>
-              {areaNames.map((area) => (
+            <div className="flex items-center gap-2">
+              {mode === "ordering" && selectedStoreId && (
                 <button
-                  key={area}
-                  onClick={() => setSelectedArea(area)}
+                  onClick={() => setShowCart(!showCart)}
+                  className="flex items-center gap-2 px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors relative"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  {useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}
+                  {cartItems.length > 0 && (
+                    <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </button>
+              )}
+              {/* Full Screen View toggle — stays visible in both states so it's
+                  always the way back out. Olive when on. */}
+              <button
+                type="button"
+                onClick={() => setFullScreenViewPersisted(!fullScreenView)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                  fullScreenView
+                    ? "bg-[var(--brand-olive)] border-[var(--brand-olive)] text-white hover:bg-[var(--brand-olive-hover)]"
+                    : "bg-white border-[var(--line)] text-[var(--brand-brown)] hover:bg-[var(--brand-cream)]"
+                }`}
+                title={fullScreenView ? "Exit Full Screen View (Esc)" : "Enter Full Screen View"}
+              >
+                {fullScreenView ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                Full Screen View
+              </button>
+            </div>
+          </div>
+          {/* Area filter — chip row in regular view; collapsed to a single
+              dropdown in Full Screen View so it never wraps to multiple rows. */}
+          {selectedStoreId && areaNames.length > 0 && (
+            fullScreenView ? (
+              <div className="mt-3">
+                <select
+                  value={selectedArea}
+                  onChange={(e) => setSelectedArea(e.target.value)}
+                  className="px-3 py-1.5 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-xs font-medium text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
+                  aria-label="Filter by storage area"
+                >
+                  <option value="ALL">All Areas</option>
+                  {areaNames.map((area) => (
+                    <option key={area} value={area}>{area}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="flex gap-1.5 mt-3 flex-wrap">
+                <button
+                  onClick={() => setSelectedArea("ALL")}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    selectedArea === area
+                    selectedArea === "ALL"
                       ? "bg-[var(--brand-olive)] text-white"
                       : "bg-[var(--brand-cream)] text-[var(--ink-muted)] hover:bg-[var(--line)]"
                   }`}
                 >
-                  {area}
+                  All Areas
                 </button>
-              ))}
-            </div>
+                {areaNames.map((area) => (
+                  <button
+                    key={area}
+                    onClick={() => setSelectedArea(area)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      selectedArea === area
+                        ? "bg-[var(--brand-olive)] text-white"
+                        : "bg-[var(--brand-cream)] text-[var(--ink-muted)] hover:bg-[var(--line)]"
+                    }`}
+                  >
+                    {area}
+                  </button>
+                ))}
+              </div>
+            )
           )}
         </div>
       )}

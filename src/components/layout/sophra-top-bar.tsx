@@ -68,7 +68,7 @@ export function SophraTopBar({
 
   return (
     <header
-      className="sticky top-0 z-40 flex shrink-0 items-center gap-3 border-b px-4 py-3 sm:px-6"
+      className="sophra-top-bar sticky top-0 z-40 flex shrink-0 items-center gap-3 border-b px-4 py-3 sm:px-6"
       style={{
         backgroundColor: "var(--brand-cream)",
         borderColor: "var(--line)",
