@@ -446,11 +446,4 @@ body {
   .tab-scroll::-webkit-scrollbar {
     display: none;
   }
-
-  /* Full Screen View (Product Hub): when the page sets
-     data-fullscreen="1" on <html>, hide the global Beverage top nav so the
-     product list can take over the screen. Regular view is untouched. */
-  html[data-fullscreen="1"] .sophra-top-bar {
-    display: none;
-  }
 }
