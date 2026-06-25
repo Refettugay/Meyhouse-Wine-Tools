@@ -1,7 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { getOrganizationId } from "@/lib/session";
+import { requireAuth } from "@/lib/session";
+import { canApproveOrders } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 
 interface EmailCartItem {
@@ -14,34 +15,20 @@ interface EmailCartItem {
   casePackSize: number | null;
 }
 
-// Generate email previews — one email PER REP, each rep sees ONLY their assigned stores
-export async function generateOrderEmails(cartItems: EmailCartItem[]) {
-  const orgId = await getOrganizationId();
+type EmailOrg = {
+  name: string;
+  orderEmailFrom: string | null;
+  orderEmailFromName: string | null;
+} | null;
 
-  const org = await prisma.organization.findUnique({
-    where: { id: orgId },
-    select: {
-      name: true,
-      orderEmailFrom: true,
-      orderEmailFromName: true,
-    },
-  });
-
-  const vendors = await prisma.vendor.findMany({
-    where: { organizationId: orgId },
-    include: {
-      reps: {
-        include: {
-          locations: { include: { location: true } },
-        },
-      },
-    },
-  });
-
-  const allLocations = await prisma.location.findMany({
-    where: { organizationId: orgId },
-  });
-
+// Core email builder — one email PER REP, each rep sees ONLY their assigned
+// stores. Pure given the cart items + org + vendors (no auth/gating here so it
+// can be reused by both the cart preview and the approved-order path).
+async function buildVendorEmails(
+  cartItems: EmailCartItem[],
+  org: EmailOrg,
+  vendors: Awaited<ReturnType<typeof loadVendorsWithReps>>,
+) {
   // Group cart items by vendor
   const byVendor = new Map<string, EmailCartItem[]>();
   for (const item of cartItems) {
@@ -234,6 +221,113 @@ export async function generateOrderEmails(cartItems: EmailCartItem[]) {
   return { emails, senderEmail: org?.orderEmailFrom || null };
 }
 
+function loadVendorsWithReps(orgId: string) {
+  return prisma.vendor.findMany({
+    where: { organizationId: orgId },
+    include: {
+      reps: {
+        include: {
+          locations: { include: { location: true } },
+        },
+      },
+    },
+  });
+}
+
+function loadEmailOrg(orgId: string): Promise<EmailOrg> {
+  return prisma.organization.findUnique({
+    where: { id: orgId },
+    select: { name: true, orderEmailFrom: true, orderEmailFromName: true },
+  });
+}
+
+// Cart-based preview (Order tab). Emailing vendors is restricted to owners/
+// admins — and only APPROVED orders should reach vendors (requirement 3), so
+// this path is gated and the approved-order path below is the primary one.
+export async function generateOrderEmails(cartItems: EmailCartItem[]) {
+  const session = await requireAuth();
+  if (!canApproveOrders(session)) {
+    return { emails: [], senderEmail: null, error: "Only owners and admins can email vendors." };
+  }
+  const orgId = session.organizationId;
+  const [org, vendors] = await Promise.all([loadEmailOrg(orgId), loadVendorsWithReps(orgId)]);
+  return buildVendorEmails(cartItems, org, vendors);
+}
+
+// Approved-order email path (requirement 3 + 4). Builds vendor emails from all
+// APPROVED orders. Transferred lines have already been reassigned to the
+// receiving store's order, so grouping by the order's location naturally puts
+// them under the receiving store; we then COMBINE duplicate product lines so
+// the vendor sees a single combined quantity and never the transfer itself.
+// REJECTED lines are excluded.
+export async function generateApprovedOrderEmails() {
+  const session = await requireAuth();
+  if (!canApproveOrders(session)) {
+    return { emails: [], senderEmail: null, orderListIds: [], error: "Only owners and admins can email vendors." };
+  }
+  const orgId = session.organizationId;
+
+  const [org, vendors, orders] = await Promise.all([
+    loadEmailOrg(orgId),
+    loadVendorsWithReps(orgId),
+    prisma.orderList.findMany({
+      where: { organizationId: orgId, status: "APPROVED" },
+      include: {
+        location: true,
+        items: {
+          where: { status: { not: "REJECTED" } },
+          include: { ingredient: { include: { vendorRef: true } } },
+        },
+      },
+    }),
+  ]);
+
+  // Merge by vendor + receiving store + product + unit so transferred and
+  // native lines for the same product collapse into one combined quantity.
+  const merged = new Map<string, EmailCartItem>();
+  for (const order of orders) {
+    const locationName = order.location.name;
+    for (const item of order.items) {
+      const vendor =
+        item.vendor || item.ingredient.vendorRef?.name || item.ingredient.vendor || "No Vendor";
+      const key = `${vendor}__${locationName}__${item.ingredient.name}__${item.unit}`;
+      const existing = merged.get(key);
+      if (existing) {
+        existing.orderQty += item.quantityNeeded;
+      } else {
+        merged.set(key, {
+          productName: item.ingredient.name,
+          vendor,
+          locationName,
+          orderQty: item.quantityNeeded,
+          orderUnit: item.unit,
+          bottleSizeMl: item.ingredient.bottleSizeMl,
+          casePackSize: item.ingredient.casePackSize,
+        });
+      }
+    }
+  }
+
+  const built = await buildVendorEmails([...merged.values()], org, vendors);
+  return { ...built, orderListIds: orders.map((o) => o.id) };
+}
+
+// Move APPROVED orders to ORDERED once their emails have been sent.
+export async function markOrdersOrdered(orderListIds: string[]) {
+  const session = await requireAuth();
+  if (!canApproveOrders(session)) {
+    return { error: "Only owners and admins can finalize orders." };
+  }
+  if (orderListIds.length === 0) return { success: true, count: 0 };
+  const result = await prisma.orderList.updateMany({
+    where: { id: { in: orderListIds }, organizationId: session.organizationId, status: "APPROVED" },
+    data: { status: "ORDERED" },
+  });
+  revalidatePath("/dashboard/inventory/orders");
+  revalidatePath("/dashboard/inventory/orders/review");
+  return { success: true, count: result.count };
+}
+
 // Send emails via Resend API
 export async function sendOrderEmails(
   emails: {
@@ -244,7 +338,11 @@ export async function sendOrderEmails(
     body: string;
   }[]
 ) {
-  const orgId = await getOrganizationId();
+  const session = await requireAuth();
+  if (!canApproveOrders(session)) {
+    return { results: [], error: "Only owners and admins can email vendors." };
+  }
+  const orgId = session.organizationId;
 
   const org = await prisma.organization.findUnique({
     where: { id: orgId },

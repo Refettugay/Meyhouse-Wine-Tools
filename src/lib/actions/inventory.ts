@@ -1,7 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { getOrganizationId } from "@/lib/session";
+import { getOrganizationId, requireAuth } from "@/lib/session";
+import { canApproveOrders } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 
 // ===== LOCATIONS =====
@@ -341,7 +342,7 @@ export async function generateOrderFromCart(data: {
       organizationId: orgId,
       locationId: data.locationId,
       name: `${location?.name || "Order"} - ${now.toLocaleDateString()}`,
-      status: "DRAFT",
+      status: "IN_PROGRESS",
       createdBy: orgId,
       createdByName: data.createdByName,
       notes: data.notes || null,
@@ -512,7 +513,7 @@ export async function saveCountAndOrder(data: {
       organizationId: orgId,
       locationId: data.locationId,
       name: `${location.name} - ${now.toLocaleDateString()}`,
-      status: orderItems.length === 0 ? "COMPLETED" : "DRAFT",
+      status: orderItems.length === 0 ? "ORDERED" : "IN_PROGRESS",
       notes: data.notes || null,
       countedAt: now,
       items: {
@@ -562,7 +563,7 @@ export async function generateOrderList(locationId: string) {
       organizationId: orgId,
       locationId,
       name: `Order - ${location.name} - ${new Date().toLocaleDateString()}`,
-      status: "DRAFT",
+      status: "IN_PROGRESS",
       items: {
         create: needed.map((n) => ({
           ingredientId: n.ingredient.id,
@@ -601,4 +602,318 @@ export async function deleteOrderList(id: string) {
     where: { id, organizationId: orgId },
   });
   revalidatePath("/dashboard/inventory/orders");
+}
+
+// =============================================================================
+// APPROVAL WORKFLOW — manager builds → submits → owner/admin approves → ordered
+// =============================================================================
+//
+// Status flow: IN_PROGRESS → SUBMITTED → APPROVED → ORDERED.
+// Role checks are ALWAYS done server-side from requireAuth(); the client is
+// never trusted to gate approval.
+
+const REVALIDATE_ORDER_PATHS = [
+  "/dashboard/inventory/orders",
+  "/dashboard/inventory/orders/merged",
+  "/dashboard/inventory/orders/review",
+  "/dashboard/products",
+];
+function revalidateOrders() {
+  for (const p of REVALIDATE_ORDER_PATHS) revalidatePath(p);
+}
+
+type InProgressItemInput = {
+  ingredientId: string;
+  vendor: string | null;
+  countedStock: number | null;
+  parSnapshot: number | null;
+  quantityNeeded: number;
+  unit: string;
+  storageArea?: string | null;
+};
+
+// ===== AUTO-SAVE: shared IN_PROGRESS order (requirement 1) =====
+// Debounce-saved from the Order tab as the manager works. One IN_PROGRESS order
+// per (organization, location, creating user). Replaces the order's items each
+// call so it always mirrors the current cart. Persisting to the DB means work
+// survives a tab close and another user in the same org can load it.
+export async function saveInProgressOrder(data: {
+  locationId: string;
+  items: InProgressItemInput[];
+  notes?: string;
+}) {
+  const session = await requireAuth();
+  const orgId = session.organizationId;
+  const now = new Date();
+
+  const location = await prisma.location.findFirst({
+    where: { id: data.locationId, organizationId: orgId },
+    select: { id: true, name: true },
+  });
+  if (!location) return { error: "Location not found" };
+
+  const existing = await prisma.orderList.findFirst({
+    where: {
+      organizationId: orgId,
+      locationId: data.locationId,
+      createdBy: session.userId,
+      status: "IN_PROGRESS",
+    },
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+
+  // Empty cart for this location → drop any existing in-progress order so the
+  // shared view doesn't show a phantom empty order.
+  if (data.items.length === 0) {
+    if (existing) {
+      await prisma.orderList.delete({ where: { id: existing.id } });
+      revalidateOrders();
+    }
+    return { success: true, orderListId: null };
+  }
+
+  const itemCreate = data.items.map((i) => ({
+    ingredientId: i.ingredientId,
+    vendor: i.vendor,
+    countedStock: i.countedStock,
+    parSnapshot: i.parSnapshot,
+    quantityNeeded: i.quantityNeeded,
+    unit: i.unit,
+    storageArea: i.storageArea ?? null,
+    status: "PENDING",
+  }));
+
+  let orderListId: string;
+  if (existing) {
+    await prisma.orderListItem.deleteMany({ where: { orderListId: existing.id } });
+    await prisma.orderList.update({
+      where: { id: existing.id },
+      data: {
+        notes: data.notes ?? null,
+        countedAt: now,
+        createdByName: session.userName,
+        items: { create: itemCreate },
+      },
+    });
+    orderListId = existing.id;
+  } else {
+    const created = await prisma.orderList.create({
+      data: {
+        organizationId: orgId,
+        locationId: data.locationId,
+        name: `${location.name} - ${now.toLocaleDateString()}`,
+        status: "IN_PROGRESS",
+        createdBy: session.userId,
+        createdByName: session.userName,
+        notes: data.notes ?? null,
+        countedAt: now,
+        items: { create: itemCreate },
+      },
+    });
+    orderListId = created.id;
+  }
+
+  revalidateOrders();
+  return { success: true, orderListId };
+}
+
+// ===== SUBMIT FOR APPROVAL (manager) — IN_PROGRESS → SUBMITTED =====
+// Also commits the counted stock to inventory so the counts aren't lost.
+export async function submitOrderForApproval(orderListId: string) {
+  const session = await requireAuth();
+  const orgId = session.organizationId;
+
+  const order = await prisma.orderList.findFirst({
+    where: { id: orderListId, organizationId: orgId },
+    include: { items: true },
+  });
+  if (!order) return { error: "Order not found" };
+  if (order.status !== "IN_PROGRESS") {
+    return { error: `Only in-progress orders can be submitted (this one is ${order.status}).` };
+  }
+  if (order.items.length === 0) {
+    return { error: "Nothing to submit — the order is empty." };
+  }
+
+  const now = new Date();
+
+  // Commit the counted stock for this location's items.
+  for (const item of order.items) {
+    if (item.countedStock === null || item.countedStock === undefined) continue;
+    const inv = await prisma.inventoryItem.findUnique({
+      where: { locationId_ingredientId: { locationId: order.locationId, ingredientId: item.ingredientId } },
+      select: { id: true },
+    });
+    if (!inv) continue;
+    await prisma.inventoryItem.update({
+      where: { id: inv.id },
+      data: { currentStock: item.countedStock, lastCountedAt: now },
+    });
+    await prisma.stockCount.create({
+      data: { inventoryItemId: inv.id, count: item.countedStock, countedAt: now, countedBy: session.userName },
+    });
+  }
+
+  await prisma.orderList.update({
+    where: { id: order.id },
+    data: { status: "SUBMITTED", submittedAt: now, reviewNote: null },
+  });
+
+  revalidateOrders();
+  return { success: true };
+}
+
+// Submit several in-progress orders at once (Order tab "Submit for approval"
+// across the locations present in the cart).
+export async function submitInProgressOrders(orderListIds: string[]) {
+  let submitted = 0;
+  const errors: string[] = [];
+  for (const id of orderListIds) {
+    const res = await submitOrderForApproval(id);
+    if (res?.success) submitted++;
+    else if (res?.error) errors.push(res.error);
+  }
+  return { success: submitted > 0, submitted, errors };
+}
+
+// ===== APPROVE (owner/admin only) — SUBMITTED → APPROVED =====
+export async function approveOrder(orderListId: string) {
+  const session = await requireAuth();
+  if (!canApproveOrders(session)) {
+    return { error: "Only owners and admins can approve orders." };
+  }
+  const orgId = session.organizationId;
+
+  const order = await prisma.orderList.findFirst({
+    where: { id: orderListId, organizationId: orgId },
+    select: { id: true, status: true },
+  });
+  if (!order) return { error: "Order not found" };
+  if (order.status !== "SUBMITTED") {
+    return { error: `Only submitted orders can be approved (this one is ${order.status}).` };
+  }
+
+  await prisma.orderList.update({
+    where: { id: order.id },
+    data: {
+      status: "APPROVED",
+      approvedAt: new Date(),
+      approvedBy: session.userId,
+      approvedByName: session.userName,
+    },
+  });
+
+  revalidateOrders();
+  return { success: true };
+}
+
+// ===== SEND BACK (owner/admin only) — SUBMITTED → IN_PROGRESS, with a note =====
+export async function sendBackOrder(orderListId: string, note: string) {
+  const session = await requireAuth();
+  if (!canApproveOrders(session)) {
+    return { error: "Only owners and admins can send orders back." };
+  }
+  const orgId = session.organizationId;
+
+  const order = await prisma.orderList.findFirst({
+    where: { id: orderListId, organizationId: orgId },
+    select: { id: true, status: true },
+  });
+  if (!order) return { error: "Order not found" };
+  if (order.status !== "SUBMITTED") {
+    return { error: `Only submitted orders can be sent back (this one is ${order.status}).` };
+  }
+
+  await prisma.orderList.update({
+    where: { id: order.id },
+    data: { status: "IN_PROGRESS", submittedAt: null, reviewNote: note.trim() || null },
+  });
+
+  revalidateOrders();
+  return { success: true };
+}
+
+// ===== REVIEW: edit a line's quantity (owner/admin only) =====
+export async function setReviewItemQuantity(itemId: string, quantityNeeded: number) {
+  const session = await requireAuth();
+  if (!canApproveOrders(session)) {
+    return { error: "Only owners and admins can edit submitted orders." };
+  }
+  if (!(quantityNeeded >= 0)) return { error: "Quantity must be zero or more." };
+
+  const item = await prisma.orderListItem.findFirst({
+    where: { id: itemId, orderList: { organizationId: session.organizationId, status: "SUBMITTED" } },
+    select: { id: true },
+  });
+  if (!item) return { error: "Line not found or order not under review." };
+
+  await prisma.orderListItem.update({ where: { id: itemId }, data: { quantityNeeded } });
+  revalidateOrders();
+  return { success: true };
+}
+
+// ===== REVIEW: reject / keep a line (owner/admin only) =====
+// status: "REJECTED" removes it from the vendor order; "PENDING" keeps it.
+export async function setReviewItemStatus(itemId: string, status: "PENDING" | "REJECTED") {
+  const session = await requireAuth();
+  if (!canApproveOrders(session)) {
+    return { error: "Only owners and admins can edit submitted orders." };
+  }
+  const item = await prisma.orderListItem.findFirst({
+    where: { id: itemId, orderList: { organizationId: session.organizationId, status: "SUBMITTED" } },
+    select: { id: true },
+  });
+  if (!item) return { error: "Line not found or order not under review." };
+
+  await prisma.orderListItem.update({ where: { id: itemId }, data: { status } });
+  revalidateOrders();
+  return { success: true };
+}
+
+// ===== INTERNAL TRANSFER (owner/admin only) — requirement 4 =====
+// Move a line from its current store's order to another store's order for the
+// same vendor. Records where it came from; vendor email shows only the combined
+// quantity under the receiving store. Inventory counts are NOT adjusted.
+export async function transferOrderItem(itemId: string, toOrderListId: string) {
+  const session = await requireAuth();
+  if (!canApproveOrders(session)) {
+    return { error: "Only owners and admins can transfer order lines." };
+  }
+  const orgId = session.organizationId;
+
+  const item = await prisma.orderListItem.findFirst({
+    where: { id: itemId, orderList: { organizationId: orgId, status: "SUBMITTED" } },
+    include: {
+      orderList: { select: { id: true, locationId: true, location: { select: { name: true } } } },
+      ingredient: { select: { name: true } },
+    },
+  });
+  if (!item) return { error: "Line not found or order not under review." };
+
+  const dest = await prisma.orderList.findFirst({
+    where: { id: toOrderListId, organizationId: orgId, status: "SUBMITTED" },
+    select: { id: true, locationId: true, location: { select: { name: true } } },
+  });
+  if (!dest) return { error: "Destination order not found or not under review." };
+  if (dest.id === item.orderList.id) {
+    return { error: "Line is already in that store's order." };
+  }
+
+  const fromName = item.orderList.location.name.replace("Meyhouse ", "");
+  const unitLabel = item.quantityNeeded === 1 ? item.unit : `${item.unit}s`;
+  const transferNote = `${item.ingredient.name}: ${item.quantityNeeded} ${unitLabel} via transfer from ${fromName}`;
+
+  await prisma.orderListItem.update({
+    where: { id: itemId },
+    data: {
+      orderListId: dest.id,
+      transferFromLocationId: item.orderList.locationId,
+      transferToLocationId: dest.locationId,
+      transferNote,
+    },
+  });
+
+  revalidateOrders();
+  return { success: true };
 }

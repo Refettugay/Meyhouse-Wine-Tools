@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/db";
-import { getOrganizationId } from "@/lib/session";
+import { requireAuth } from "@/lib/session";
 import { getCategoriesConfig } from "@/lib/actions/settings";
 import { UnifiedProductsPage } from "@/components/product/unified-products-page";
 
 export default async function ProductsPage() {
-  const orgId = await getOrganizationId();
+  const session = await requireAuth();
+  const orgId = session.organizationId;
 
   const [products, locations, vendors, org] = await Promise.all([
     prisma.ingredient.findMany({
@@ -140,6 +141,37 @@ export default async function ProductsPage() {
     }
   }
 
+  // Shared in-progress orders (requirement 1): the Order tab hydrates from
+  // these so a manager's debounce-saved work survives a tab close and is
+  // visible to any user in the org who opens the Order tab.
+  const inProgressOrdersRaw = await prisma.orderList.findMany({
+    where: { organizationId: orgId, status: "IN_PROGRESS" },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      locationId: true,
+      createdBy: true,
+      createdByName: true,
+      reviewNote: true,
+      items: {
+        select: { ingredientId: true, countedStock: true, quantityNeeded: true, unit: true },
+      },
+    },
+  });
+  const inProgressOrders = inProgressOrdersRaw.map((o) => ({
+    id: o.id,
+    locationId: o.locationId,
+    createdBy: o.createdBy,
+    createdByName: o.createdByName,
+    reviewNote: o.reviewNote,
+    items: o.items.map((i) => ({
+      ingredientId: i.ingredientId,
+      countedStock: i.countedStock,
+      quantityNeeded: i.quantityNeeded,
+      unit: i.unit,
+    })),
+  }));
+
   // Serialize products for client
   const serialized = products.map((p) => ({
     id: p.id,
@@ -202,6 +234,8 @@ export default async function ProductsPage() {
       costTargets={costTargets}
       bottleSizes={bottleSizes}
       useMergedOrderCart={org?.useMergedOrderCart ?? false}
+      role={session.role}
+      inProgressOrders={inProgressOrders}
     />
   );
 }

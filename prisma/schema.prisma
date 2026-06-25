@@ -432,10 +432,18 @@ model OrderList {
   organizationId String
   locationId     String
   name           String
-  status         String   @default("DRAFT")
+  // Status flow: IN_PROGRESS → SUBMITTED → APPROVED → ORDERED.
+  // (Downstream SENT / RECEIVED states are still used by the receiving flow.)
+  status         String   @default("IN_PROGRESS")
   notes          String?
-  createdBy      String?
+  createdBy      String?         // userId of the manager who built the order
   createdByName  String?
+  // Approval workflow
+  submittedAt    DateTime?       // set when manager submits for approval
+  approvedAt     DateTime?       // set when owner/admin approves
+  approvedBy     String?         // userId of the approver
+  approvedByName String?
+  reviewNote     String?         // owner's "send back" note returned to the manager
   countedAt      DateTime?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -456,9 +464,17 @@ model OrderListItem {
   parSnapshot    Float?
   quantityNeeded Float
   unit           String  @default("bottle")
-  status         String  @default("PENDING")
+  status         String  @default("PENDING")   // PENDING | REJECTED (rejected by reviewer)
   storageArea    String?
   notes          String?
+  // Internal transfer notes (requirement 4). When a reviewer moves a line from
+  // one store's order to another store's order for the same vendor, the line is
+  // reassigned to the receiving store's order and these fields record where it
+  // came from. Vendor-facing email shows only the combined quantity under the
+  // receiving store — the transfer is internal-only.
+  transferFromLocationId String?
+  transferToLocationId   String?
+  transferNote           String?  // e.g. "3 units via transfer from Palo Alto"
 
   orderList  OrderList  @relation(fields: [orderListId], references: [id], onDelete: Cascade)
   ingredient Ingredient @relation(fields: [ingredientId], references: [id])

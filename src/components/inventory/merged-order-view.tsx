@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Printer, ShoppingCart, MapPin } from "lucide-react";
+import { Printer, ShoppingCart, MapPin, ArrowRightLeft } from "lucide-react";
 import { formatCents } from "@/lib/calculations/cost";
 
 interface MergedItem {
@@ -18,6 +18,8 @@ interface MergedItem {
   bottleCostCents: number | null;
   casePackSize: number | null;
   orderDate: string;
+  status: string;
+  transferNote: string | null;
 }
 
 // Compute the line cost taking into account unit (bottle vs case).
@@ -223,6 +225,12 @@ export function MergedOrderView({ items }: { items: MergedItem[] }) {
                               </>
                             )}
                           </div>
+                          {item.transferNote && (
+                            <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-[var(--brand-olive-hover)] bg-[rgba(74,93,39,0.12)] rounded px-2 py-0.5 print:hidden">
+                              <ArrowRightLeft className="w-3 h-3" />
+                              {item.transferNote}
+                            </p>
+                          )}
                         </div>
                         <div className="text-right">
                           <p className="text-base font-bold text-[var(--brand-olive)] print:text-black">

@@ -145,6 +145,22 @@ type SessionLike = {
 
 const EDIT_PRICING_ROLES = new Set(["OWNER", "ADMIN", "MANAGER"]);
 
+// Only owners/admins may review & approve manager-submitted orders. Managers
+// build and submit orders but cannot approve their own. Enforced server-side
+// in the order actions and the review page — never trust the client.
+const APPROVE_ORDER_ROLES = new Set(["OWNER", "ADMIN"]);
+
+/**
+ * True when this user can review/approve submitted orders and email approved
+ * orders to vendors. Owners and admins only.
+ */
+export function canApproveOrders(
+  session: SessionLike | null | undefined,
+): boolean {
+  if (!session) return false;
+  return !!session.role && APPROVE_ORDER_ROLES.has(session.role);
+}
+
 /**
  * Has the new app-permission system been hydrated for this session?
  * (session.ts only populates permissions{} when profile_app_access has

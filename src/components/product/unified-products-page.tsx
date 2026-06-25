@@ -4,8 +4,9 @@ import { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect } fr
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { updateProduct, moveProductToDatabase, moveProductToMenu, hardDeleteProduct, toggleMarkForRemoval, toggleProductTag, bulkAddProductsToLocation, bulkRemoveProductsFromLocation } from "@/lib/actions/products";
-import { saveSingleCount, saveSinglePar, updateProductStorageArea, updateProductShelf, generateOrderFromCart, createStorageArea } from "@/lib/actions/inventory";
-import { generateOrderEmails, sendOrderEmails } from "@/lib/actions/email-orders";
+import { saveSingleCount, saveSinglePar, updateProductStorageArea, updateProductShelf, createStorageArea, saveInProgressOrder, submitInProgressOrders } from "@/lib/actions/inventory";
+import { generateApprovedOrderEmails, sendOrderEmails, markOrdersOrdered } from "@/lib/actions/email-orders";
+import { canApproveOrders } from "@/lib/permissions";
 import { addBottleSize } from "@/lib/actions/settings";
 import type { SubCategory } from "@/lib/category-types";
 import { Mail } from "lucide-react";
@@ -208,6 +209,8 @@ export function UnifiedProductsPage({
   costTargets,
   bottleSizes,
   useMergedOrderCart,
+  role,
+  inProgressOrders,
 }: {
   products: Product[];
   locations: Location[];
@@ -218,7 +221,17 @@ export function UnifiedProductsPage({
   costTargets: Record<string, number>;
   bottleSizes: number[];
   useMergedOrderCart: boolean;
+  role: string;
+  inProgressOrders: {
+    id: string;
+    locationId: string;
+    createdBy: string | null;
+    createdByName: string | null;
+    reviewNote: string | null;
+    items: { ingredientId: string; countedStock: number | null; quantityNeeded: number; unit: string }[];
+  }[];
 }) {
+  const canApprove = canApproveOrders({ role });
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -786,7 +799,6 @@ export function UnifiedProductsPage({
   // Load counts + overrides from localStorage so they persist across page navigation
   const [orderCounts, setOrderCountsRaw] = useState<Record<string, string>>({});
   const [showCart, setShowCart] = useState(false);
-  const [cartExpanded, setCartExpanded] = useState(false);
   const [cartOverrides, setCartOverridesRaw] = useState<
     Record<string, { orderQty?: number; orderUnit?: string; locationId?: string; locationName?: string }>
   >({});
@@ -795,15 +807,41 @@ export function UnifiedProductsPage({
   useEffect(() => {
     if (!cartLoaded.current) {
       cartLoaded.current = true;
+      let localCounts: Record<string, string> = {};
       try {
-        const counts = JSON.parse(localStorage.getItem("meyhouse_orderCounts") || "{}");
-        if (Object.keys(counts).length > 0) setOrderCountsRaw(counts);
+        localCounts = JSON.parse(localStorage.getItem("meyhouse_orderCounts") || "{}");
+        if (Object.keys(localCounts).length > 0) setOrderCountsRaw(localCounts);
       } catch {}
       try {
         const overrides = JSON.parse(localStorage.getItem("meyhouse_cartOverrides") || "{}");
         if (Object.keys(overrides).length > 0) setCartOverridesRaw(overrides);
       } catch {}
+
+      // Hydrate from the shared IN_PROGRESS orders (requirement 1) when there's
+      // no local draft yet — so reopening the tab (same or different user)
+      // resumes the saved order. Counts are keyed by inventoryItem id, so map
+      // each order item's ingredient+location back to its inventory row.
+      if (Object.keys(localCounts).length === 0 && inProgressOrders.length > 0) {
+        const invIdByKey = new Map<string, string>();
+        for (const p of products) {
+          for (const inv of p.inventory) invIdByKey.set(`${p.id}_${inv.locationId}`, inv.id);
+        }
+        const seeded: Record<string, string> = {};
+        for (const order of inProgressOrders) {
+          for (const it of order.items) {
+            const invId = invIdByKey.get(`${it.ingredientId}_${order.locationId}`);
+            if (invId && it.countedStock !== null && it.countedStock !== undefined) {
+              seeded[invId] = String(it.countedStock);
+            }
+          }
+        }
+        if (Object.keys(seeded).length > 0) {
+          setOrderCountsRaw(seeded);
+          try { localStorage.setItem("meyhouse_orderCounts", JSON.stringify(seeded)); } catch {}
+        }
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Wrapper functions that save to localStorage on every change
@@ -985,86 +1023,35 @@ export function UnifiedProductsPage({
   }
 
 
-  const [generatingOrder, setGeneratingOrder] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState<{ id: string; count: number } | null>(null);
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [emailPreviews, setEmailPreviews] = useState<any[]>([]);
+  const [emailOrderListIds, setEmailOrderListIds] = useState<string[]>([]);
   const [sendingEmails, setSendingEmails] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
   const [emailResult, setEmailResult] = useState<any>(null);
 
-  async function handleGenerateOrder() {
-    if (cartItems.length === 0) return;
-    setGeneratingOrder(true);
-    setOrderSuccess(null);
-
-    // Group cart items by location — create one order per store
-    const byLocation = new Map<string, CartItem[]>();
-    for (const ci of cartItems) {
-      if (!byLocation.has(ci.locationId)) byLocation.set(ci.locationId, []);
-      byLocation.get(ci.locationId)!.push(ci);
-    }
-
-    let totalItems = 0;
-    let lastOrderId = "";
-
-    for (const [locationId, locationItems] of byLocation) {
-      // Find inventory item IDs for this location's items
-      const items = locationItems.map((ci) => {
-        const product = products.find((p) => p.id === ci.productId);
-        const inv = product?.inventory.find((i) => i.locationId === locationId);
-        return {
-          ingredientId: ci.productId,
-          inventoryItemId: inv?.id || "",
-          countedStock: ci.counted,
-          parLevel: ci.parLevel,
-          quantityNeeded: ci.orderQty,
-          unit: ci.orderUnit,
-          vendor: ci.vendor === "No Vendor" ? null : ci.vendor,
-        };
-      }).filter((i) => i.inventoryItemId);
-
-      if (items.length === 0) continue;
-
-      const result = await generateOrderFromCart({
-        locationId,
-        items,
-        createdByName: "Owner",
-        notes: undefined,
-      });
-
-      if (result?.success) {
-        totalItems += result.itemCount;
-        lastOrderId = result.orderListId;
-      }
-    }
-
-    setGeneratingOrder(false);
-
-    if (totalItems > 0) {
-      setOrderSuccess({ id: lastOrderId, count: totalItems });
-      // Don't clear cart — let user review and clear manually
-    }
-  }
-
+  // Owner/admin only: preview vendor emails built from APPROVED orders
+  // (requirement 3). Transferred lines are already merged into the receiving
+  // store and combined, so the vendor never sees the transfer.
   async function handleEmailPreview() {
-    const items = cartItems.map((ci) => ({
-      productName: ci.productName,
-      vendor: ci.vendor,
-      locationName: ci.locationName,
-      orderQty: ci.orderQty,
-      orderUnit: ci.orderUnit,
-      bottleSizeMl: ci.bottleCostCents ? null : null, // We don't have this on CartItem directly
-      casePackSize: ci.casePackSize,
-    }));
-    const result = await generateOrderEmails(items);
-    setEmailPreviews(result.emails);
-    setShowEmailPreview(true);
+    setEmailLoading(true);
     setEmailResult(null);
+    setShowCart(true); // the email modal renders inside the cart panel
+    const result = await generateApprovedOrderEmails();
+    setEmailLoading(false);
+    if ((result as any)?.error) {
+      setEmailResult({ results: [{ vendor: "—", status: "FAILED", error: (result as any).error }] });
+    }
+    setEmailPreviews(result.emails || []);
+    setEmailOrderListIds((result as any).orderListIds || []);
+    setShowEmailPreview(true);
   }
 
   async function handleSendEmails() {
     setSendingEmails(true);
     const result = await sendOrderEmails(emailPreviews);
+    // Move the approved orders to ORDERED now that they've been emailed.
+    if (emailOrderListIds.length > 0) await markOrdersOrdered(emailOrderListIds);
     setSendingEmails(false);
     setEmailResult(result);
   }
@@ -1072,11 +1059,117 @@ export function UnifiedProductsPage({
   function handleClearCart() {
     setOrderCounts({});
     setCartOverrides({});
-    setOrderSuccess(null);
+    setSubmitResult(null);
     try {
       localStorage.removeItem("meyhouse_orderCounts");
       localStorage.removeItem("meyhouse_cartOverrides");
     } catch {}
+  }
+
+  // ===== AUTO-SAVE TO SHARED IN_PROGRESS ORDER (requirement 1) =====
+  // As the manager builds the order, debounce-persist the cart to the DB (one
+  // IN_PROGRESS order per location). This survives a tab close and lets another
+  // user in the org resume the order.
+  const [submitting, setSubmitting] = useState(false);
+  const [submitResult, setSubmitResult] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevSavedLocs = useRef<Set<string>>(new Set());
+  const skipFirstAutosave = useRef(true);
+
+  // Group the current cart into per-location payloads for saveInProgressOrder.
+  const buildLocationPayloads = useCallback(() => {
+    const byLoc = new Map<string, { ingredientId: string; vendor: string | null; countedStock: number | null; parSnapshot: number | null; quantityNeeded: number; unit: string }[]>();
+    for (const ci of cartItems) {
+      if (!byLoc.has(ci.locationId)) byLoc.set(ci.locationId, []);
+      byLoc.get(ci.locationId)!.push({
+        ingredientId: ci.productId,
+        vendor: ci.vendor === "No Vendor" ? null : ci.vendor,
+        countedStock: ci.counted,
+        parSnapshot: ci.parLevel,
+        quantityNeeded: ci.orderQty,
+        unit: ci.orderUnit,
+      });
+    }
+    return byLoc;
+  }, [cartItems]);
+
+  // Save all current locations (and clear any location that dropped out of the
+  // cart since the last save). Returns the saved order ids.
+  const saveAllInProgress = useCallback(async (): Promise<string[]> => {
+    const byLoc = buildLocationPayloads();
+    const ids: string[] = [];
+    const currentLocs = new Set(byLoc.keys());
+    // Locations that had a saved order but are now empty → delete (empty items).
+    for (const loc of prevSavedLocs.current) {
+      if (!currentLocs.has(loc)) {
+        await saveInProgressOrder({ locationId: loc, items: [] });
+      }
+    }
+    for (const [locationId, items] of byLoc) {
+      const res = await saveInProgressOrder({ locationId, items });
+      if (res?.success && res.orderListId) ids.push(res.orderListId);
+    }
+    prevSavedLocs.current = currentLocs;
+    return ids;
+  }, [buildLocationPayloads]);
+
+  useEffect(() => {
+    if (mode !== "ordering") return;
+    // Don't autosave the very first render (we may have just hydrated).
+    if (skipFirstAutosave.current) {
+      skipFirstAutosave.current = false;
+      return;
+    }
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(() => {
+      saveAllInProgress().catch((e) => console.error("Auto-save failed:", e));
+    }, 1500);
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  }, [cartItems, mode, saveAllInProgress]);
+
+  // Flush a pending save when the tab is hidden/closed so work isn't lost.
+  useEffect(() => {
+    const flush = () => {
+      if (document.visibilityState === "hidden") {
+        if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+        saveAllInProgress().catch(() => {});
+      }
+    };
+    document.addEventListener("visibilitychange", flush);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      document.removeEventListener("visibilitychange", flush);
+      window.removeEventListener("pagehide", flush);
+    };
+  }, [saveAllInProgress]);
+
+  // ===== SUBMIT FOR APPROVAL (requirement 2) =====
+  async function handleSubmitForApproval() {
+    if (cartItems.length === 0) return;
+    setSubmitting(true);
+    setSubmitResult(null);
+    try {
+      const ids = await saveAllInProgress();
+      if (ids.length === 0) {
+        setSubmitResult({ kind: "error", text: "Nothing to submit." });
+        setSubmitting(false);
+        return;
+      }
+      const res = await submitInProgressOrders(ids);
+      if (res?.success) {
+        setSubmitResult({ kind: "success", text: `Submitted ${res.submitted} order${res.submitted === 1 ? "" : "s"} for approval.` });
+        prevSavedLocs.current = new Set();
+        handleClearCart();
+      } else {
+        setSubmitResult({ kind: "error", text: res?.errors?.[0] || "Failed to submit." });
+      }
+    } catch (e) {
+      console.error("Submit failed:", e);
+      setSubmitResult({ kind: "error", text: "Failed to submit for approval." });
+    }
+    setSubmitting(false);
   }
 
   // Get order history helper
@@ -1768,7 +1861,7 @@ export function UnifiedProductsPage({
       </div>
       )}
 
-      {markerError && mode === "products" && (
+      {markerError && mode === "products" && !fullScreenView && (
         <div className="bg-[#FAF7F1] border border-[var(--brand-olive)] text-[var(--brand-olive-hover)] px-3 py-2 rounded-lg text-xs mb-3">{markerError}</div>
       )}
 
@@ -1776,7 +1869,7 @@ export function UnifiedProductsPage({
           Active cell is solid Sophra olive; inactive cells are transparent so
           the warm cream container reads as a single rounded "track" beneath. */}
       <div
-        className={`grid grid-cols-4 gap-1 rounded-[10px] p-1 ${fullScreenView ? "mb-2" : "mb-4"}`}
+        className={`grid grid-cols-4 gap-1 rounded-[10px] ${fullScreenView ? "p-0.5 mb-2" : "p-1 mb-4"}`}
         style={{ background: "#EDE5D0" }}
       >
         {[
@@ -1791,16 +1884,16 @@ export function UnifiedProductsPage({
               key={tab.key}
               onClick={() => switchMode(tab.key)}
               className={`flex items-center justify-center rounded-[8px] transition-colors duration-150 ${
-                fullScreenView ? "flex-row gap-1.5" : "flex-col gap-1"
+                fullScreenView ? "flex-row gap-1.5 px-2 py-1" : "flex-col gap-1"
               } ${
                 isActive
                   ? "bg-[var(--brand-olive)] text-white"
                   : "bg-transparent text-[var(--ink-muted)] hover:text-[var(--brand-brown)]"
               }`}
-              style={{ minHeight: fullScreenView ? 38 : 56 }}
+              style={{ minHeight: fullScreenView ? 28 : 56 }}
             >
               <tab.icon
-                className={fullScreenView ? "w-[18px] h-[18px]" : "w-[22px] h-[22px]"}
+                className={fullScreenView ? "w-4 h-4" : "w-[22px] h-[22px]"}
                 strokeWidth={1.75}
               />
               <span
@@ -1906,19 +1999,34 @@ export function UnifiedProductsPage({
               )}
             </div>
             <div className="flex items-center gap-2">
-              {mode === "ordering" && selectedStoreId && (
-                <button
-                  onClick={() => setShowCart(!showCart)}
-                  className="flex items-center gap-2 px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors relative"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  {useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}
-                  {cartItems.length > 0 && (
-                    <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
-                      {cartItems.length}
-                    </span>
+              {mode === "ordering" && (
+                <>
+                  {canApprove && (
+                    <button
+                      onClick={handleEmailPreview}
+                      disabled={emailLoading}
+                      className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                      title="Email APPROVED orders to vendors"
+                    >
+                      <Mail className="w-4 h-4" />
+                      {emailLoading ? "Loading..." : "Email Approved Orders"}
+                    </button>
                   )}
-                </button>
+                  {selectedStoreId && (
+                    <button
+                      onClick={() => setShowCart(!showCart)}
+                      className="flex items-center gap-2 px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors relative"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      {useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}
+                      {cartItems.length > 0 && (
+                        <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
+                          {cartItems.length}
+                        </span>
+                      )}
+                    </button>
+                  )}
+                </>
               )}
               {/* Full Screen View toggle — stays visible in both states so it's
                   always the way back out. Olive when on. */}
@@ -3296,9 +3404,9 @@ export function UnifiedProductsPage({
       )}
 
       {mode === "ordering" && (
-        <div className="flex gap-3">
-          {/* Main ordering table */}
-          <div className={`flex-1 min-w-0 transition-all duration-200 ${cartExpanded ? "hidden" : ""}`}>
+        <div>
+          {/* Main ordering table — always full width; cart floats over it as a drawer */}
+          <div className="min-w-0">
 
             {!selectedStoreId ? (
               <div className="bg-white border border-[var(--line)] rounded-xl p-8 text-center">
@@ -3577,30 +3685,38 @@ export function UnifiedProductsPage({
             )}
           </div>
 
-          {/* ===== ORDER CART SIDEBAR ===== */}
+          {/* ===== ORDER CART — right-side slide-over drawer ===== */}
+          {/* Dimmed backdrop — click to close */}
           {showCart && (
-            <div className={`${cartExpanded ? "flex-1" : "w-[260px]"} flex-shrink-0 sticky top-2 self-start max-h-[calc(100vh-12rem)] bg-white border border-[var(--line)] rounded-xl shadow-lg flex flex-col transition-all duration-200 z-20`}>
+            <div
+              className="fixed inset-0 bg-black/40 z-40"
+              onClick={() => setShowCart(false)}
+              aria-hidden="true"
+            />
+          )}
+          {/* Drawer: stays mounted, slides in/out via transform so it floats
+              over the table without ever shrinking it. */}
+          <div
+            className={`fixed top-0 right-0 h-screen w-[420px] max-w-[90vw] bg-white border-l border-[var(--line)] shadow-xl flex flex-col z-50 transition-transform duration-200 ${
+              showCart ? "translate-x-0" : "translate-x-full"
+            }`}
+            role="dialog"
+            aria-label={useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}
+            aria-hidden={!showCart}
+          >
               <div className="p-4 border-b border-[var(--line)] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-[var(--brand-olive)]" />
                   <h2 className="font-bold">{useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}</h2>
                   <span className="text-xs text-[var(--ink-muted)]">({cartItems.length})</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setCartExpanded(!cartExpanded)}
-                    className="text-[var(--ink-muted)] hover:text-[var(--brand-olive)] p-1 transition-colors"
-                    title={cartExpanded ? "Collapse cart" : "Expand cart full width"}
-                  >
-                    {cartExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                  </button>
-                  <button
-                    onClick={() => { setShowCart(false); setCartExpanded(false); }}
-                    className="text-[var(--ink-muted)] hover:text-[var(--brand-brown)] text-lg"
-                  >
-                    ✕
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowCart(false)}
+                  className="text-[var(--ink-muted)] hover:text-[var(--brand-brown)] text-lg"
+                  aria-label="Close cart"
+                >
+                  ✕
+                </button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-3">
@@ -3724,18 +3840,21 @@ export function UnifiedProductsPage({
                       {cartTotal > 0 ? `$${cartTotal.toFixed(2)}` : "—"}
                     </span>
                   </div>
-                  {orderSuccess && (
-                    <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-3 py-2 mb-2 text-xs">
-                      ✓ Order created — {orderSuccess.count} items saved
+                  {submitResult && (
+                    <div className={`rounded-lg px-3 py-2 mb-2 text-xs ${submitResult.kind === "success" ? "bg-green-50 border border-green-200 text-green-700" : "bg-red-50 border border-red-200 text-red-700"}`}>
+                      {submitResult.kind === "success" ? "✓ " : ""}{submitResult.text}
                     </div>
                   )}
+                  <p className="text-[10px] text-[var(--ink-muted)] mb-2 text-center">
+                    Auto-saved as you work. Submit when ready for owner approval.
+                  </p>
                   <div className="flex gap-2">
                     <button
-                      onClick={handleGenerateOrder}
-                      disabled={generatingOrder || cartItems.length === 0}
+                      onClick={handleSubmitForApproval}
+                      disabled={submitting || cartItems.length === 0}
                       className="flex-1 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
                     >
-                      {generatingOrder ? "Saving..." : orderSuccess ? "Save Again" : "Generate Order"}
+                      {submitting ? "Submitting..." : "Submit for Approval"}
                     </button>
                     <button
                       onClick={() => window.print()}
@@ -3744,13 +3863,15 @@ export function UnifiedProductsPage({
                       Print
                     </button>
                   </div>
-                  <button
-                    onClick={handleEmailPreview}
-                    className="w-full mt-2 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
-                  >
-                    <Mail className="w-3 h-3" />
-                    Email Orders to Vendors
-                  </button>
+                  {canApprove && (
+                    <Link
+                      href="/dashboard/inventory/orders/review"
+                      className="w-full mt-2 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                    >
+                      <ClipboardList className="w-3 h-3" />
+                      Review &amp; Approve Orders
+                    </Link>
+                  )}
                   <button
                     onClick={() => {
                       if (confirm("Clear all items from the cart? This will reset all counts.")) {
@@ -3763,9 +3884,11 @@ export function UnifiedProductsPage({
                   </button>
                 </div>
               )}
+          </div>{/* end cart drawer */}
 
-              {/* Email Preview Modal */}
-              {showEmailPreview && (
+          {/* Email Preview Modal — rendered outside the transformed drawer so its
+              fixed positioning is relative to the viewport, not the drawer. */}
+          {showEmailPreview && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                   <div className="fixed inset-0 bg-black/40" onClick={() => setShowEmailPreview(false)} />
                   <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto m-4 z-50">
@@ -3844,8 +3967,6 @@ export function UnifiedProductsPage({
                   </div>
                 </div>
               )}
-            </div>
-          )}
         </div>
       )}
 

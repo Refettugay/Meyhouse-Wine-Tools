@@ -38,6 +38,7 @@ export default async function OrderDetailPage({
     unit: i.unit,
     storageArea: i.storageArea,
     status: i.status,
+    transferNote: i.transferNote,
     bottleCostCents: i.ingredient.bottleCostCents,
     casePackSize: i.ingredient.casePackSize,
   }));
@@ -60,18 +61,30 @@ export default async function OrderDetailPage({
           <h1 className="text-2xl font-bold">{order.name}</h1>
           <span
             className={`text-xs px-2 py-1 rounded ${
-              order.status === "SENT"
+              order.status === "ORDERED" || order.status === "SENT"
                 ? "bg-green-100 text-green-700"
                 : order.status === "RECEIVED"
                 ? "bg-blue-100 text-blue-700"
-                : order.status === "COMPLETED"
-                ? "bg-[var(--brand-cream)] text-[var(--brand-brown)]"
+                : order.status === "APPROVED"
+                ? "bg-emerald-100 text-emerald-700"
+                : order.status === "SUBMITTED"
+                ? "bg-amber-100 text-amber-700"
                 : "bg-[rgba(74,93,39,0.12)] text-[var(--brand-olive-hover)]"
             }`}
           >
-            {order.status}
+            {order.status.replace("_", " ")}
           </span>
         </div>
+        {order.status === "IN_PROGRESS" && order.reviewNote && (
+          <p className="mt-2 text-sm bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-amber-800 inline-block">
+            Sent back by owner: {order.reviewNote}
+          </p>
+        )}
+        {order.approvedByName && order.approvedAt && (
+          <p className="mt-2 text-xs text-[var(--ink-muted)]">
+            Approved by {order.approvedByName} · {new Date(order.approvedAt).toLocaleString()}
+          </p>
+        )}
         <p className="text-[var(--ink-muted)] text-sm">
           {order.location.name} ·{" "}
           {createdAt.toLocaleDateString()}{" "}
@@ -100,7 +113,7 @@ export default async function OrderDetailPage({
           </p>
         </div>
       ) : (
-        <OrderDetailView orderId={order.id} items={items} />
+        <OrderDetailView orderId={order.id} status={order.status} items={items} />
       )}
     </div>
   );
