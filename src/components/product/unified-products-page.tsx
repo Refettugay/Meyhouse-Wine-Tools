@@ -1675,6 +1675,25 @@ export function UnifiedProductsPage({
     });
   }
 
+  // Full Screen View toggle — defined once and reused so it can appear on
+  // every mode tab (the location bar only renders for Order/Count). Olive
+  // when on; always visible so it's the way back out in any mode.
+  const fullScreenToggle = (
+    <button
+      type="button"
+      onClick={() => setFullScreenViewPersisted(!fullScreenView)}
+      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
+        fullScreenView
+          ? "bg-[var(--brand-olive)] border-[var(--brand-olive)] text-white hover:bg-[var(--brand-olive-hover)]"
+          : "bg-white border-[var(--line)] text-[var(--brand-brown)] hover:bg-[var(--brand-cream)]"
+      }`}
+      title={fullScreenView ? "Exit Full Screen View (Esc)" : "Enter Full Screen View"}
+    >
+      {fullScreenView ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+      Full Screen View
+    </button>
+  );
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Sticky top section: header + tabs + filters */}
@@ -1962,6 +1981,15 @@ export function UnifiedProductsPage({
         </select>
       </div>
 
+      {/* Inventory & Pricing tabs have no location bar — give them a
+          right-aligned Full Screen toggle so it's reachable (and closable)
+          on every tab. */}
+      {(mode === "products" || mode === "pricing") && (
+        <div className="flex justify-end mt-1">
+          {fullScreenToggle}
+        </div>
+      )}
+
       {/* Store selector + Area buttons — pinned for Ordering & Inventory modes */}
       {(mode === "ordering" || mode === "inventory") && (
         <div className={`bg-white border border-[var(--line)] rounded-xl mt-1 ${fullScreenView ? "p-2" : "p-3"}`}>
@@ -2045,19 +2073,7 @@ export function UnifiedProductsPage({
               )}
               {/* Full Screen View toggle — stays visible in both states so it's
                   always the way back out. Olive when on. */}
-              <button
-                type="button"
-                onClick={() => setFullScreenViewPersisted(!fullScreenView)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
-                  fullScreenView
-                    ? "bg-[var(--brand-olive)] border-[var(--brand-olive)] text-white hover:bg-[var(--brand-olive-hover)]"
-                    : "bg-white border-[var(--line)] text-[var(--brand-brown)] hover:bg-[var(--brand-cream)]"
-                }`}
-                title={fullScreenView ? "Exit Full Screen View (Esc)" : "Enter Full Screen View"}
-              >
-                {fullScreenView ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                Full Screen View
-              </button>
+              {fullScreenToggle}
             </div>
           </div>
           {/* Area filter — chip row in regular view only. In Full Screen View the
