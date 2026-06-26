@@ -1964,7 +1964,7 @@ export function UnifiedProductsPage({
 
       {/* Store selector + Area buttons — pinned for Ordering & Inventory modes */}
       {(mode === "ordering" || mode === "inventory") && (
-        <div className="bg-white border border-[var(--line)] rounded-xl p-3 mt-1">
+        <div className={`bg-white border border-[var(--line)] rounded-xl mt-1 ${fullScreenView ? "p-2" : "p-3"}`}>
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <MapPin className="w-5 h-5 text-[var(--brand-olive)]" />
@@ -1985,6 +1985,21 @@ export function UnifiedProductsPage({
                   <option key={l.id} value={l.id}>{l.name}</option>
                 ))}
               </select>
+              {/* In Full Screen View the area filter moves up here (inline) so the
+                  bar stays a single narrow row instead of wrapping to a 2nd row. */}
+              {fullScreenView && selectedStoreId && areaNames.length > 0 && (
+                <select
+                  value={selectedArea}
+                  onChange={(e) => setSelectedArea(e.target.value)}
+                  className="px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] font-medium focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] text-sm"
+                  aria-label="Filter by storage area"
+                >
+                  <option value="ALL">All Areas</option>
+                  {areaNames.map((area) => (
+                    <option key={area} value={area}>{area}</option>
+                  ))}
+                </select>
+              )}
               {mode === "inventory" && selectedStoreId && (
                 <div className="flex items-center gap-3 text-xs">
                   <span className="text-[var(--ink-muted)]">{inventoryForStore.length} items</span>
@@ -2045,24 +2060,9 @@ export function UnifiedProductsPage({
               </button>
             </div>
           </div>
-          {/* Area filter — chip row in regular view; collapsed to a single
-              dropdown in Full Screen View so it never wraps to multiple rows. */}
-          {selectedStoreId && areaNames.length > 0 && (
-            fullScreenView ? (
-              <div className="mt-3">
-                <select
-                  value={selectedArea}
-                  onChange={(e) => setSelectedArea(e.target.value)}
-                  className="px-3 py-1.5 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-xs font-medium text-[var(--brand-brown)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
-                  aria-label="Filter by storage area"
-                >
-                  <option value="ALL">All Areas</option>
-                  {areaNames.map((area) => (
-                    <option key={area} value={area}>{area}</option>
-                  ))}
-                </select>
-              </div>
-            ) : (
+          {/* Area filter — chip row in regular view only. In Full Screen View the
+              filter is moved up into the top row (above) as a compact dropdown. */}
+          {!fullScreenView && selectedStoreId && areaNames.length > 0 && (
               <div className="flex gap-1.5 mt-3 flex-wrap">
                 <button
                   onClick={() => setSelectedArea("ALL")}
@@ -2088,7 +2088,6 @@ export function UnifiedProductsPage({
                   </button>
                 ))}
               </div>
-            )
           )}
         </div>
       )}
