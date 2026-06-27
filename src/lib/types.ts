@@ -6,7 +6,7 @@
 // beverage's session.ts started hydrating profile_app_access and
 // profile_feature_overrides for per-feature gating.
 
-export type App = "SCHEDULING" | "BEVERAGE";
+export type App = "SCHEDULING" | "BEVERAGE" | "TIPS";
 export type AppRole = "viewer" | "staff" | "manager" | "admin";
 
 export type ProfileAppAccess = {

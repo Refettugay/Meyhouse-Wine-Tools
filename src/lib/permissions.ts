@@ -78,6 +78,27 @@ export const ROLE_GRANTS: Record<App, Record<AppRole, ReadonlySet<string>>> = {
       "beverage.inventory.view",
     ]),
   },
+  // Tip Calculator (launcher /tips) + staff self-view (scheduling My Shifts /
+  // My Tips). admin & manager run the tool (entry + config + all-staff
+  // payouts); staff & viewer only ever see their OWN payouts.
+  TIPS: {
+    admin: new Set([
+      "tips.access",
+      "tips.entry",
+      "tips.manage",
+      "tips.view.all",
+      "tips.view.own",
+    ]),
+    manager: new Set([
+      "tips.access",
+      "tips.entry",
+      "tips.manage",
+      "tips.view.all",
+      "tips.view.own",
+    ]),
+    staff: new Set(["tips.access", "tips.view.own"]),
+    viewer: new Set(["tips.access", "tips.view.own"]),
+  },
 };
 
 // All beverage feature keys session.ts hydrates into the permissions{} map.
@@ -93,9 +114,20 @@ export const BEVERAGE_FEATURES: readonly string[] = [
   "beverage.reports.view",
 ];
 
+// Stable list of every tips.* feature key — matches the feature_permissions
+// seed in migration 0040 (the BEVERAGE_FEATURES equivalent for TIPS).
+export const TIPS_FEATURES: readonly string[] = [
+  "tips.access",
+  "tips.entry",
+  "tips.manage",
+  "tips.view.all",
+  "tips.view.own",
+];
+
 export function featureApp(featureKey: string): App | null {
   if (featureKey.startsWith("scheduling.")) return "SCHEDULING";
   if (featureKey.startsWith("beverage.")) return "BEVERAGE";
+  if (featureKey.startsWith("tips.")) return "TIPS";
   return null;
 }
 

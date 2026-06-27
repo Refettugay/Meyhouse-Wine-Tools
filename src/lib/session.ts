@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "./supabase/server";
 import { prisma } from "./db";
-import { BEVERAGE_FEATURES, hasFeature } from "./permissions";
+import { BEVERAGE_FEATURES, TIPS_FEATURES, hasFeature } from "./permissions";
 import type { ProfileAppAccess, ProfileFeatureOverride } from "./types";
 
 // URLs of the other Sophra apps. Defaults match production; override in
@@ -123,7 +123,10 @@ export async function requireAuth() {
 
   const permissions: Record<string, unknown> = {};
   if (appAccess.length > 0) {
-    for (const key of BEVERAGE_FEATURES) {
+    // beverage.* gates this app; tips.* is hydrated the same way so the shared
+    // session shape stays consistent across apps (the Tip tool itself lives in
+    // the launcher, but a TIPS-row holder reads as tip-enabled here too).
+    for (const key of [...BEVERAGE_FEATURES, ...TIPS_FEATURES]) {
       permissions[key] = hasFeature(key, appAccess, overrides);
     }
   }
