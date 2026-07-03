@@ -12,6 +12,7 @@ import type { SubCategory } from "@/lib/category-types";
 import { Mail } from "lucide-react";
 import { useResizableColumns } from "@/hooks/use-resizable-columns";
 import { MenuPricingReadOnly } from "@/components/product/menu-pricing-readonly";
+import { AddVendorDrawer } from "@/components/vendor/add-vendor-drawer";
 import {
   Search,
   Plus,
@@ -695,6 +696,13 @@ export function UnifiedProductsPage({
   } | null>(null);
   const [editValue, setEditValue] = useState("");
   const [removeMenuOpen, setRemoveMenuOpen] = useState<string | null>(null);
+
+  // Local copy of vendors so a vendor created via the "+ Add new vendor…"
+  // drawer shows in the dropdowns immediately, before the server revalidates.
+  const [vendorList, setVendorList] = useState(vendors);
+  useEffect(() => { setVendorList(vendors); }, [vendors]);
+  // Product id the Add-Vendor drawer should assign to; drawer open when set.
+  const [addVendorFor, setAddVendorFor] = useState<string | null>(null);
 
   // Inventory mode state
   const [selectedStoreId, setSelectedStoreId] = useState<string>(
@@ -1648,6 +1656,32 @@ export function UnifiedProductsPage({
     }
   }
 
+  // Attach a vendor to a product outside the inline-edit flow (used by the
+  // Add-Vendor drawer). Mirrors saveEdit's full-payload updateProduct call.
+  async function assignVendorToProduct(productId: string, vendorId: string) {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+    const data: any = {
+      name: product.name,
+      type: product.type,
+      vendorId: vendorId || undefined,
+      ingredientCategory: product.ingredientCategory || undefined,
+      bottleSizeMl: product.bottleSizeMl || undefined,
+      bottleSizeUnit: product.bottleSizeUnit || "ml",
+      yieldCount: product.yieldCount ?? null,
+      yieldUnit: product.yieldUnit ?? null,
+      casePackSize: product.casePackSize || undefined,
+      bottleCostCents: product.bottleCostCents || undefined,
+      locationIds: product.locationIds,
+    };
+    try {
+      await updateProduct(productId, data);
+    } catch (e) {
+      console.error("assignVendorToProduct failed:", e);
+      setMarkerError("Failed to assign vendor");
+    }
+  }
+
   function handleKeyDown(
     e: React.KeyboardEvent,
     productId: string,
@@ -2582,13 +2616,21 @@ export function UnifiedProductsPage({
                           {isEd("vendor") ? (
                             <select
                               value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
+                              onChange={(e) => {
+                                if (e.target.value === "__add__") {
+                                  setEditingCell(null);
+                                  setAddVendorFor(p.id);
+                                  return;
+                                }
+                                setEditValue(e.target.value);
+                              }}
                               onBlur={() => saveEdit(p.id, "vendor")}
                               className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                               autoFocus
                             >
+                              <option value="__add__">+ Add new vendor…</option>
                               <option value="">—</option>
-                              {vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                              {vendorList.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
                             </select>
                           ) : (
                             <span
@@ -3575,13 +3617,21 @@ export function UnifiedProductsPage({
                               {isEd("vendor") ? (
                                 <select
                                   value={editValue}
-                                  onChange={(e) => setEditValue(e.target.value)}
+                                  onChange={(e) => {
+                                    if (e.target.value === "__add__") {
+                                      setEditingCell(null);
+                                      setAddVendorFor(item.id);
+                                      return;
+                                    }
+                                    setEditValue(e.target.value);
+                                  }}
                                   onBlur={() => saveEdit(item.id, "vendor")}
                                   className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                                   autoFocus
                                 >
+                                  <option value="__add__">+ Add new vendor…</option>
                                   <option value="">—</option>
-                                  {vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                                  {vendorList.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
                                 </select>
                               ) : (
                                 <span
@@ -3699,6 +3749,26 @@ export function UnifiedProductsPage({
               </div>
             )}
           </div>
+
+          {/* ===== ADD VENDOR — right-side slide-over drawer =====
+              Opened from the "+ Add new vendor…" shortcut in vendor cells. */}
+          <AddVendorDrawer
+            open={addVendorFor !== null}
+            onClose={() => setAddVendorFor(null)}
+            assignToLabel={
+              addVendorFor
+                ? products.find((p) => p.id === addVendorFor)?.name ?? null
+                : null
+            }
+            onCreated={(vendor) => {
+              setVendorList((prev) =>
+                [...prev, vendor].sort((a, b) => a.name.localeCompare(b.name)),
+              );
+              if (addVendorFor) {
+                assignVendorToProduct(addVendorFor, vendor.id);
+              }
+            }}
+          />
 
           {/* ===== ORDER CART — right-side slide-over drawer ===== */}
           {/* Dimmed backdrop — click to close */}

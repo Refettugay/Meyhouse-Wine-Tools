@@ -186,23 +186,15 @@ function VendorDetails({
     <div className="px-4 pb-4 border-t border-[var(--line)] pt-4">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-medium text-[var(--brand-brown)]">Representatives</h3>
-        <div className="flex gap-2">
-          {!addingRep && (
-            <button
-              onClick={() => setAddingRep(true)}
-              className="flex items-center gap-1 text-sm text-[var(--brand-olive)] hover:text-[var(--brand-olive-hover)]"
-            >
-              <Plus className="w-3 h-3" />
-              Add Rep
-            </button>
-          )}
+        {!addingRep && (
           <button
-            onClick={onDelete}
-            className="text-[var(--ink-muted)] hover:text-red-600"
+            onClick={() => setAddingRep(true)}
+            className="flex items-center gap-1 text-sm text-[var(--brand-olive)] hover:text-[var(--brand-olive-hover)]"
           >
-            <Trash2 className="w-4 h-4" />
+            <Plus className="w-3 h-3" />
+            Add Rep
           </button>
-        </div>
+        )}
       </div>
 
       {/* Add rep form */}
@@ -297,6 +289,18 @@ function VendorDetails({
             No representatives added yet
           </p>
         )}
+      </div>
+
+      {/* Delete vendor — clearly labeled and separated from rep controls
+          so it can't be mistaken for a "delete rep" action. */}
+      <div className="mt-4 pt-3 border-t border-[var(--line)] flex justify-end">
+        <button
+          onClick={onDelete}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          Delete vendor
+        </button>
       </div>
     </div>
   );
