@@ -3750,26 +3750,6 @@ export function UnifiedProductsPage({
             )}
           </div>
 
-          {/* ===== ADD VENDOR — right-side slide-over drawer =====
-              Opened from the "+ Add new vendor…" shortcut in vendor cells. */}
-          <AddVendorDrawer
-            open={addVendorFor !== null}
-            onClose={() => setAddVendorFor(null)}
-            assignToLabel={
-              addVendorFor
-                ? products.find((p) => p.id === addVendorFor)?.name ?? null
-                : null
-            }
-            onCreated={(vendor) => {
-              setVendorList((prev) =>
-                [...prev, vendor].sort((a, b) => a.name.localeCompare(b.name)),
-              );
-              if (addVendorFor) {
-                assignVendorToProduct(addVendorFor, vendor.id);
-              }
-            }}
-          />
-
           {/* ===== ORDER CART — right-side slide-over drawer ===== */}
           {/* Dimmed backdrop — click to close */}
           {showCart && (
@@ -4056,6 +4036,27 @@ export function UnifiedProductsPage({
       )}
 
       {mode === "pricing" && <MenuPricingReadOnly />}
+
+      {/* ===== ADD VENDOR — right-side slide-over drawer =====
+          Rendered unconditionally (all modes) so the "+ Add new vendor…"
+          shortcut works from the Inventory and Order vendor cells. */}
+      <AddVendorDrawer
+        open={addVendorFor !== null}
+        onClose={() => setAddVendorFor(null)}
+        assignToLabel={
+          addVendorFor
+            ? products.find((p) => p.id === addVendorFor)?.name ?? null
+            : null
+        }
+        onCreated={(vendor) => {
+          setVendorList((prev) =>
+            [...prev, vendor].sort((a, b) => a.name.localeCompare(b.name)),
+          );
+          if (addVendorFor) {
+            assignVendorToProduct(addVendorFor, vendor.id);
+          }
+        }}
+      />
       </div>{/* end scrollable area */}
     </div>
   );
