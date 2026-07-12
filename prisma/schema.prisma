@@ -61,6 +61,7 @@ model Organization {
   vendors      Vendor[]
   productSKUs  ProductSKU[]
   salesSnapshots SalesSnapshot[]
+  coverSnapshots CoverSnapshot[]
 
   @@schema("beverage")
 }
@@ -357,6 +358,7 @@ model Location {
   orderLists     OrderList[]
   vendorReps     VendorRepLocation[]
   salesSnapshots SalesSnapshot[]
+  coverSnapshots CoverSnapshot[]
 
   @@unique([organizationId, name])
   @@schema("beverage")
@@ -576,5 +578,43 @@ model SalesMenuGroupSale {
   snapshot     SalesSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
 
   @@index([snapshotId, menuGroup])
+  @@schema("beverage")
+}
+
+// ============================================================================
+// OpenTable covers (guest counts) — imported from OpenTable Reservations CSV.
+// Pairs with SalesSnapshot to compute spend-per-cover / prime cost.
+// ============================================================================
+model CoverSnapshot {
+  id                String   @id @default(cuid())
+  organizationId    String
+  locationId        String?  // null = all locations (aggregated)
+  periodStart       DateTime // inclusive
+  periodEnd         DateTime // inclusive
+  source            String   @default("OPENTABLE_CSV")
+  sourceFilename    String?
+  totalCovers       Int      @default(0)
+  totalReservations Int      @default(0)
+  createdAt         DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location     Location?    @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  days         CoverDay[]
+
+  @@index([organizationId, locationId, periodStart])
+  @@schema("beverage")
+}
+
+model CoverDay {
+  id           String   @id @default(cuid())
+  snapshotId   String
+  date         DateTime
+  service      String   // "lunch" | "dinner"
+  covers       Int      @default(0)
+  reservations Int      @default(0)
+
+  snapshot CoverSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@index([snapshotId, date])
   @@schema("beverage")
 }

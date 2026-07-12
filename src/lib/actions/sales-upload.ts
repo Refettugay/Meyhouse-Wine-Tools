@@ -23,6 +23,9 @@ export interface UploadPreviewItem {
   qtySold: number;
   avgPrice: number;
   netCents: number;
+  grossCents: number;
+  discountCents: number;
+  voidCents: number;
   // match result
   matchId: string | null;
   matchType: "ingredient" | "recipe" | null;
@@ -108,6 +111,12 @@ export async function previewUpload(
   const itemRows = getItemSales(rows);
   const groupRows = getMenuGroupSummary(rows);
 
+  if (itemRows.length === 0) {
+    throw new Error(
+      "No sales rows found in this file. Make sure you selected the folder containing Toast's 'All levels.csv' export."
+    );
+  }
+
   let locationName: string | null = null;
   if (locationId) {
     const loc = await prisma.location.findFirst({
@@ -137,6 +146,9 @@ export async function previewUpload(
       qtySold: r.qtySold,
       avgPrice: r.avgPrice,
       netCents: r.netCents,
+      grossCents: r.grossCents,
+      discountCents: r.discountCents,
+      voidCents: r.voidCents,
       matchId: match?.item.id ?? null,
       matchType: match?.item.type ?? null,
       matchName: match?.item.name ?? null,
@@ -174,74 +186,113 @@ export async function saveSnapshot(
   periodEnd: string,
   sourceFilename: string | null,
   items: UploadPreviewItem[],
-  menuGroups: UploadPreview["menuGroupSummary"]
+  menuGroups: UploadPreview["menuGroupSummary"],
+  replaceExisting: boolean = false
 ) {
-  const orgId = await getOrganizationId();
+  try {
+    const orgId = await getOrganizationId();
 
-  if (locationId) {
-    const loc = await prisma.location.findFirst({
-      where: { id: locationId, organizationId: orgId },
-      select: { id: true },
+    if (locationId) {
+      const loc = await prisma.location.findFirst({
+        where: { id: locationId, organizationId: orgId },
+        select: { id: true },
+      });
+      if (!loc) return { error: "Location not found in your organization" };
+    }
+
+    const pStart = new Date(periodStart);
+    const pEnd = new Date(periodEnd);
+
+    // ---- Duplicate-upload guard ----
+    // A snapshot for the same org + location + exact period almost always means
+    // an accidental re-upload, which would silently double-count that period.
+    const existing = await prisma.salesSnapshot.findFirst({
+      where: {
+        organizationId: orgId,
+        locationId: locationId || null,
+        periodStart: pStart,
+        periodEnd: pEnd,
+      },
+      select: { id: true, createdAt: true, sourceFilename: true },
     });
-    if (!loc) return { error: "Location not found in your organization" };
-  }
 
-  const totalQty = items.reduce((s, i) => s + i.qtySold, 0);
-  const totalNetCents = items.reduce((s, i) => s + i.netCents, 0);
-  const matched = items.filter((i) => i.matchId).length;
-  const unmatched = items.length - matched;
+    if (existing && !replaceExisting) {
+      return {
+        duplicate: true,
+        existingId: existing.id,
+        existingCreatedAt: existing.createdAt.toISOString(),
+        existingFilename: existing.sourceFilename,
+      };
+    }
 
-  const snapshot = await prisma.salesSnapshot.create({
-    data: {
-      organizationId: orgId,
-      locationId: locationId || null,
-      periodStart: new Date(periodStart),
-      periodEnd: new Date(periodEnd),
-      source: "CSV_UPLOAD",
-      sourceFilename,
-      totalQtySold: totalQty,
-      totalNetCents,
-      totalGrossCents: totalNetCents, // approximate — we only track net
-      itemsMatched: matched,
-      itemsUnmatched: unmatched,
-    },
-  });
+    if (existing && replaceExisting) {
+      await prisma.salesSnapshot.delete({ where: { id: existing.id } });
+    }
 
-  // Batch insert item sales
-  await prisma.salesItemSale.createMany({
-    data: items.map((it) => ({
-      snapshotId: snapshot.id,
-      rawItemName: it.rawName,
-      rawMenu: it.menu || null,
-      rawMenuGroup: it.menuGroup || null,
-      qtySold: it.qtySold,
-      avgPriceCents: Math.round(it.avgPrice * 100),
-      netCents: it.netCents,
-      grossCents: it.netCents, // same for now
-      discountCents: 0,
-      voidCents: 0,
-      matchedIngredientId: it.matchType === "ingredient" ? it.matchId : null,
-      matchedRecipeId: it.matchType === "recipe" ? it.matchId : null,
-      matchConfidence: it.confidence,
-      matchUserConfirmed: false,
-    })),
-  });
+    const totalQty = items.reduce((s, i) => s + i.qtySold, 0);
+    const totalNetCents = items.reduce((s, i) => s + i.netCents, 0);
+    const totalGrossCents = items.reduce((s, i) => s + (i.grossCents || 0), 0);
+    const matched = items.filter((i) => i.matchId).length;
+    const unmatched = items.length - matched;
 
-  // Menu group summary
-  if (menuGroups.length > 0) {
-    await prisma.salesMenuGroupSale.createMany({
-      data: menuGroups.map((g) => ({
+    const snapshot = await prisma.salesSnapshot.create({
+      data: {
+        organizationId: orgId,
+        locationId: locationId || null,
+        periodStart: pStart,
+        periodEnd: pEnd,
+        source: "CSV_UPLOAD",
+        sourceFilename,
+        totalQtySold: totalQty,
+        totalNetCents,
+        totalGrossCents: totalGrossCents || totalNetCents,
+        itemsMatched: matched,
+        itemsUnmatched: unmatched,
+      },
+    });
+
+    // Batch insert item sales (now persisting real gross / discount / void)
+    await prisma.salesItemSale.createMany({
+      data: items.map((it) => ({
         snapshotId: snapshot.id,
-        menu: g.menu || null,
-        menuGroup: g.menuGroup,
-        qtySold: g.qty,
-        netCents: g.netCents,
+        rawItemName: it.rawName,
+        rawMenu: it.menu || null,
+        rawMenuGroup: it.menuGroup || null,
+        qtySold: it.qtySold,
+        avgPriceCents: Math.round(it.avgPrice * 100),
+        netCents: it.netCents,
+        grossCents: it.grossCents || it.netCents,
+        discountCents: it.discountCents || 0,
+        voidCents: it.voidCents || 0,
+        matchedIngredientId: it.matchType === "ingredient" ? it.matchId : null,
+        matchedRecipeId: it.matchType === "recipe" ? it.matchId : null,
+        matchConfidence: it.confidence,
+        matchUserConfirmed: false,
       })),
     });
-  }
 
-  revalidatePath("/dashboard/pricing-hub/data");
-  return { success: true, snapshotId: snapshot.id };
+    // Menu group summary
+    if (menuGroups.length > 0) {
+      await prisma.salesMenuGroupSale.createMany({
+        data: menuGroups.map((g) => ({
+          snapshotId: snapshot.id,
+          menu: g.menu || null,
+          menuGroup: g.menuGroup,
+          qtySold: g.qty,
+          netCents: g.netCents,
+        })),
+      });
+    }
+
+    revalidatePath("/dashboard/pricing-hub/data");
+    return { success: true, snapshotId: snapshot.id, replaced: !!existing };
+  } catch (err) {
+    console.error("[saveSnapshot] failed:", err);
+    return {
+      error:
+        "Could not save the sales snapshot. Please try again; if it keeps happening, note the location and period and report it.",
+    };
+  }
 }
 
 // ---------- List uploads ----------

@@ -126,7 +126,7 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
     });
   }
 
-  function saveToDb() {
+  function doSave(replaceExisting: boolean) {
     if (!preview) return;
     startTransition(async () => {
       const res = await saveSnapshot(
@@ -135,16 +135,35 @@ export function SalesUploadUi({ locations, snapshots: initialSnapshots }: Props)
         preview.periodEnd,
         sourceFilename,
         preview.items,
-        preview.menuGroupSummary
+        preview.menuGroupSummary,
+        replaceExisting
       );
-      if (res.success) {
+
+      // Duplicate guard: same location + period already uploaded.
+      if ("duplicate" in res && res.duplicate) {
+        const when = res.existingCreatedAt
+          ? new Date(res.existingCreatedAt).toLocaleDateString()
+          : "earlier";
+        const ok = window.confirm(
+          `A sales snapshot for this location and period was already uploaded (${when}).\n\n` +
+            `Saving again would double-count this period. Do you want to REPLACE the existing one instead?`
+        );
+        if (ok) doSave(true);
+        return;
+      }
+
+      if ("success" in res && res.success) {
         setPreview(null);
         setSourceFilename(null);
         window.location.reload();
       } else {
-        setError(res.error ?? "Save failed");
+        setError("error" in res && res.error ? res.error : "Save failed");
       }
     });
+  }
+
+  function saveToDb() {
+    doSave(false);
   }
 
   async function onDelete(id: string) {
