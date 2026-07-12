@@ -1,5 +1,5 @@
 import { requireAuth } from "@/lib/session";
-import { SophraRail } from "@/components/layout/sophra-rail";
+import { SophraRailActive } from "@/components/layout/sophra-rail-active";
 import { SophraTopBar } from "@/components/layout/sophra-top-bar";
 
 // Phase 2 Stage B chrome: SophraRail is the always-visible Sophra tool rail
@@ -16,7 +16,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex flex-1 min-h-0">
-      <SophraRail active="beverage" />
+      <SophraRailActive />
       <div className="flex flex-1 flex-col min-w-0 min-h-0">
         <SophraTopBar
           role={session.role}

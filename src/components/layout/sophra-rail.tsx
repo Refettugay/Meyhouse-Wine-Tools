@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, Calendar, Wine, Coins, Plus } from "lucide-react";
+import { Home, Calendar, Wine, LineChart, Coins, Plus } from "lucide-react";
 
 const LAUNCHER_URL =
   process.env.NEXT_PUBLIC_LAUNCHER_URL || "https://app.runsophra.com";
@@ -33,7 +33,7 @@ function SophraMark() {
 export function SophraRail({
   active = "beverage",
 }: {
-  active?: "home" | "schedule" | "beverage" | "tips";
+  active?: "home" | "schedule" | "beverage" | "finance" | "tips";
 }) {
   return (
     <aside
@@ -79,6 +79,15 @@ export function SophraRail({
       >
         <Wine size={18} strokeWidth={1.75} />
         <span>Beverage</span>
+      </Link>
+
+      <Link
+        href="/dashboard/finans-lab"
+        aria-current={active === "finance" ? "page" : undefined}
+        className="rail-button"
+      >
+        <LineChart size={18} strokeWidth={1.75} />
+        <span>Finance</span>
       </Link>
 
       <a

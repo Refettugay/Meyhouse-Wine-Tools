@@ -26,7 +26,6 @@ const PRICING_HUB_TAB: Tab = {
 };
 
 const TAIL_TABS: Tab[] = [
-  { href: "/dashboard/finans-lab", label: "Finance Hub" },
   { href: "/dashboard/vendors", label: "Vendors" },
 ];
 

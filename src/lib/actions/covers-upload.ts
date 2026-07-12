@@ -146,7 +146,7 @@ export async function saveCoversSnapshot(
       })),
     });
 
-    revalidatePath("/dashboard/pricing-hub/covers");
+    revalidatePath("/dashboard/finans-lab/covers");
     return { success: true, snapshotId: snapshot.id, replaced: !!existing };
   } catch (err) {
     console.error("[saveCoversSnapshot] failed:", err);
@@ -174,7 +174,7 @@ export async function deleteCoverSnapshot(id: string) {
   });
   if (!snapshot) return { error: "Snapshot not found" };
   await prisma.coverSnapshot.delete({ where: { id } });
-  revalidatePath("/dashboard/pricing-hub/covers");
+  revalidatePath("/dashboard/finans-lab/covers");
   return { success: true };
 }
 

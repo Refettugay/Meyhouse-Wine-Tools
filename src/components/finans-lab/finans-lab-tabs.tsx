@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Package,
+  Database,
   Users,
+  Package,
   Wallet,
   FileText,
 } from "lucide-react";
@@ -16,6 +17,16 @@ const tabs = [
     label: "Overview",
     icon: LayoutDashboard,
     exact: true,
+  },
+  {
+    href: "/dashboard/finans-lab/sales",
+    label: "Sales Data",
+    icon: Database,
+  },
+  {
+    href: "/dashboard/finans-lab/covers",
+    label: "Covers",
+    icon: Users,
   },
   {
     href: "/dashboard/finans-lab/inventory",

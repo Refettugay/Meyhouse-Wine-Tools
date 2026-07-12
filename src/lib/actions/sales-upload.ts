@@ -284,7 +284,7 @@ export async function saveSnapshot(
       });
     }
 
-    revalidatePath("/dashboard/pricing-hub/data");
+    revalidatePath("/dashboard/finans-lab/sales");
     return { success: true, snapshotId: snapshot.id, replaced: !!existing };
   } catch (err) {
     console.error("[saveSnapshot] failed:", err);
@@ -316,7 +316,7 @@ export async function deleteSnapshot(id: string) {
   });
   if (!snapshot) return { error: "Snapshot not found" };
   await prisma.salesSnapshot.delete({ where: { id } });
-  revalidatePath("/dashboard/pricing-hub/data");
+  revalidatePath("/dashboard/finans-lab/sales");
   return { success: true };
 }
 

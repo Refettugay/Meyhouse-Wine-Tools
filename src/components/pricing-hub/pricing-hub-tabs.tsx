@@ -12,8 +12,6 @@ import {
   CupSoda,
   UtensilsCrossed,
   FlaskConical,
-  Database,
-  Users,
 } from "lucide-react";
 
 const tabs = [
@@ -67,16 +65,6 @@ const tabs = [
     href: "/dashboard/pricing-hub/homemade",
     label: "Homemade",
     icon: FlaskConical,
-  },
-  {
-    href: "/dashboard/pricing-hub/data",
-    label: "Sales Data",
-    icon: Database,
-  },
-  {
-    href: "/dashboard/pricing-hub/covers",
-    label: "Covers",
-    icon: Users,
   },
 ];
 
