@@ -34,6 +34,19 @@ function revalidateAll() {
   revalidatePath("/dashboard/database");
 }
 
+// Ordering mode: false = single-location (each store orders on its own),
+// true = multi-location (one merged cart across all stores).
+export async function setUseMergedOrderCart(value: boolean) {
+  const orgId = await getOrganizationId();
+  await prisma.organization.update({
+    where: { id: orgId },
+    data: { useMergedOrderCart: value },
+  });
+  revalidatePath("/dashboard/products");
+  revalidatePath("/dashboard/inventory/orders/merged");
+  return { success: true };
+}
+
 export async function getOrgSettings() {
   const orgId = await getOrganizationId();
   const org = await prisma.organization.findUnique({

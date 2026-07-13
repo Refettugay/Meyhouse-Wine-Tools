@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { updateProduct, moveProductToDatabase, moveProductToMenu, hardDeleteProduct, toggleMarkForRemoval, toggleProductTag, bulkAddProductsToLocation, bulkRemoveProductsFromLocation } from "@/lib/actions/products";
 import { saveSingleCount, saveSinglePar, updateProductStorageArea, updateProductShelf, createStorageArea, saveInProgressOrder, submitInProgressOrders } from "@/lib/actions/inventory";
 import { generateApprovedOrderEmails, sendOrderEmails, markOrdersOrdered } from "@/lib/actions/email-orders";
 import { canApproveOrders } from "@/lib/permissions";
-import { addBottleSize } from "@/lib/actions/settings";
+import { addBottleSize, setUseMergedOrderCart } from "@/lib/actions/settings";
 import type { SubCategory } from "@/lib/category-types";
 import { Mail } from "lucide-react";
 import { useResizableColumns } from "@/hooks/use-resizable-columns";
@@ -235,6 +235,23 @@ export function UnifiedProductsPage({
   const canApprove = canApproveOrders({ role });
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Ordering mode toggle (single vs multi-location). Optimistic local state
+  // drives the control instantly; the server action persists it and
+  // router.refresh() re-syncs the useMergedOrderCart prop (which the cart logic reads).
+  const [mergedOptimistic, setMergedOptimistic] = useState(useMergedOrderCart);
+  const [orderModePending, startOrderModeTransition] = useTransition();
+  useEffect(() => {
+    setMergedOptimistic(useMergedOrderCart);
+  }, [useMergedOrderCart]);
+  const changeOrderMode = (merged: boolean) => {
+    if (merged === mergedOptimistic || orderModePending) return;
+    setMergedOptimistic(merged);
+    startOrderModeTransition(async () => {
+      await setUseMergedOrderCart(merged);
+      router.refresh();
+    });
+  };
 
   // Scroll preservation — save/restore scroll position across server action re-renders
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -2078,6 +2095,42 @@ export function UnifiedProductsPage({
             <div className="flex items-center gap-2">
               {mode === "ordering" && (
                 <>
+                  {/* Ordering mode: Single vs Multiple locations. Persists to the
+                      org setting; the cart re-computes as merged/per-store. */}
+                  <div
+                    className="inline-flex rounded-lg border border-[var(--line)] overflow-hidden text-sm font-medium"
+                    role="group"
+                    aria-label="Ordering mode"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => changeOrderMode(false)}
+                      disabled={orderModePending}
+                      aria-pressed={!mergedOptimistic}
+                      title="Each location orders on its own"
+                      className={`px-3 py-2 transition-colors disabled:opacity-60 ${
+                        !mergedOptimistic
+                          ? "bg-[var(--brand-olive)] text-white"
+                          : "bg-[var(--brand-cream)] text-[var(--brand-brown)] hover:bg-[var(--line)]"
+                      }`}
+                    >
+                      Single Location
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => changeOrderMode(true)}
+                      disabled={orderModePending}
+                      aria-pressed={mergedOptimistic}
+                      title="One merged cart across all locations"
+                      className={`px-3 py-2 transition-colors disabled:opacity-60 ${
+                        mergedOptimistic
+                          ? "bg-[var(--brand-olive)] text-white"
+                          : "bg-[var(--brand-cream)] text-[var(--brand-brown)] hover:bg-[var(--line)]"
+                      }`}
+                    >
+                      Multiple Locations
+                    </button>
+                  </div>
                   {canApprove && (
                     <button
                       onClick={handleEmailPreview}
