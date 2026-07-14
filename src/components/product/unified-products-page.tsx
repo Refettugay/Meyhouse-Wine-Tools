@@ -212,6 +212,7 @@ export function UnifiedProductsPage({
   useMergedOrderCart,
   role,
   inProgressOrders,
+  theoreticalUsage,
 }: {
   products: Product[];
   locations: Location[];
@@ -231,6 +232,8 @@ export function UnifiedProductsPage({
     reviewNote: string | null;
     items: { ingredientId: string; countedStock: number | null; quantityNeeded: number; unit: string }[];
   }[];
+  // Theoretical usage from POS sales, keyed `${ingredientId}_${locationId}`, in inventory count units.
+  theoreticalUsage: Record<string, number>;
 }) {
   const canApprove = canApproveOrders({ role });
   const router = useRouter();
@@ -3404,7 +3407,7 @@ export function UnifiedProductsPage({
                                 const transfers = 0;
                                 const expected = prev + purchased + transfers;
                                 const actualUsage = countNum !== null ? expected - countNum : null;
-                                const theoretical = 0;
+                                const theoretical = theoreticalUsage[`${item.id}_${selectedStoreId}`] ?? 0;
                                 const waste = 0;
                                 const variance = actualUsage !== null ? actualUsage - theoretical - waste : null;
                                 const varianceDollars = variance !== null && item.bottleCostCents
@@ -3484,7 +3487,9 @@ export function UnifiedProductsPage({
                                         </span>
                                       ) : <span className="text-[var(--ink-muted)]">—</span>}
                                     </td>
-                                    <td className="px-2 py-2 text-right text-[var(--ink-muted)]">0.00</td>
+                                    <td className="px-2 py-2 text-right text-[var(--ink-muted)]">
+                                      {theoretical > 0 ? theoretical.toFixed(2) : "0.00"}
+                                    </td>
                                     <td className="px-2 py-2 text-right text-[var(--ink-muted)]">0.00</td>
                                     <td className="px-2 py-2 text-right">
                                       {variance !== null ? (

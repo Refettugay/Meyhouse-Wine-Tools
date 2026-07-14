@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/session";
 import { getCategoriesConfig } from "@/lib/actions/settings";
+import { computeTheoreticalUsage } from "@/lib/inventory/theoretical-usage";
 import { UnifiedProductsPage } from "@/components/product/unified-products-page";
 
 export default async function ProductsPage() {
@@ -223,6 +224,35 @@ export default async function ProductsPage() {
     }),
   }));
 
+  // Theoretical usage per (ingredient, location): how much POS sales say SHOULD
+  // have been consumed since each item's last count. Keyed `${ingredientId}_${locationId}`
+  // to match the purchasesMap convention and so the client can look it up per store.
+  const theoreticalUsage: Record<string, number> = {};
+  const perLocation = await Promise.all(
+    locations.map(async (loc) => {
+      const locItems = products
+        .map((p) => {
+          const inv = p.inventoryItems.find((i) => i.locationId === loc.id);
+          if (!inv) return null;
+          return {
+            ingredientId: p.id,
+            lastCountedAt: inv.lastCountedAt,
+            bottleSizeMl: p.bottleSizeMl,
+            productType: p.productType,
+          };
+        })
+        .filter((x): x is NonNullable<typeof x> => x !== null);
+      if (locItems.length === 0) return { locId: loc.id, map: {} as Record<string, number> };
+      const map = await computeTheoreticalUsage(orgId, loc.id, locItems, standardPours);
+      return { locId: loc.id, map };
+    })
+  );
+  for (const { locId, map } of perLocation) {
+    for (const [ingredientId, val] of Object.entries(map)) {
+      theoreticalUsage[`${ingredientId}_${locId}`] = val;
+    }
+  }
+
   return (
     <UnifiedProductsPage
       products={serialized}
@@ -236,6 +266,7 @@ export default async function ProductsPage() {
       useMergedOrderCart={org?.useMergedOrderCart ?? false}
       role={session.role}
       inProgressOrders={inProgressOrders}
+      theoreticalUsage={theoreticalUsage}
     />
   );
 }
