@@ -31,25 +31,43 @@ export interface TheoreticalUsageItem {
   productType: string | null;
 }
 
-// A direct ingredient sale that names a whole container ("... Bottle", "Half Bottle",
-// a bottle size). These deplete a full container rather than a pour.
+// A direct (non-spirit) ingredient sale that names a whole container. These deplete a
+// full container rather than a pour.
 const BOTTLE_RE = /\b(bottle|btl|half\s*bottle|magnum|carafe|750\s*ml|375\s*ml|1\.5\s*l)\b/i;
 const DOUBLE_RE = /\b(double|dbl)\b/i;
 const TRIPLE_RE = /\btriple\b/i;
 
+// Hard-liquor pour sizes (ml), verified against the real Toast PMIX. Rakı and other
+// spirits are rung as single / double / half bottle / full bottle. The POS labels are
+// literally "Half Bottle" / "Full Bottle" and single/double appear in mixed case.
+const SPIRIT_SINGLE_ML = 59.15; // 2 oz
+const SPIRIT_DOUBLE_ML = 118.3; // 4 oz
+const SPIRIT_HALF_BOTTLE_ML = 350;
+const SPIRIT_FULL_BOTTLE_ML = 700;
+
 // Volume (ml) depleted by ONE unit of a direct ingredient sale.
-// Direct sales in this POS are mostly pours ("Bombay Sapphire SINGLE/DOUBLE"),
-// occasionally whole containers (wine by the bottle). We size a pour from the org's
-// standard pour for the product type and scale SINGLE/DOUBLE/TRIPLE; we only deplete
-// a full container when the row clearly names a bottle. Ambiguous rows default to a
-// single pour so theoretical never OVERSTATES depletion.
-function directSaleServingMl(
+// SPIRIT: parse the pour token from the item name case-insensitively — full/half bottle
+// are checked before single/double. If none of the four tokens is present the row is not
+// attributable, so return null and the caller skips it (do NOT fall back to a bottle or a
+// standard pour). Wine/beer are not sold this way, so they keep container-or-standard-pour
+// sizing.
+export function directSaleServingMl(
   rawItemName: string,
   rawMenuGroup: string | null,
   productType: string | null,
   bottleSizeMl: number,
   standardPours: Record<string, number>,
-): number {
+): number | null {
+  if (productType === "SPIRIT") {
+    const name = rawItemName.toLowerCase();
+    if (name.includes("full bottle")) return SPIRIT_FULL_BOTTLE_ML;
+    if (name.includes("half bottle")) return SPIRIT_HALF_BOTTLE_ML;
+    if (/\bdouble\b/.test(name)) return SPIRIT_DOUBLE_ML;
+    if (/\bsingle\b/.test(name)) return SPIRIT_SINGLE_ML;
+    return null; // no pour token → not attributable, skip the row
+  }
+
+  // Wine / beer / other: bottle sales deplete a container; otherwise one standard pour.
   const text = `${rawItemName} ${rawMenuGroup || ""}`;
   if (BOTTLE_RE.test(text)) return bottleSizeMl; // genuine bottle sale → one container
 
@@ -177,9 +195,9 @@ export async function computeTheoreticalUsage(
           addVolume(ri.ingredientId, periodStart, sale.qtySold * ml);
         }
       } else if (sale.matchedIngredientId) {
-        // Direct ingredient sale. Most are pours ("... SINGLE/DOUBLE") rung as the
-        // spirit/wine itself; some are whole containers (wine by the bottle). Size
-        // each serving from the standard pour (or the container for bottle sales).
+        // Direct ingredient sale. Spirits are rung as single/double/half bottle/full
+        // bottle; wine/beer as container-or-standard-pour. directSaleServingMl returns
+        // null for a spirit row with no recognizable pour token → skip it.
         const meta = metaByIngredient.get(sale.matchedIngredientId);
         if (meta) {
           const servingMl = directSaleServingMl(
@@ -189,7 +207,9 @@ export async function computeTheoreticalUsage(
             meta.bottleSizeMl,
             standardPours,
           );
-          addVolume(sale.matchedIngredientId, periodStart, sale.qtySold * servingMl);
+          if (servingMl != null) {
+            addVolume(sale.matchedIngredientId, periodStart, sale.qtySold * servingMl);
+          }
         }
       }
     }
