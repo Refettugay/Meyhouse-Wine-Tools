@@ -162,7 +162,7 @@ export function CountAndOrderForm({
     if (result?.success) {
       router.push(`/dashboard/inventory/orders/${result.orderListId}`);
     } else {
-      setError("Failed to save order");
+      setError((result as { error?: string })?.error || "Failed to save order");
       setSaving(false);
     }
   }

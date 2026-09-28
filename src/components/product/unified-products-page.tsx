@@ -14,6 +14,7 @@ import { Mail } from "lucide-react";
 import { useResizableColumns } from "@/hooks/use-resizable-columns";
 import { MenuPricingReadOnly } from "@/components/product/menu-pricing-readonly";
 import { AddVendorDrawer } from "@/components/vendor/add-vendor-drawer";
+import { StaffLinksDrawer, type CountLinkInfo } from "@/components/product/staff-links-drawer";
 import {
   Search,
   Plus,
@@ -390,6 +391,8 @@ export function UnifiedProductsPage({
   bottleSizes,
   orderingScope,
   storeStatus,
+  countLinks,
+  linkStoreIds,
   role,
   inProgressOrders,
   theoreticalUsage,
@@ -406,6 +409,9 @@ export function UnifiedProductsPage({
   orderingScope: { access: Record<string, StoreAccess>; orderedBy: Record<string, string[]> };
   // locationId → the waiting (SUBMITTED) order, if any
   storeStatus: Record<string, StoreStatus>;
+  // Staff count links for the stores this person may manage
+  countLinks: Record<string, CountLinkInfo>;
+  linkStoreIds: string[];
   role: string;
   inProgressOrders: {
     id: string;
@@ -453,6 +459,7 @@ export function UnifiedProductsPage({
   const [needsAttentionOnly, setNeedsAttentionOnly] = useState(false);
   const [unitSaving, setUnitSaving] = useState<string | null>(null);
   const [unitError, setUnitError] = useState<string | null>(null);
+  const [showStaffLinks, setShowStaffLinks] = useState(false);
 
   // Scroll preservation — save/restore scroll position across server action re-renders
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -2398,6 +2405,15 @@ export function UnifiedProductsPage({
               {/* "Email Approved Orders" is hidden on purpose: ordering never sends
                   vendor emails automatically. Phase 4 replaces it with
                   Copy email + Mark as sent. */}
+              {linkStoreIds.length > 0 && (
+                <button
+                  onClick={() => setShowStaffLinks(true)}
+                  className="px-3 py-2 bg-[var(--brand-cream)] hover:bg-[var(--line)] border border-[var(--line)] text-[var(--brand-brown)] rounded-lg text-sm font-medium"
+                  title="Staff count page links (one per store)"
+                >
+                  Staff links
+                </button>
+              )}
               <button
                 onClick={() => setShowCart(!showCart)}
                 className="flex items-center gap-2 px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors relative"
@@ -4516,6 +4532,13 @@ export function UnifiedProductsPage({
       )}
 
       {mode === "pricing" && <MenuPricingReadOnly />}
+
+      <StaffLinksDrawer
+        open={showStaffLinks}
+        onClose={() => setShowStaffLinks(false)}
+        stores={locations.filter((l) => linkStoreIds.includes(l.id))}
+        links={countLinks}
+      />
 
       {/* ===== ADD VENDOR — right-side slide-over drawer =====
           Rendered unconditionally (all modes) so the "+ Add new vendor…"

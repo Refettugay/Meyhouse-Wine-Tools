@@ -9,6 +9,13 @@ const SCHEDULE_URL =
 const ALLOWED_ROLES = new Set(["owner", "manager", "supervisor"]);
 
 export async function proxy(request: NextRequest) {
+  // Staff count page (/count/<secret token>): no Sophra login. Staff sign in
+  // with name + PIN, and every server action re-checks the token + a signed
+  // staff session cookie (src/app/count/[token]/actions.ts).
+  if (request.nextUrl.pathname.startsWith("/count/")) {
+    return NextResponse.next();
+  }
+
   const { response, supabase, user, isRotationRace, isInvalidToken } =
     await updateSession(request);
 

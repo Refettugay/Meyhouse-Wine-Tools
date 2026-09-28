@@ -4,6 +4,7 @@ import { getCategoriesConfig } from "@/lib/actions/settings";
 import { computeTheoreticalUsage } from "@/lib/inventory/theoretical-usage";
 import { UnifiedProductsPage } from "@/components/product/unified-products-page";
 import { getOrderingScope } from "@/lib/ordering-scope";
+import { canApproveOrders } from "@/lib/permissions";
 
 export default async function ProductsPage() {
   const session = await requireAuth();
@@ -55,6 +56,22 @@ export default async function ProductsPage() {
       _count: { select: { items: { where: { status: "PENDING" } } } },
     },
   });
+  // Staff count links — only for stores this person may manage (owner/admin,
+  // or they ORDER for it).
+  const manageAllLinks = canApproveOrders(session);
+  const linkRows = await prisma.orderCountLink.findMany({
+    where: { location: { organizationId: orgId } },
+    select: { locationId: true, token: true, enabled: true, createdAt: true, rotatedAt: true },
+  });
+  const linkStoreIds = locations
+    .filter((l) => manageAllLinks || orderingScope.access[l.id] === "ORDER")
+    .map((l) => l.id);
+  const countLinks: Record<string, { token: string; enabled: boolean; since: string }> = {};
+  for (const r of linkRows) {
+    if (!linkStoreIds.includes(r.locationId)) continue;
+    countLinks[r.locationId] = { token: r.token, enabled: r.enabled, since: (r.rotatedAt ?? r.createdAt).toISOString() };
+  }
+
   const storeStatus: Record<string, { sentBy: string | null; sentAt: string | null; itemCount: number }> = {};
   for (const o of waitingOrders) {
     if (storeStatus[o.locationId]) continue; // newest per store wins
@@ -289,6 +306,8 @@ export default async function ProductsPage() {
       bottleSizes={bottleSizes}
       orderingScope={orderingScope}
       storeStatus={storeStatus}
+      countLinks={countLinks}
+      linkStoreIds={linkStoreIds}
       role={session.role}
       inProgressOrders={inProgressOrders}
       theoreticalUsage={theoreticalUsage}

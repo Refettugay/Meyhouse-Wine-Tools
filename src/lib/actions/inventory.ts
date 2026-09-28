@@ -294,6 +294,14 @@ export async function updateProductShelf(
   return { success: true };
 }
 
+// Old per-store order page (/dashboard/inventory/[locationId]/order): same
+// per-person store scope as the Order tab. Returns an error message or null.
+async function orderScopeError(locationId: string): Promise<string | null> {
+  const session = await requireAuth();
+  if (await canOrderForStore(session.userId, locationId)) return null;
+  return "You can view this store but not order for it.";
+}
+
 // ===== GENERATE ORDER FROM CART =====
 
 export async function generateOrderFromCart(data: {
@@ -310,6 +318,8 @@ export async function generateOrderFromCart(data: {
   createdByName: string;
   notes?: string;
 }) {
+  const scopeError = await orderScopeError(data.locationId);
+  if (scopeError) return { error: scopeError };
   const orgId = await getOrganizationId();
   const now = new Date();
 
@@ -422,6 +432,8 @@ export async function saveCountAndOrder(data: {
   counts: { inventoryItemId: string; count: number }[];
   notes?: string;
 }) {
+  const scopeError = await orderScopeError(data.locationId);
+  if (scopeError) return { error: scopeError };
   const orgId = await getOrganizationId();
   const now = new Date();
 
@@ -536,6 +548,8 @@ export async function saveCountAndOrder(data: {
 // ===== ORDER LIST GENERATION (legacy, kept for compatibility) =====
 
 export async function generateOrderList(locationId: string) {
+  const scopeError = await orderScopeError(locationId);
+  if (scopeError) return { error: scopeError };
   const orgId = await getOrganizationId();
 
   const items = await prisma.inventoryItem.findMany({
