@@ -5,6 +5,7 @@ import { computeTheoreticalUsage } from "@/lib/inventory/theoretical-usage";
 import { UnifiedProductsPage } from "@/components/product/unified-products-page";
 import { getOrderingScope } from "@/lib/ordering-scope";
 import { canApproveOrders } from "@/lib/permissions";
+import type { ReviewOrder } from "@/lib/order-review-types";
 
 export default async function ProductsPage() {
   const session = await requireAuth();
@@ -71,6 +72,88 @@ export default async function ProductsPage() {
     if (!linkStoreIds.includes(r.locationId)) continue;
     countLinks[r.locationId] = { token: r.token, enabled: r.enabled, since: (r.rotatedAt ?? r.createdAt).toISOString() };
   }
+
+  // Review & approve: open orders, approved orders still being emailed, and
+  // orders fully emailed in the last 7 days (shown as done).
+  const reviewManageStoreIds = locations
+    .filter((l) => session.role === "OWNER" || session.role === "ADMIN" || orderingScope.access[l.id] === "ORDER")
+    .map((l) => l.id);
+  const weekAgo = new Date(Date.now() - 7 * 86400000);
+  const reviewRaw = await prisma.orderList.findMany({
+    where: {
+      organizationId: orgId,
+      OR: [{ status: { in: ["SUBMITTED", "APPROVED"] } }, { status: "ORDERED", approvedAt: { gte: weekAgo } }],
+    },
+    orderBy: [{ submittedAt: "desc" }],
+    select: {
+      id: true, locationId: true, status: true, submittedAt: true, submittedById: true, submittedByName: true, createdByName: true,
+      approvedAt: true, approvedByName: true,
+      items: {
+        select: {
+          id: true, ingredientId: true, quantityNeeded: true, unit: true, status: true, vendor: true, countedStock: true,
+          parSnapshot: true, countedByName: true, countedAt: true, source: true, unitIsStaffPick: true,
+          transferFromLocationId: true, transferNote: true, movedByName: true,
+          ingredient: { select: { name: true, bottleSizeMl: true, casePackSize: true, vendor: true, vendorRef: { select: { name: true } } } },
+        },
+      },
+      countEntries: { select: { countedById: true, countedByName: true, countedAt: true } },
+      staffRequests: { where: { status: "OPEN" }, orderBy: { createdAt: "asc" }, select: { id: true, text: true, requestedByName: true, createdAt: true } },
+    },
+  });
+  const reviewEmailRows = await prisma.orderEmail.findMany({
+    where: { orderListId: { in: reviewRaw.map((o) => o.id) } },
+    orderBy: { vendorName: "asc" },
+    select: {
+      id: true, orderListId: true, vendorName: true, recipientEmail: true, recipientName: true, subject: true, body: true,
+      status: true, markedSentByName: true, markedSentAt: true,
+    },
+  });
+  const reviewOrders: ReviewOrder[] = reviewRaw.map((o) => {
+    const others = new Map<string, Date>();
+    for (const e of o.countEntries) {
+      if (!e.countedByName || (o.submittedById && e.countedById === o.submittedById)) continue;
+      const prev = others.get(e.countedByName);
+      if (!prev || e.countedAt > prev) others.set(e.countedByName, e.countedAt);
+    }
+    return {
+      id: o.id,
+      locationId: o.locationId,
+      status: o.status,
+      sentByName: o.submittedByName || o.createdByName,
+      sentAt: o.submittedAt?.toISOString() ?? null,
+      approvedByName: o.approvedByName,
+      approvedAt: o.approvedAt?.toISOString() ?? null,
+      alsoCounted: [...others.entries()].map(([name, at]) => ({ name, at: at.toISOString() })),
+      requests: o.staffRequests.map((r) => ({ id: r.id, text: r.text, byName: r.requestedByName, at: r.createdAt.toISOString() })),
+      lines: o.items.map((i) => ({
+        id: i.id,
+        ingredientId: i.ingredientId,
+        name: i.ingredient.name,
+        bottleSizeMl: i.ingredient.bottleSizeMl,
+        casePackSize: i.ingredient.casePackSize,
+        vendor: i.ingredient.vendorRef?.name || i.vendor || i.ingredient.vendor || "No Vendor",
+        qty: i.quantityNeeded,
+        unit: i.unit,
+        status: i.status,
+        countedStock: i.countedStock,
+        par: i.parSnapshot,
+        countedByName: i.countedByName,
+        countedAt: i.countedAt?.toISOString() ?? null,
+        source: i.source,
+        unitIsStaffPick: !!i.unitIsStaffPick,
+        transferFromLocationId: i.transferFromLocationId,
+        transferNote: i.transferNote,
+        movedByName: i.movedByName,
+      })),
+      emails: reviewEmailRows
+        .filter((e) => e.orderListId === o.id)
+        .map((e) => ({
+          id: e.id, vendorName: e.vendorName, recipientEmail: e.recipientEmail, recipientName: e.recipientName,
+          subject: e.subject, body: e.body, status: e.status, markedSentByName: e.markedSentByName,
+          markedSentAt: e.markedSentAt?.toISOString() ?? null,
+        })),
+    };
+  });
 
   const storeStatus: Record<string, { sentBy: string | null; sentAt: string | null; itemCount: number }> = {};
   for (const o of waitingOrders) {
@@ -307,6 +390,8 @@ export default async function ProductsPage() {
       orderingScope={orderingScope}
       storeStatus={storeStatus}
       countLinks={countLinks}
+      reviewOrders={reviewOrders}
+      reviewManageStoreIds={reviewManageStoreIds}
       linkStoreIds={linkStoreIds}
       role={session.role}
       inProgressOrders={inProgressOrders}

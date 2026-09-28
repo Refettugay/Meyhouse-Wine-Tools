@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { updateProduct, moveProductToDatabase, moveProductToMenu, hardDeleteProduct, toggleMarkForRemoval, toggleProductTag, bulkAddProductsToLocation, bulkRemoveProductsFromLocation } from "@/lib/actions/products";
 import { saveSingleCount, saveSinglePar, updateProductStorageArea, updateProductShelf, createStorageArea, saveInProgressOrder, submitInProgressOrders } from "@/lib/actions/inventory";
 import { generateApprovedOrderEmails, sendOrderEmails, markOrdersOrdered } from "@/lib/actions/email-orders";
-import { canApproveOrders } from "@/lib/permissions";
 import { addBottleSize } from "@/lib/actions/settings";
 import { setProductOrderUnit } from "@/lib/actions/ordering";
 import type { SubCategory } from "@/lib/category-types";
@@ -15,6 +14,8 @@ import { useResizableColumns } from "@/hooks/use-resizable-columns";
 import { MenuPricingReadOnly } from "@/components/product/menu-pricing-readonly";
 import { AddVendorDrawer } from "@/components/vendor/add-vendor-drawer";
 import { StaffLinksDrawer, type CountLinkInfo } from "@/components/product/staff-links-drawer";
+import { ReviewPanel, EmailsPanel } from "@/components/product/order-review-panel";
+import type { ReviewOrder } from "@/lib/order-review-types";
 import {
   Search,
   Plus,
@@ -393,6 +394,8 @@ export function UnifiedProductsPage({
   storeStatus,
   countLinks,
   linkStoreIds,
+  reviewOrders,
+  reviewManageStoreIds,
   role,
   inProgressOrders,
   theoreticalUsage,
@@ -412,6 +415,9 @@ export function UnifiedProductsPage({
   // Staff count links for the stores this person may manage
   countLinks: Record<string, CountLinkInfo>;
   linkStoreIds: string[];
+  // Review & approve: open (SUBMITTED), approved and recently emailed orders
+  reviewOrders: ReviewOrder[];
+  reviewManageStoreIds: string[];
   role: string;
   inProgressOrders: {
     id: string;
@@ -424,7 +430,6 @@ export function UnifiedProductsPage({
   // Theoretical usage from POS sales, keyed `${ingredientId}_${locationId}`, in inventory count units.
   theoreticalUsage: Record<string, number>;
 }) {
-  const canApprove = canApproveOrders({ role });
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -460,6 +465,30 @@ export function UnifiedProductsPage({
   const [unitSaving, setUnitSaving] = useState<string | null>(null);
   const [unitError, setUnitError] = useState<string | null>(null);
   const [showStaffLinks, setShowStaffLinks] = useState(false);
+  // Order tab sub-view: count & build / review & approve / ready to email
+  type OrderView = "build" | "review" | "emails";
+  const [orderView, setOrderViewRaw] = useState<OrderView>(() => {
+    const v = searchParams.get("view");
+    return v === "review" || v === "emails" ? v : "build";
+  });
+  const setOrderView = (v: OrderView) => {
+    setOrderViewRaw(v);
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (v === "build") params.delete("view"); else params.set("view", v);
+      window.history.replaceState(null, "", `${window.location.pathname}${params.toString() ? "?" + params.toString() : ""}`);
+    } catch {}
+  };
+  const openReviewOrders = useMemo(() => reviewOrders.filter((o) => o.status === "SUBMITTED"), [reviewOrders]);
+  const approvedReviewOrders = useMemo(() => reviewOrders.filter((o) => o.status !== "SUBMITTED"), [reviewOrders]);
+  const waitingCount = useMemo(
+    () => openReviewOrders.filter((o) => orderStoreIds.includes(o.locationId) && o.lines.some((l) => l.status !== "REJECTED")).length,
+    [openReviewOrders, orderStoreIds],
+  );
+  const emailsToSend = useMemo(
+    () => approvedReviewOrders.filter((o) => orderStoreIds.includes(o.locationId)).flatMap((o) => o.emails).filter((e) => e.status !== "SENT").length,
+    [approvedReviewOrders, orderStoreIds],
+  );
 
   // Scroll preservation — save/restore scroll position across server action re-renders
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -2334,6 +2363,28 @@ export function UnifiedProductsPage({
       {/* ORDER TAB — one store picker (top-left) + one filter box + area chips */}
       {mode === "ordering" && (
         <div className={`bg-white border border-[var(--line)] rounded-xl mt-1 ${fullScreenView ? "p-2" : "p-3"}`}>
+          <div className="flex items-center gap-1 mb-2 flex-wrap" role="tablist" aria-label="Order steps">
+            {([
+              ["build", "Count & build", null],
+              ["review", "Review & approve", waitingCount],
+              ["emails", "Ready to email", emailsToSend],
+            ] as const).map(([v, label, n]) => (
+              <button
+                key={v}
+                role="tab"
+                aria-selected={orderView === v}
+                onClick={() => setOrderView(v)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  orderView === v ? "bg-[var(--brand-brown)] text-white" : "text-[var(--brand-brown)] hover:bg-[var(--brand-cream)]"
+                }`}
+              >
+                {label}
+                {n !== null && n > 0 && (
+                  <span className={`ml-1.5 text-xs px-1.5 rounded-full ${orderView === v ? "bg-white/20" : "bg-[#FFF8E1] text-[#8A6A00]"}`}>{n}</span>
+                )}
+              </button>
+            ))}
+          </div>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
               <StorePicker
@@ -2344,6 +2395,7 @@ export function UnifiedProductsPage({
                 orderedBy={orderingScope.orderedBy}
                 storeStatus={storeStatus}
               />
+              {orderView === "build" && (<>
               <div className="relative w-full sm:w-56">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
                 <input
@@ -2400,6 +2452,7 @@ export function UnifiedProductsPage({
                 Needs attention
                 <span className={`text-xs ${needsAttentionOnly ? "text-white/90" : "text-[#8A6A00]"}`}>{orderAttentionCount}</span>
               </button>
+              </>)}
             </div>
             <div className="flex items-center gap-2">
               {/* "Email Approved Orders" is hidden on purpose: ordering never sends
@@ -2435,7 +2488,7 @@ export function UnifiedProductsPage({
               <button onClick={() => setUnitError(null)} className="ml-2" aria-label="Dismiss">✕</button>
             </div>
           )}
-          {orderStoreIds.length > 0 && orderAreaNames.length > 0 && (
+          {orderView === "build" && orderStoreIds.length > 0 && orderAreaNames.length > 0 && (
             <div className="flex gap-1.5 mt-3 flex-wrap">
               {["ALL", ...orderAreaNames].map((area) => (
                 <button
@@ -3869,7 +3922,23 @@ export function UnifiedProductsPage({
           {/* Main ordering table — always full width; cart floats over it as a drawer */}
           <div className="min-w-0">
 
-            {orderStoreIds.length === 0 ? (
+            {orderView === "review" ? (
+              <ReviewPanel
+                orders={openReviewOrders}
+                storeIds={orderStoreIds}
+                locations={locations}
+                manageIds={reviewManageStoreIds}
+                products={products.map((p) => ({ id: p.id, name: p.name, locationIds: p.locationIds, orderUnit: p.orderUnit, casePackSize: p.casePackSize }))}
+                onApproved={() => setOrderView("emails")}
+              />
+            ) : orderView === "emails" ? (
+              <EmailsPanel
+                orders={approvedReviewOrders}
+                storeIds={orderStoreIds}
+                locations={locations}
+                manageIds={reviewManageStoreIds}
+              />
+            ) : orderStoreIds.length === 0 ? (
               <div className="bg-white border border-[var(--line)] rounded-xl p-8 text-center">
                 <ShoppingCart className="w-10 h-10 text-[var(--ink-muted)] mx-auto mb-3" />
                 <h2 className="text-lg font-semibold mb-1">Pick your stores to start ordering</h2>
@@ -4424,14 +4493,14 @@ export function UnifiedProductsPage({
                       Print
                     </button>
                   </div>
-                  {canApprove && (
-                    <Link
-                      href="/dashboard/inventory/orders/review"
-                      className="w-full mt-2 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                  {reviewManageStoreIds.length > 0 && (
+                    <button
+                      onClick={() => { setShowCart(false); setOrderView("review"); }}
+                      className="w-full mt-2 py-2 bg-[var(--brand-brown)] hover:opacity-90 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
                     >
                       <ClipboardList className="w-3 h-3" />
                       Review &amp; Approve Orders
-                    </Link>
+                    </button>
                   )}
                   <button
                     onClick={() => {

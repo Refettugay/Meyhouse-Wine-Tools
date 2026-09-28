@@ -58,6 +58,16 @@ export async function getOrderingScope(userId: string, orgId: string): Promise<O
   return { access, orderedBy };
 }
 
+// Review & approve rights (Refet, 2026-09-28): owners/admins for every store,
+// plus whoever ORDERS for that store (e.g. Sarper for San Ramon).
+export async function canManageStoreOrders(
+  session: { userId: string; role?: string },
+  locationId: string,
+): Promise<boolean> {
+  if (session.role === "OWNER" || session.role === "ADMIN") return true;
+  return canOrderForStore(session.userId, locationId);
+}
+
 // True when this person may build/send orders for the store.
 export async function canOrderForStore(userId: string, locationId: string): Promise<boolean> {
   const row = await prisma.orderingStoreScope.findUnique({

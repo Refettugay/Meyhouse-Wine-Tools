@@ -5,6 +5,10 @@ import { requireAuth } from "@/lib/session";
 import { canApproveOrders } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 
+// Resend stays off for ordering. Do not flip without Refet's OK (the sending
+// domain is unverified and the old key re_deLj... still needs revoking).
+const AUTO_VENDOR_EMAILS_ENABLED = false;
+
 interface EmailCartItem {
   productName: string;
   vendor: string;
@@ -339,6 +343,16 @@ export async function sendOrderEmails(
   }[]
 ) {
   const session = await requireAuth();
+  // Automatic vendor emails are OFF for ordering (Refet, 2026-09-28): orders are
+  // approved in the Order tab and each email is copied and sent by hand, then
+  // marked as sent (src/lib/actions/order-review.ts). Hard stop so nothing —
+  // old UI or a crafted request — can send through Resend.
+  if (!AUTO_VENDOR_EMAILS_ENABLED) {
+    return {
+      results: [] as { vendor: string; status: string; error?: string }[],
+      error: "Automatic vendor emails are turned off. Use Order tab → Ready to email.",
+    };
+  }
   if (!canApproveOrders(session)) {
     return { results: [], error: "Only owners and admins can email vendors." };
   }

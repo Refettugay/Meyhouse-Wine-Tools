@@ -777,9 +777,64 @@ export async function submitOrderForApproval(orderListId: string) {
     });
   }
 
-  await prisma.orderList.update({
-    where: { id: order.id },
-    data: { status: "SUBMITTED", submittedAt: now, reviewNote: null },
+  // One open order per store (Refet, 2026-09-28): if the store already has an
+  // order waiting for review (e.g. from a staff send), the manager's lines join
+  // it — the latest count wins for the same product — and the draft goes away.
+  const open = await prisma.orderList.findFirst({
+    where: { organizationId: orgId, locationId: order.locationId, status: "SUBMITTED", id: { not: order.id } },
+    orderBy: { submittedAt: "desc" },
+    select: { id: true, items: { select: { id: true, ingredientId: true, quantityNeeded: true, unit: true, transferFromLocationId: true } } },
+  });
+
+  await prisma.$transaction(async (tx) => {
+    const logs: { action: string; ingredientId?: string; orderListItemId?: string; oldValue?: string | null; newValue?: string | null; note?: string }[] = [];
+    let targetId = order.id;
+    if (open) {
+      targetId = open.id;
+      for (const item of order.items) {
+        const replaced = open.items.find((l) => l.ingredientId === item.ingredientId && !l.transferFromLocationId);
+        if (replaced) await tx.orderListItem.delete({ where: { id: replaced.id } });
+        await tx.orderListItem.update({
+          where: { id: item.id },
+          data: {
+            orderListId: open.id, source: "manager", status: "PENDING",
+            countedById: session.userId, countedByName: session.userName, countedAt: now,
+          },
+        });
+        logs.push({
+          action: replaced ? "recount" : "count", ingredientId: item.ingredientId, orderListItemId: item.id,
+          oldValue: replaced ? `${replaced.quantityNeeded} ${replaced.unit}` : null, newValue: `${item.quantityNeeded} ${item.unit}`,
+        });
+      }
+      await tx.orderList.update({
+        where: { id: open.id },
+        data: { submittedAt: now, submittedById: session.userId, submittedByName: session.userName, reviewNote: null },
+      });
+      await tx.orderList.delete({ where: { id: order.id } });
+    } else {
+      await tx.orderListItem.updateMany({
+        where: { orderListId: order.id },
+        data: { source: "manager", countedById: session.userId, countedByName: session.userName, countedAt: now },
+      });
+      await tx.orderList.update({
+        where: { id: order.id },
+        data: { status: "SUBMITTED", submittedAt: now, submittedById: session.userId, submittedByName: session.userName, source: "manager", reviewNote: null },
+      });
+    }
+    await tx.orderActivityLog.createMany({
+      data: [
+        ...logs.map((l) => ({
+          organizationId: orgId, locationId: order.locationId, orderListId: targetId, orderListItemId: l.orderListItemId,
+          ingredientId: l.ingredientId, entity: "LINE", action: l.action, field: "quantityNeeded", oldValue: l.oldValue ?? null,
+          newValue: l.newValue ?? null, actorId: session.userId, actorName: session.userName, actorKind: "manager", source: "admin",
+        })),
+        {
+          organizationId: orgId, locationId: order.locationId, orderListId: targetId, entity: "ORDER", action: "manager_submit",
+          note: `${order.items.length} line${order.items.length === 1 ? "" : "s"}${open ? " joined the open order" : ""}`,
+          actorId: session.userId, actorName: session.userName, actorKind: "manager", source: "admin",
+        },
+      ],
+    });
   });
 
   revalidateOrders();

@@ -104,7 +104,7 @@ export default async function MergedOrderPage() {
           </p>
         </div>
         <Link
-          href="/dashboard/inventory/orders/review"
+          href="/dashboard/products?mode=ordering&view=review"
           className="flex items-center gap-2 px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors"
         >
           <ClipboardCheck className="w-4 h-4" />
