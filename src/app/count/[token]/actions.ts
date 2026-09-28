@@ -30,7 +30,10 @@ async function rosterFor(store: CountLinkStore): Promise<StaffPerson[]> {
     from public.profile_locations pl
     join public.profiles p on p.id = pl.user_id
     left join public.person_pins pp on pp.person_id = p.id
-    where pl.location_id = ${store.scheduleLocationId}::uuid and p.active = true
+    where pl.location_id = ${store.scheduleLocationId}::uuid
+      -- active staff, plus owners/managers even when inactive in Schedule
+      -- (Refet is kept inactive so he isn't scheduled, but he counts/tests)
+      and (p.active = true or p.role in ('owner', 'manager'))
     order by p.full_name`;
   return rows
     .filter((r) => (r.full_name || "").trim())
