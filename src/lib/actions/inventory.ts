@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db";
 import { getOrganizationId, requireAuth } from "@/lib/session";
 import { canApproveOrders } from "@/lib/permissions";
+import { canOrderForStore } from "@/lib/ordering-scope";
 import { revalidatePath } from "next/cache";
 
 // ===== LOCATIONS =====
@@ -651,6 +652,10 @@ export async function saveInProgressOrder(data: {
     select: { id: true, name: true },
   });
   if (!location) return { error: "Location not found" };
+  // Per-person store scope: only people who ORDER for this store may save its cart.
+  if (!(await canOrderForStore(session.userId, data.locationId))) {
+    return { error: `You can view ${location.name} but not order for it.` };
+  }
 
   const existing = await prisma.orderList.findFirst({
     where: {
@@ -729,6 +734,9 @@ export async function submitOrderForApproval(orderListId: string) {
     include: { items: true },
   });
   if (!order) return { error: "Order not found" };
+  if (!(await canOrderForStore(session.userId, order.locationId))) {
+    return { error: "You can view this store but not order for it." };
+  }
   if (order.status !== "IN_PROGRESS") {
     return { error: `Only in-progress orders can be submitted (this one is ${order.status}).` };
   }

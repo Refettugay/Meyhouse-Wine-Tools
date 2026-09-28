@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect, useTransition } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { updateProduct, moveProductToDatabase, moveProductToMenu, hardDeleteProduct, toggleMarkForRemoval, toggleProductTag, bulkAddProductsToLocation, bulkRemoveProductsFromLocation } from "@/lib/actions/products";
 import { saveSingleCount, saveSinglePar, updateProductStorageArea, updateProductShelf, createStorageArea, saveInProgressOrder, submitInProgressOrders } from "@/lib/actions/inventory";
 import { generateApprovedOrderEmails, sendOrderEmails, markOrdersOrdered } from "@/lib/actions/email-orders";
 import { canApproveOrders } from "@/lib/permissions";
-import { addBottleSize, setUseMergedOrderCart } from "@/lib/actions/settings";
+import { addBottleSize } from "@/lib/actions/settings";
+import { setProductOrderUnit } from "@/lib/actions/ordering";
 import type { SubCategory } from "@/lib/category-types";
 import { Mail } from "lucide-react";
 import { useResizableColumns } from "@/hooks/use-resizable-columns";
@@ -37,6 +38,9 @@ import {
   Maximize2,
   Minimize2,
   Zap,
+  ChevronDown,
+  Check,
+  AlertTriangle,
 } from "lucide-react";
 
 interface Product {
@@ -53,7 +57,7 @@ interface Product {
   yieldCount: number | null;
   yieldUnit: string | null;
   casePackSize: number | null;
-  orderUnit: string;
+  orderUnit: string | null;
   onMenu: boolean;
   menuStatus: string;
   isKeyItem: boolean;
@@ -119,6 +123,181 @@ function formatCaseSize(n: number | null | undefined): string {
 function orderUnitLabel(casePackSize: number | null | undefined, isCase: boolean): string {
   if (casePackSize === CASE_KEG) return "keg";
   return isCase ? "cs" : "btl";
+}
+
+// How a product is ordered. Ingredient.orderUnit decides (approved 2026-09-28):
+//   "CASE" with a real case size → CASE;  "BOTTLE" → BOTTLE;
+//   blank, or "CASE" with no case size → null ("Not set", shown in gold).
+type EffectiveUnit = "CASE" | "BOTTLE" | null;
+function effectiveOrderUnit(p: { orderUnit: string | null; casePackSize: number | null }): EffectiveUnit {
+  if (p.orderUnit === "CASE") return (p.casePackSize ?? 0) > 1 ? "CASE" : null;
+  if (p.orderUnit === "BOTTLE") return "BOTTLE";
+  return null;
+}
+
+// short = par − count; bottle unit → ceil(short); case unit → ceil(short / case size).
+// "Not set" is sized in bottles until someone picks a unit.
+function orderQtyFor(short: number, unit: EffectiveUnit, casePackSize: number | null): number {
+  if (short <= 0) return 0;
+  return unit === "CASE" ? Math.ceil(short / (casePackSize as number)) : Math.ceil(short);
+}
+
+// "Needs attention" reasons for one product at one store.
+function attentionReasons(
+  p: { orderUnit: string | null; casePackSize: number | null },
+  parLevel: number,
+): string[] {
+  const reasons: string[] = [];
+  if (!(parLevel > 0)) reasons.push("No par");
+  if (p.orderUnit === "CASE" && !((p.casePackSize ?? 0) > 1)) reasons.push("Case without case size");
+  else if (p.orderUnit !== "CASE" && p.orderUnit !== "BOTTLE") reasons.push("No unit");
+  return reasons;
+}
+
+function shortStoreName(name: string): string {
+  return name.replace("Meyhouse ", "");
+}
+
+// "Today 4:12 pm" / "Yesterday 9:03 am" / "Mon, Sep 28 4:12 pm"
+function formatSentAt(iso: string): string {
+  const d = new Date(iso);
+  const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).toLowerCase();
+  const today = new Date();
+  const yesterday = new Date(today.getTime() - 86400000);
+  if (d.toDateString() === today.toDateString()) return `Today ${time}`;
+  if (d.toDateString() === yesterday.toDateString()) return `Yesterday ${time}`;
+  return `${d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} ${time}`;
+}
+
+type StoreAccess = "ORDER" | "VIEW";
+type StoreStatus = { sentBy: string | null; sentAt: string | null; itemCount: number };
+
+// ONE store picker for the Order tab (multi-select checkboxes). Shows each
+// store's access (view only → who orders it) and its waiting order status.
+function StorePicker({
+  locations,
+  selected,
+  onChange,
+  access,
+  orderedBy,
+  storeStatus,
+}: {
+  locations: { id: string; name: string }[];
+  selected: string[];
+  onChange: (ids: string[]) => void;
+  access: Record<string, StoreAccess>;
+  orderedBy: Record<string, string[]>;
+  storeStatus: Record<string, StoreStatus>;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const myStores = locations.filter((l) => access[l.id] === "ORDER").map((l) => l.id);
+  const label =
+    selected.length === 0
+      ? "Select stores"
+      : selected.length === 1
+        ? shortStoreName(locations.find((l) => l.id === selected[0])?.name || "1 store")
+        : `${selected.length} stores`;
+  const toggle = (id: string) =>
+    onChange(selected.includes(id) ? selected.filter((s) => s !== id) : [...selected, id]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex items-center gap-2 px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] font-medium text-sm hover:bg-[var(--line)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
+      >
+        <MapPin className="w-4 h-4 text-[var(--brand-olive)]" />
+        {label}
+        <ChevronDown className="w-4 h-4 text-[var(--ink-muted)]" />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-30 w-[340px] max-w-[90vw] bg-white border border-[var(--line)] rounded-xl shadow-lg p-2">
+          <div className="space-y-0.5">
+            {locations.map((l) => {
+              const isOn = selected.includes(l.id);
+              const viewOnly = access[l.id] !== "ORDER";
+              const st = storeStatus[l.id];
+              const by = orderedBy[l.id];
+              return (
+                <label
+                  key={l.id}
+                  className="flex items-start gap-2 px-2 py-2 rounded-lg hover:bg-[var(--brand-cream)] cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={isOn}
+                    onChange={() => toggle(l.id)}
+                    className="mt-0.5 accent-[var(--brand-olive)]"
+                  />
+                  <span className="flex-1 min-w-0">
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-[var(--brand-brown)]">{shortStoreName(l.name)}</span>
+                      {viewOnly && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--brand-cream)] text-[var(--ink-muted)] border border-[var(--line)]">
+                          view only
+                        </span>
+                      )}
+                    </span>
+                    {viewOnly && (
+                      <span className="block text-[11px] text-[var(--ink-muted)]">
+                        {by && by.length > 0 ? `Ordered by ${by.join(", ")} · view only` : "View only"}
+                      </span>
+                    )}
+                    <span className={`block text-[11px] ${st ? "text-[var(--brand-olive)]" : "text-[var(--ink-muted)]"}`}>
+                      {st
+                        ? `Sent by ${st.sentBy || "—"}${st.sentAt ? ` · ${formatSentAt(st.sentAt)}` : ""} · ${st.itemCount} item${st.itemCount === 1 ? "" : "s"}`
+                        : "Nothing waiting"}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          <div className="flex items-center gap-2 border-t border-[var(--line)] mt-2 pt-2">
+            <button
+              type="button"
+              onClick={() => onChange(myStores)}
+              disabled={myStores.length === 0}
+              className="px-3 py-1.5 rounded-full bg-[var(--brand-olive)] text-white text-xs font-medium disabled:opacity-40"
+            >
+              Select my stores
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange(locations.map((l) => l.id))}
+              className="px-3 py-1.5 rounded-full bg-[var(--brand-cream)] text-[var(--brand-brown)] text-xs font-medium hover:bg-[var(--line)]"
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange([])}
+              className="px-3 py-1.5 rounded-full bg-[var(--brand-cream)] text-[var(--brand-brown)] text-xs font-medium hover:bg-[var(--line)]"
+            >
+              None
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Friendly labels for container sizes
@@ -209,7 +388,8 @@ export function UnifiedProductsPage({
   standardPours,
   costTargets,
   bottleSizes,
-  useMergedOrderCart,
+  orderingScope,
+  storeStatus,
   role,
   inProgressOrders,
   theoreticalUsage,
@@ -222,7 +402,10 @@ export function UnifiedProductsPage({
   standardPours: Record<string, number>;
   costTargets: Record<string, number>;
   bottleSizes: number[];
-  useMergedOrderCart: boolean;
+  // Per-person store scope: locationId → ORDER | VIEW, plus who orders the VIEW stores.
+  orderingScope: { access: Record<string, StoreAccess>; orderedBy: Record<string, string[]> };
+  // locationId → the waiting (SUBMITTED) order, if any
+  storeStatus: Record<string, StoreStatus>;
   role: string;
   inProgressOrders: {
     id: string;
@@ -239,22 +422,37 @@ export function UnifiedProductsPage({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Ordering mode toggle (single vs multi-location). Optimistic local state
-  // drives the control instantly; the server action persists it and
-  // router.refresh() re-syncs the useMergedOrderCart prop (which the cart logic reads).
-  const [mergedOptimistic, setMergedOptimistic] = useState(useMergedOrderCart);
-  const [orderModePending, startOrderModeTransition] = useTransition();
+  // ===== ORDER TAB: store selection (replaces the old Single/Multiple toggle
+  // and the two location pickers). Remembered per device; defaults to "my stores".
+  const storeAccess = orderingScope.access;
+  const myOrderStoreIds = useMemo(
+    () => locations.filter((l) => storeAccess[l.id] === "ORDER").map((l) => l.id),
+    [locations, storeAccess],
+  );
+  const [orderStoreIds, setOrderStoreIdsRaw] = useState<string[]>([]);
+  const orderStoresLoaded = useRef(false);
   useEffect(() => {
-    setMergedOptimistic(useMergedOrderCart);
-  }, [useMergedOrderCart]);
-  const changeOrderMode = (merged: boolean) => {
-    if (merged === mergedOptimistic || orderModePending) return;
-    setMergedOptimistic(merged);
-    startOrderModeTransition(async () => {
-      await setUseMergedOrderCart(merged);
-      router.refresh();
-    });
+    if (orderStoresLoaded.current) return;
+    orderStoresLoaded.current = true;
+    let saved: string[] | null = null;
+    try {
+      const raw = localStorage.getItem("ordering.selectedStores");
+      if (raw) saved = JSON.parse(raw);
+    } catch {}
+    const valid = new Set(locations.map((l) => l.id));
+    const restored = Array.isArray(saved) ? saved.filter((id) => valid.has(id)) : null;
+    setOrderStoreIdsRaw(restored && restored.length > 0 ? restored : myOrderStoreIds);
+  }, [locations, myOrderStoreIds]);
+  const setOrderStoreIds = (ids: string[]) => {
+    // Keep the store order stable (Palo Alto, Sunnyvale, ...), whatever the click order.
+    const ordered = locations.map((l) => l.id).filter((id) => ids.includes(id));
+    setOrderStoreIdsRaw(ordered);
+    try { localStorage.setItem("ordering.selectedStores", JSON.stringify(ordered)); } catch {}
   };
+  const [orderMenuFilter, setOrderMenuFilter] = useState<"onMenu" | "all">("onMenu");
+  const [needsAttentionOnly, setNeedsAttentionOnly] = useState(false);
+  const [unitSaving, setUnitSaving] = useState<string | null>(null);
+  const [unitError, setUnitError] = useState<string | null>(null);
 
   // Scroll preservation — save/restore scroll position across server action re-renders
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -885,18 +1083,18 @@ export function UnifiedProductsPage({
     try { localStorage.setItem("meyhouse_cartOverrides", JSON.stringify(val)); } catch {}
   }
 
-  // Flat sorted list of inventory items (for ordering/inventory — no group headers)
-  const flatInventoryItems = useMemo(() => {
-    let items: (typeof inventoryForStore)[number][];
-    if (selectedArea === "ALL") {
-      items = [...inventoryForStore];
-    } else {
-      items = inventoryForStore.filter(
-        (i) => (i.inv.storageArea || "Unassigned") === selectedArea
-      );
-    }
-    const dir = orderSortDir === "asc" ? 1 : -1;
-    items.sort((a, b) => {
+  // Shared row comparator for the Inventory and Order tables (column header sort).
+  type SortableOrderItem = {
+    name: string;
+    bottleSizeMl: number | null;
+    vendor: string | null;
+    orderUnit: string | null;
+    casePackSize: number | null;
+    inv: { id: string; storageArea: string | null; parLevel: number };
+  };
+  const compareOrderItems = useCallback(
+    (a: SortableOrderItem, b: SortableOrderItem): number => {
+      const dir = orderSortDir === "asc" ? 1 : -1;
       switch (orderSortField) {
         case "name":
           return a.name.localeCompare(b.name) * dir;
@@ -926,20 +1124,111 @@ export function UnifiedProductsPage({
             if (cv === "") return -1;
             const counted = parseFloat(cv) || 0;
             const needed = Math.max(0, item.inv.parLevel - counted);
-            if (needed <= 0) return 0;
-            const cps = item.casePackSize || 0;
-            const isCase = cps > 1;
-            const casePack = isCase ? cps : 1;
-            return isCase ? Math.ceil(needed / casePack) : Math.ceil(needed);
+            return orderQtyFor(needed, effectiveOrderUnit(item), item.casePackSize);
           };
           return (getOQ(a) - getOQ(b)) * dir;
         }
         default:
           return a.name.localeCompare(b.name) * dir;
       }
-    });
+    },
+    [orderSortField, orderSortDir, orderCounts],
+  );
+
+  // Flat sorted list of inventory items (Inventory tab — single store)
+  const flatInventoryItems = useMemo(() => {
+    let items: (typeof inventoryForStore)[number][];
+    if (selectedArea === "ALL") {
+      items = [...inventoryForStore];
+    } else {
+      items = inventoryForStore.filter(
+        (i) => (i.inv.storageArea || "Unassigned") === selectedArea
+      );
+    }
+    items.sort(compareOrderItems);
     return items;
-  }, [inventoryForStore, selectedArea, orderSortField, orderSortDir, orderCounts]);
+  }, [inventoryForStore, selectedArea, compareOrderItems]);
+
+  // ===== ORDER TAB ROWS =====
+  // One row per (product, store) for every ticked store. The filter box
+  // (search / vendor / category / on menu), the area chips and "Needs
+  // attention" all apply here — before this, they only affected other tabs.
+  const orderRowsAll = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const rows: (Product & { inv: Product["inventory"][number]; reasons: string[] })[] = [];
+    for (const locId of orderStoreIds) {
+      for (const p of products) {
+        if (orderMenuFilter === "onMenu" && !p.onMenu) continue;
+        const inv = p.inventory.find((i) => i.locationId === locId);
+        if (!inv) continue;
+        if (q && !p.name.toLowerCase().includes(q)) continue;
+        if (vendorFilter !== "ALL" && p.vendor !== vendorFilter) continue;
+        if (categoryFilter !== "ALL" && p.ingredientCategory !== categoryFilter) continue;
+        rows.push({ ...p, inv, reasons: attentionReasons(p, inv.parLevel) });
+      }
+    }
+    return rows;
+  }, [orderStoreIds, products, orderMenuFilter, search, vendorFilter, categoryFilter]);
+
+  // Area chips: every storage area used by the ticked stores.
+  const orderAreaNames = useMemo(() => {
+    const names = new Set<string>();
+    for (const r of orderRowsAll) names.add(r.inv.storageArea || "Unassigned");
+    return [...names].sort((a, b) => (a === "Unassigned" ? 1 : b === "Unassigned" ? -1 : a.localeCompare(b)));
+  }, [orderRowsAll]);
+
+  const orderAttentionCount = useMemo(
+    () => orderRowsAll.filter((r) => r.reasons.length > 0).length,
+    [orderRowsAll],
+  );
+
+  const orderGroups = useMemo(() => {
+    const rows = orderRowsAll.filter(
+      (r) =>
+        (selectedArea === "ALL" || (r.inv.storageArea || "Unassigned") === selectedArea) &&
+        (!needsAttentionOnly || r.reasons.length > 0),
+    );
+    return orderStoreIds
+      .map((locId) => {
+        const loc = locations.find((l) => l.id === locId);
+        return {
+          locationId: locId,
+          name: shortStoreName(loc?.name || ""),
+          access: storeAccess[locId] ?? "VIEW",
+          rows: rows.filter((r) => r.inv.locationId === locId).sort(compareOrderItems),
+        };
+      })
+      .filter((g) => g.name);
+  }, [orderRowsAll, selectedArea, needsAttentionOnly, orderStoreIds, locations, storeAccess, compareOrderItems]);
+
+  // Save the Order-table qty/unit edit ("3:cs") into the cart overrides.
+  function commitOrderQtyEdit(cartKey: string) {
+    const [qtyStr, unitStr] = editValue.split(":");
+    const qty = Math.max(0, parseInt(qtyStr || "0", 10) || 0);
+    setEditingCell(null);
+    if (qty === 0) {
+      // 0 = drop the line (same as the cart's ✕)
+      const [productId, locationId] = cartKey.split("_");
+      removeFromCart(productId, locationId);
+      return;
+    }
+    setCartOverrides({
+      ...cartOverrides,
+      [cartKey]: { ...cartOverrides[cartKey], orderQty: qty, orderUnit: unitStr === "cs" ? "case" : "bottle" },
+    });
+  }
+
+  // Set a product's CS/BTL (product-wide, logged). null = Not set.
+  async function changeProductOrderUnit(productId: string, unit: "CASE" | "BOTTLE" | null) {
+    setEditingCell(null);
+    setUnitSaving(productId);
+    setUnitError(null);
+    saveScroll();
+    const res = await setProductOrderUnit(productId, unit);
+    setUnitSaving(null);
+    if ((res as { error?: string })?.error) setUnitError((res as { error: string }).error);
+    else router.refresh();
+  }
 
   // Cart items: auto-calculated from orderCounts where count < par
   interface CartItem {
@@ -955,49 +1244,36 @@ export function UnifiedProductsPage({
     orderUnit: string;
     casePackSize: number;
     bottleCostCents: number | null;
+    unitNotSet: boolean; // product has no CS/BTL set yet (sized in bottles)
   }
 
   const cartItems = useMemo<CartItem[]>(() => {
     const items: CartItem[] = [];
-
-    // In merged mode: scan ALL stores' inventory items for counts below par
-    // In single mode: only scan the currently selected store
-    const productsToScan = useMergedOrderCart
-      ? products.filter((p) => p.onMenu && p.inventory.length > 0)
-      : (selectedStoreId ? inventoryForStore : []);
-
-    for (const p of productsToScan) {
-      // In merged mode, check each store this product is at
-      const invEntries = useMergedOrderCart
-        ? p.inventory
-        : ((p as any).inv ? [(p as any).inv] : p.inventory.filter((i: any) => i.locationId === selectedStoreId));
-
-      for (const inv of invEntries) {
+    for (const p of products) {
+      for (const inv of p.inventory) {
+        if (storeAccess[inv.locationId] !== "ORDER") continue; // view-only stores never order
         const countVal = orderCounts[inv.id];
         if (countVal === undefined || countVal === "") continue;
         const counted = parseFloat(countVal) || 0;
         const needed = inv.parLevel - counted;
         if (needed <= 0) continue;
 
-        const cps = p.casePackSize || 0;
-        const isCase = cps > 1;
-        const casePack = isCase ? cps : 1;
-        const orderQty = isCase ? Math.ceil(needed / casePack) : Math.ceil(needed);
-
+        const unit = effectiveOrderUnit(p);
         const loc = locations.find((l) => l.id === inv.locationId);
         items.push({
           productId: p.id,
           productName: p.name,
           vendor: p.vendor || "No Vendor",
           locationId: inv.locationId,
-          locationName: loc?.name?.replace("Meyhouse ", "") || "",
+          locationName: shortStoreName(loc?.name || ""),
           parLevel: inv.parLevel,
           counted,
           needed,
-          orderQty,
-          orderUnit: isCase ? "case" : "bottle",
-          casePackSize: casePack,
+          orderQty: orderQtyFor(needed, unit, p.casePackSize),
+          orderUnit: unit === "CASE" ? "case" : "bottle",
+          casePackSize: unit === "CASE" ? (p.casePackSize as number) : 1,
           bottleCostCents: p.bottleCostCents,
+          unitNotSet: unit === null,
         });
       }
     }
@@ -1014,7 +1290,8 @@ export function UnifiedProductsPage({
         locationName: override.locationName ?? item.locationName,
       };
     });
-  }, [products, inventoryForStore, orderCounts, selectedStoreId, locations, useMergedOrderCart, cartOverrides]);
+  }, [products, orderCounts, locations, storeAccess, cartOverrides]);
+  const cartStoreCount = useMemo(() => new Set(cartItems.map((c) => c.locationId)).size, [cartItems]);
 
   // Group cart by vendor → then by store
   const cartGrouped = useMemo(() => {
@@ -1717,6 +1994,7 @@ export function UnifiedProductsPage({
   // Switch mode and update URL
   function switchMode(newMode: Mode) {
     setMode(newMode);
+    setSelectedArea("ALL"); // area chips differ per tab (Order = several stores)
     const params = new URLSearchParams(searchParams.toString());
     if (newMode === "products") {
       params.delete("mode");
@@ -1980,7 +2258,8 @@ export function UnifiedProductsPage({
         })}
       </div>
 
-      {/* Filters */}
+      {/* Filters (Products / Inventory / Pricing — the Order tab has its own filter box) */}
+      {mode !== "ordering" && (
       <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 ${fullScreenView ? "mb-2 [&_select]:py-1 [&_input]:py-1" : "mb-4"}`}>
         <div className="relative col-span-2 sm:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
@@ -2034,6 +2313,7 @@ export function UnifiedProductsPage({
           ))}
         </select>
       </div>
+      )}
 
       {/* Inventory & Pricing tabs have no location bar — give them a
           right-aligned Full Screen toggle so it's reachable (and closable)
@@ -2044,8 +2324,123 @@ export function UnifiedProductsPage({
         </div>
       )}
 
-      {/* Store selector + Area buttons — pinned for Ordering & Inventory modes */}
-      {(mode === "ordering" || mode === "inventory") && (
+      {/* ORDER TAB — one store picker (top-left) + one filter box + area chips */}
+      {mode === "ordering" && (
+        <div className={`bg-white border border-[var(--line)] rounded-xl mt-1 ${fullScreenView ? "p-2" : "p-3"}`}>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+              <StorePicker
+                locations={locations}
+                selected={orderStoreIds}
+                onChange={(ids) => { setOrderStoreIds(ids); setSelectedArea("ALL"); }}
+                access={storeAccess}
+                orderedBy={orderingScope.orderedBy}
+                storeStatus={storeStatus}
+              />
+              <div className="relative w-full sm:w-56">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={search}
+                  onChange={(e) => setSearchPersisted(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] text-sm"
+                />
+              </div>
+              <select
+                value={vendorFilter}
+                onChange={(e) => setVendorFilterPersisted(e.target.value)}
+                className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
+                aria-label="Vendor"
+              >
+                <option value="ALL">All Vendors</option>
+                {allVendors.map((v) => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilterPersisted(e.target.value)}
+                className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
+                aria-label="Category"
+              >
+                <option value="ALL">All Categories</option>
+                {categories.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <select
+                value={orderMenuFilter}
+                onChange={(e) => setOrderMenuFilter(e.target.value as "onMenu" | "all")}
+                className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
+                aria-label="On menu"
+              >
+                <option value="onMenu">On Menu</option>
+                <option value="all">All (incl. off menu)</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => setNeedsAttentionOnly((v) => !v)}
+                aria-pressed={needsAttentionOnly}
+                title="No par, no unit, or case without a case size"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium border transition-colors ${
+                  needsAttentionOnly
+                    ? "bg-[#B8860B] border-[#B8860B] text-white"
+                    : "bg-white border-[#D4A017] text-[#8A6A00] hover:bg-[#FFF8E1]"
+                }`}
+              >
+                <AlertTriangle className="w-4 h-4" />
+                Needs attention
+                <span className={`text-xs ${needsAttentionOnly ? "text-white/90" : "text-[#8A6A00]"}`}>{orderAttentionCount}</span>
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* "Email Approved Orders" is hidden on purpose: ordering never sends
+                  vendor emails automatically. Phase 4 replaces it with
+                  Copy email + Mark as sent. */}
+              <button
+                onClick={() => setShowCart(!showCart)}
+                className="flex items-center gap-2 px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors relative"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                Order Cart
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
+                    {cartItems.length}
+                  </span>
+                )}
+              </button>
+              {fullScreenToggle}
+            </div>
+          </div>
+          {unitError && (
+            <div className="mt-2 text-xs bg-red-50 border border-red-200 text-red-700 rounded-lg px-3 py-2 flex items-center justify-between">
+              <span>{unitError}</span>
+              <button onClick={() => setUnitError(null)} className="ml-2" aria-label="Dismiss">✕</button>
+            </div>
+          )}
+          {orderStoreIds.length > 0 && orderAreaNames.length > 0 && (
+            <div className="flex gap-1.5 mt-3 flex-wrap">
+              {["ALL", ...orderAreaNames].map((area) => (
+                <button
+                  key={area}
+                  onClick={() => setSelectedArea(area)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    selectedArea === area
+                      ? "bg-[var(--brand-olive)] text-white"
+                      : "bg-[var(--brand-cream)] text-[var(--ink-muted)] hover:bg-[var(--line)]"
+                  }`}
+                >
+                  {area === "ALL" ? "All Areas" : area}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Store selector + Area buttons — pinned for the Inventory tab */}
+      {mode === "inventory" && (
         <div className={`bg-white border border-[var(--line)] rounded-xl mt-1 ${fullScreenView ? "p-2" : "p-3"}`}>
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
@@ -2096,71 +2491,6 @@ export function UnifiedProductsPage({
               )}
             </div>
             <div className="flex items-center gap-2">
-              {mode === "ordering" && (
-                <>
-                  {/* Ordering mode: Single vs Multiple locations. Persists to the
-                      org setting; the cart re-computes as merged/per-store. */}
-                  <div
-                    className="inline-flex rounded-lg border border-[var(--line)] overflow-hidden text-sm font-medium"
-                    role="group"
-                    aria-label="Ordering mode"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => changeOrderMode(false)}
-                      disabled={orderModePending}
-                      aria-pressed={!mergedOptimistic}
-                      title="Each location orders on its own"
-                      className={`px-3 py-2 transition-colors disabled:opacity-60 ${
-                        !mergedOptimistic
-                          ? "bg-[var(--brand-olive)] text-white"
-                          : "bg-[var(--brand-cream)] text-[var(--brand-brown)] hover:bg-[var(--line)]"
-                      }`}
-                    >
-                      Single Location
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => changeOrderMode(true)}
-                      disabled={orderModePending}
-                      aria-pressed={mergedOptimistic}
-                      title="One merged cart across all locations"
-                      className={`px-3 py-2 transition-colors disabled:opacity-60 ${
-                        mergedOptimistic
-                          ? "bg-[var(--brand-olive)] text-white"
-                          : "bg-[var(--brand-cream)] text-[var(--brand-brown)] hover:bg-[var(--line)]"
-                      }`}
-                    >
-                      Multiple Locations
-                    </button>
-                  </div>
-                  {canApprove && (
-                    <button
-                      onClick={handleEmailPreview}
-                      disabled={emailLoading}
-                      className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                      title="Email APPROVED orders to vendors"
-                    >
-                      <Mail className="w-4 h-4" />
-                      {emailLoading ? "Loading..." : "Email Approved Orders"}
-                    </button>
-                  )}
-                  {selectedStoreId && (
-                    <button
-                      onClick={() => setShowCart(!showCart)}
-                      className="flex items-center gap-2 px-3 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-sm font-medium transition-colors relative"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      {useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}
-                      {cartItems.length > 0 && (
-                        <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
-                          {cartItems.length}
-                        </span>
-                      )}
-                    </button>
-                  )}
-                </>
-              )}
               {/* Full Screen View toggle — stays visible in both states so it's
                   always the way back out. Olive when on. */}
               {fullScreenToggle}
@@ -3523,11 +3853,11 @@ export function UnifiedProductsPage({
           {/* Main ordering table — always full width; cart floats over it as a drawer */}
           <div className="min-w-0">
 
-            {!selectedStoreId ? (
+            {orderStoreIds.length === 0 ? (
               <div className="bg-white border border-[var(--line)] rounded-xl p-8 text-center">
                 <ShoppingCart className="w-10 h-10 text-[var(--ink-muted)] mx-auto mb-3" />
-                <h2 className="text-lg font-semibold mb-1">Select a store to start ordering</h2>
-                <p className="text-sm text-[var(--ink-muted)]">Pick a location, count what you have, and the system auto-generates your order.</p>
+                <h2 className="text-lg font-semibold mb-1">Pick your stores to start ordering</h2>
+                <p className="text-sm text-[var(--ink-muted)]">Use the store picker at the top left (or &ldquo;Select my stores&rdquo;), count what you have, and the order builds itself.</p>
               </div>
             ) : (
               <div className="bg-white border border-[var(--line)] rounded-xl">
@@ -3540,8 +3870,8 @@ export function UnifiedProductsPage({
                         <th className="text-left px-2 py-2 w-[55px] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("size")}>
                           <span className="flex items-center gap-1">Size <OrderSortIcon field="size" /></span>
                         </th>
-                        <th className="text-center px-2 py-2 w-[70px]">
-                          <span className="whitespace-nowrap">Case</span>
+                        <th className="text-center px-2 py-2 w-[80px]">
+                          <span className="whitespace-nowrap">Unit</span>
                         </th>
                         <th className="text-left px-2 py-2 w-[75px] cursor-pointer hover:text-[var(--brand-brown)]" onClick={() => toggleOrderSort("vendor")}>
                           <span className="flex items-center gap-1">Vendor <OrderSortIcon field="vendor" /></span>
@@ -3563,22 +3893,56 @@ export function UnifiedProductsPage({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[var(--line)]">
-                      {flatInventoryItems.map((item) => {
+                      {orderGroups.map((group) => {
+                        const viewOnly = group.access !== "ORDER";
+                        const st = storeStatus[group.locationId];
+                        const by = orderingScope.orderedBy[group.locationId];
+                        return [
+                          <tr key={`hdr-${group.locationId}`} className="bg-[var(--brand-cream)]">
+                            <td colSpan={10} className="px-2 py-2">
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <span className="text-xs font-semibold text-[var(--brand-brown)]">{group.name}</span>
+                                <span className="text-[10px] text-[var(--ink-muted)]">{group.rows.length} item{group.rows.length === 1 ? "" : "s"}</span>
+                                {viewOnly && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white text-[var(--ink-muted)] border border-[var(--line)]">
+                                    {by && by.length > 0 ? `Ordered by ${by.join(", ")} · view only` : "View only"}
+                                  </span>
+                                )}
+                                <span className={`text-[10px] ${st ? "text-[var(--brand-olive)]" : "text-[var(--ink-muted)]"}`}>
+                                  {st
+                                    ? `Sent by ${st.sentBy || "—"}${st.sentAt ? ` · ${formatSentAt(st.sentAt)}` : ""} · ${st.itemCount} item${st.itemCount === 1 ? "" : "s"}`
+                                    : "Nothing waiting"}
+                                </span>
+                              </div>
+                            </td>
+                          </tr>,
+                          ...(group.rows.length === 0
+                            ? [
+                                <tr key={`empty-${group.locationId}`}>
+                                  <td colSpan={10} className="px-2 py-3 text-center text-[11px] text-[var(--ink-muted)]">
+                                    No items match the filters for this store.
+                                  </td>
+                                </tr>,
+                              ]
+                            : []),
+                          ...group.rows.map((item) => {
+                        const rowKey = item.inv.id;
                         const countVal = orderCounts[item.inv.id] ?? "";
                         const hasCount = countVal !== "";
                         const counted = hasCount ? parseFloat(countVal) || 0 : null;
                         const needed = counted !== null ? Math.max(0, item.inv.parLevel - counted) : null;
-                        // Case size decides how to order:
-                        //   positive number (6, 12, 24) → order by CASE (need ÷ case_size, rounded up)
-                        //   negative (Bottle Only, Single, Keg) or 0 → order by UNIT (bottle/keg count)
-                        const cps = item.casePackSize || 0;
-                        const isCase = cps > 1;
-                        const casePack = isCase ? cps : 1;
-                        const orderQty = needed !== null && needed > 0
-                          ? (isCase ? Math.ceil(needed / casePack) : Math.ceil(needed))
-                          : 0;
+                        // CS/BTL (Ingredient.orderUnit) decides how to order. A manual
+                        // qty/unit change is kept in cartOverrides (same as the cart).
+                        const unit = effectiveOrderUnit(item);
+                        const isCase = unit === "CASE";
+                        const cartKey = `${item.id}_${item.inv.locationId}`;
+                        const override = cartOverrides[cartKey];
+                        const calcQty = needed !== null ? orderQtyFor(needed, unit, item.casePackSize) : 0;
+                        const orderQty = calcQty > 0 ? (override?.orderQty ?? calcQty) : 0;
+                        const shownUnitIsCase = override?.orderUnit ? override.orderUnit === "case" : isCase;
                         const history = getHistoryLine(item);
-                        const isEd = (field: string) => editingCell?.productId === item.id && editingCell?.field === field;
+                        // Edits are keyed by the row (product × store), not just the product.
+                        const isEd = (field: string) => editingCell?.productId === rowKey && editingCell?.field === field;
 
                         const ordMarkerColor =
                           item.inv.markedForRemoval === "INACTIVE" ? "bg-red-50/60" :
@@ -3660,15 +4024,53 @@ export function UnifiedProductsPage({
                               ) : (
                                 <span
                                   className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)]"
-                                  onClick={() => startEdit(item.id, "bottleSize", item.bottleSizeMl?.toString() || "")}
+                                  onClick={() => startEdit(rowKey, "bottleSize", item.bottleSizeMl?.toString() || "")}
                                 >
                                   {item.bottleSizeMl ? formatSize(item.bottleSizeMl, item.bottleSizeUnit || "ml") : "—"}
                                 </span>
                               )}
                             </td>
-                            {/* Case size (read-only) */}
-                            <td className="px-2 py-2 text-center text-[10px] text-[var(--ink-muted)] whitespace-nowrap">
-                              {formatCaseSize(item.casePackSize)}
+                            {/* Unit (CS/BTL) — set on the product; "Not set" in gold */}
+                            <td className="px-2 py-2 text-center text-[10px] whitespace-nowrap">
+                              {isEd("unit") ? (
+                                <select
+                                  value={item.orderUnit === "CASE" || item.orderUnit === "BOTTLE" ? item.orderUnit : ""}
+                                  onChange={(e) => changeProductOrderUnit(item.id, (e.target.value || null) as "CASE" | "BOTTLE" | null)}
+                                  onBlur={() => setEditingCell(null)}
+                                  className="px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
+                                  autoFocus
+                                >
+                                  <option value="CASE">CS (case{(item.casePackSize ?? 0) > 1 ? ` of ${item.casePackSize}` : " — set case size"})</option>
+                                  <option value="BOTTLE">BTL (bottle)</option>
+                                  <option value="">Not set</option>
+                                </select>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={unitSaving === item.id}
+                                  onClick={() => startEdit(rowKey, "unit", "")}
+                                  title={
+                                    unit === null
+                                      ? item.orderUnit === "CASE"
+                                        ? "Set to CS but the product has no case size — click to change"
+                                        : "No unit set — click to set CS or BTL"
+                                      : "Click to change CS/BTL for this product (all stores)"
+                                  }
+                                  className={
+                                    unit === null
+                                      ? "px-1.5 py-0.5 rounded border border-dashed border-[#D4A017] bg-[#FFF8E1] text-[#8A6A00] font-medium"
+                                      : "px-1.5 py-0.5 rounded text-[var(--ink-muted)] hover:text-[var(--brand-olive)]"
+                                  }
+                                >
+                                  {unitSaving === item.id
+                                    ? "…"
+                                    : unit === "CASE"
+                                      ? `CS · ${item.casePackSize}`
+                                      : unit === "BOTTLE"
+                                        ? item.casePackSize === CASE_KEG ? "Keg" : "BTL"
+                                        : "Not set"}
+                                </button>
+                              )}
                             </td>
                             {/* Vendor — click to edit */}
                             <td className="px-2 py-2">
@@ -3694,7 +4096,7 @@ export function UnifiedProductsPage({
                               ) : (
                                 <span
                                   className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)] truncate block"
-                                  onClick={() => startEdit(item.id, "vendor", item.vendorId || "")}
+                                  onClick={() => startEdit(rowKey, "vendor", item.vendorId || "")}
                                 >
                                   {item.vendor || "—"}
                                 </span>
@@ -3721,8 +4123,9 @@ export function UnifiedProductsPage({
                                 />
                               ) : (
                                 <span
-                                  className="text-xs text-[var(--brand-brown)] cursor-pointer hover:text-[var(--brand-olive)]"
-                                  onClick={() => startEdit(item.id, "par", item.inv.parLevel.toString())}
+                                  className={`text-xs ${item.inv.parLevel > 0 ? "text-[var(--brand-brown)]" : "text-[#8A6A00] font-medium"} ${viewOnly ? "" : "cursor-pointer hover:text-[var(--brand-olive)]"}`}
+                                  title={item.inv.parLevel > 0 ? undefined : "No par set"}
+                                  onClick={() => { if (!viewOnly) startEdit(rowKey, "par", item.inv.parLevel.toString()); }}
                                 >
                                   {item.inv.parLevel}
                                 </span>
@@ -3739,7 +4142,9 @@ export function UnifiedProductsPage({
                                 value={countVal}
                                 onChange={(e) => setOrderCounts({ ...orderCounts, [item.inv.id]: e.target.value })}
                                 placeholder="—"
-                                className="w-14 px-1 py-1 border border-[var(--line)] rounded text-xs text-center font-bold focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
+                                disabled={viewOnly}
+                                title={viewOnly ? "View only — this store is ordered by someone else" : undefined}
+                                className="w-14 px-1 py-1 border border-[var(--line)] rounded text-xs text-center font-bold focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)] disabled:bg-[var(--brand-cream)] disabled:text-[var(--ink-muted)]"
                               />
                             </td>
                             {/* Need */}
@@ -3760,31 +4165,43 @@ export function UnifiedProductsPage({
                                     min="0"
                                     value={editValue.split(":")[0] || ""}
                                     onChange={(e) => {
-                                      const unit = editValue.split(":")[1] || (isCase ? "cs" : "btl");
-                                      setEditValue(`${e.target.value}:${unit}`);
+                                      const u = editValue.split(":")[1] || (shownUnitIsCase ? "cs" : "btl");
+                                      setEditValue(`${e.target.value}:${u}`);
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") { commitOrderQtyEdit(cartKey); }
+                                      if (e.key === "Escape") setEditingCell(null);
                                     }}
                                     className="w-10 px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-xs text-center focus:outline-none"
                                     autoFocus
                                   />
                                   <select
-                                    value={editValue.split(":")[1] || (isCase ? "cs" : "btl")}
+                                    value={editValue.split(":")[1] || (shownUnitIsCase ? "cs" : "btl")}
                                     onChange={(e) => {
                                       const qty = editValue.split(":")[0] || "0";
                                       setEditValue(`${qty}:${e.target.value}`);
                                     }}
-                                    onBlur={() => setEditingCell(null)}
                                     className="px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                                   >
                                     <option value="btl">btl</option>
                                     <option value="cs">case</option>
                                   </select>
+                                  <button
+                                    type="button"
+                                    onClick={() => commitOrderQtyEdit(cartKey)}
+                                    className="p-0.5 rounded bg-[var(--brand-olive)] text-white"
+                                    aria-label="Save quantity"
+                                  >
+                                    <Check className="w-3 h-3" />
+                                  </button>
                                 </div>
                               ) : orderQty > 0 ? (
                                 <span
-                                  className="text-xs text-[var(--brand-olive-hover)] font-bold cursor-pointer hover:text-[var(--brand-olive-hover)]"
-                                  onClick={() => startEdit(item.id, "orderQty", `${orderQty}:${orderUnitLabel(item.casePackSize, isCase)}`)}
+                                  className={`text-xs font-bold ${viewOnly ? "text-[var(--ink-muted)]" : "text-[var(--brand-olive-hover)] cursor-pointer"} ${unit === null && !override?.orderUnit ? "text-[#8A6A00]" : ""}`}
+                                  title={unit === null && !override?.orderUnit ? "Unit not set — sized in bottles" : undefined}
+                                  onClick={() => { if (!viewOnly) startEdit(rowKey, "orderQty", `${orderQty}:${orderUnitLabel(item.casePackSize, shownUnitIsCase)}`); }}
                                 >
-                                  {orderQty} {orderUnitLabel(item.casePackSize, isCase)}
+                                  {orderQty} {orderUnitLabel(item.casePackSize, shownUnitIsCase)}
                                 </span>
                               ) : <span className="text-xs text-[var(--ink-muted)]">—</span>}
                             </td>
@@ -3801,6 +4218,8 @@ export function UnifiedProductsPage({
                             </td>
                           </tr>
                         );
+                          }),
+                        ];
                       })}
                     </tbody>
                   </table>
@@ -3824,13 +4243,13 @@ export function UnifiedProductsPage({
               showCart ? "translate-x-0" : "translate-x-full"
             }`}
             role="dialog"
-            aria-label={useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}
+            aria-label="Order Cart"
             aria-hidden={!showCart}
           >
               <div className="p-4 border-b border-[var(--line)] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-[var(--brand-olive)]" />
-                  <h2 className="font-bold">{useMergedOrderCart ? "Merged Order Cart" : "Order Cart"}</h2>
+                  <h2 className="font-bold">Order Cart</h2>
                   <span className="text-xs text-[var(--ink-muted)]">({cartItems.length})</span>
                 </div>
                 <button
@@ -3867,7 +4286,7 @@ export function UnifiedProductsPage({
                           </div>
                           {[...byStore.entries()].map(([storeName, storeItems]) => (
                             <div key={storeName} className="mb-2">
-                              {useMergedOrderCart && (
+                              {cartStoreCount > 1 && (
                                 <p className="text-xs text-[var(--brand-olive-hover)] font-bold ml-1 mb-0.5">{storeName}</p>
                               )}
                               <div className="space-y-1">
@@ -3881,6 +4300,9 @@ export function UnifiedProductsPage({
                                         <p className="truncate font-medium">{ci.productName}</p>
                                         <p className="text-[10px] text-[var(--ink-muted)]">
                                           Par {ci.parLevel} · Had {ci.counted}
+                                          {ci.unitNotSet && !cartOverrides[cartKey]?.orderUnit && (
+                                            <span className="ml-1 px-1 rounded border border-dashed border-[#D4A017] bg-[#FFF8E1] text-[#8A6A00]">Unit not set</span>
+                                          )}
                                         </p>
                                       </div>
                                       <div className="flex items-center gap-1">
@@ -3915,8 +4337,8 @@ export function UnifiedProductsPage({
                                         </button>
                                       </div>
                                     </div>
-                                    {/* Store reassignment — click store name to change */}
-                                    {useMergedOrderCart && (
+                                    {/* Store reassignment — only between stores this person orders for */}
+                                    {myOrderStoreIds.length > 1 && (
                                       <div className="mt-1 flex items-center gap-1">
                                         <span className="text-[9px] text-[var(--ink-muted)]">Store:</span>
                                         <select
@@ -3934,9 +4356,9 @@ export function UnifiedProductsPage({
                                           }}
                                           className="text-[9px] px-1 py-0 border border-[var(--line)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--brand-olive)] bg-white"
                                         >
-                                          {locations.map((l) => (
+                                          {locations.filter((l) => storeAccess[l.id] === "ORDER").map((l) => (
                                             <option key={l.id} value={l.id}>
-                                              {l.name.replace("Meyhouse ", "")}
+                                              {shortStoreName(l.name)}
                                             </option>
                                           ))}
                                         </select>

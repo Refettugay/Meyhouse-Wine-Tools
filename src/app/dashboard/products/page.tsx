@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/session";
 import { getCategoriesConfig } from "@/lib/actions/settings";
 import { computeTheoreticalUsage } from "@/lib/inventory/theoretical-usage";
 import { UnifiedProductsPage } from "@/components/product/unified-products-page";
+import { getOrderingScope } from "@/lib/ordering-scope";
 
 export default async function ProductsPage() {
   const session = await requireAuth();
@@ -36,10 +37,33 @@ export default async function ProductsPage() {
         settingsStandardPours: true,
         settingsCategories: true,
         settingsBottleSizes: true,
-        useMergedOrderCart: true,
       },
     }),
   ]);
+
+  // Ordering: which stores this person orders for / only views, and each
+  // store's waiting order ("Sent by Sam · Today 4:12 pm · 7 items").
+  const orderingScope = await getOrderingScope(session.userId, orgId);
+  const waitingOrders = await prisma.orderList.findMany({
+    where: { organizationId: orgId, status: "SUBMITTED" },
+    orderBy: { submittedAt: "desc" },
+    select: {
+      locationId: true,
+      submittedAt: true,
+      submittedByName: true,
+      createdByName: true,
+      _count: { select: { items: { where: { status: "PENDING" } } } },
+    },
+  });
+  const storeStatus: Record<string, { sentBy: string | null; sentAt: string | null; itemCount: number }> = {};
+  for (const o of waitingOrders) {
+    if (storeStatus[o.locationId]) continue; // newest per store wins
+    storeStatus[o.locationId] = {
+      sentBy: o.submittedByName || o.createdByName,
+      sentAt: o.submittedAt?.toISOString() ?? null,
+      itemCount: o._count.items,
+    };
+  }
 
   // Get order history (last 8 weeks) per ingredient per location
   const eightWeeksAgo = new Date(Date.now() - 56 * 24 * 60 * 60 * 1000);
@@ -263,7 +287,8 @@ export default async function ProductsPage() {
       standardPours={standardPours}
       costTargets={costTargets}
       bottleSizes={bottleSizes}
-      useMergedOrderCart={org?.useMergedOrderCart ?? false}
+      orderingScope={orderingScope}
+      storeStatus={storeStatus}
       role={session.role}
       inProgressOrders={inProgressOrders}
       theoreticalUsage={theoreticalUsage}

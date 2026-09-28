@@ -62,6 +62,8 @@ model Organization {
   productSKUs  ProductSKU[]
   salesSnapshots SalesSnapshot[]
   coverSnapshots CoverSnapshot[]
+  orderCountEntries  OrderCountEntry[]
+  orderStaffRequests OrderStaffRequest[]
 
   @@schema("beverage")
 }
@@ -292,7 +294,9 @@ model Ingredient {
   yieldCount        Int?    // units per container (e.g., 525 cherries in a 3kg can)
   yieldUnit         String? // "each", "cherry", "leaf", "oz", etc.
   casePackSize      Int?
-  orderUnit         String  @default("BOTTLE")
+  // "CASE" | "BOTTLE" | null (= "Not set": staff pick per order line).
+  // No Prisma default on purpose: new products start as Not set.
+  orderUnit         String?
   purchaseCostCents Int?
   purchaseQty       Float?
   purchaseUnit      String?
@@ -319,6 +323,7 @@ model Ingredient {
   productSKUs     ProductSKU[]
   pricings        IngredientPrice[]
   salesMatches    SalesItemSale[] @relation("IngredientSales")
+  orderCountEntries OrderCountEntry[]
 
   @@unique([organizationId, name])
   @@schema("beverage")
@@ -351,6 +356,8 @@ model Location {
   name           String
   sortOrder      Int    @default(0)
   createdAt      DateTime @default(now())
+  // Link to the Schedule store (public.locations.id) — staff roster + PINs
+  scheduleLocationId String? @unique @db.Uuid
 
   organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   storageAreas   StorageArea[]
@@ -359,6 +366,10 @@ model Location {
   vendorReps     VendorRepLocation[]
   salesSnapshots SalesSnapshot[]
   coverSnapshots CoverSnapshot[]
+  orderCountLink     OrderCountLink?
+  orderingScopes     OrderingStoreScope[]
+  orderCountEntries  OrderCountEntry[]
+  orderStaffRequests OrderStaffRequest[]
 
   @@unique([organizationId, name])
   @@schema("beverage")
@@ -377,6 +388,7 @@ model StorageArea {
   stockCounts     StockCount[]
   inventoryItems  InventoryItem[] @relation("StorageArea1")
   inventoryItems2 InventoryItem[] @relation("StorageArea2")
+  orderCountEntries OrderCountEntry[]
 
   @@unique([locationId, name])
   @@schema("beverage")
@@ -410,6 +422,7 @@ model InventoryItem {
   storageArea  StorageArea? @relation("StorageArea1", fields: [storageAreaId], references: [id], onDelete: SetNull)
   storageArea2 StorageArea? @relation("StorageArea2", fields: [storageArea2Id], references: [id], onDelete: SetNull)
   stockCounts  StockCount[]
+  orderCountEntries OrderCountEntry[]
 
   @@unique([locationId, ingredientId])
   @@schema("beverage")
@@ -447,12 +460,18 @@ model OrderList {
   approvedByName String?
   reviewNote     String?         // owner's "send back" note returned to the manager
   countedAt      DateTime?
+  // Staff Ordering: who sent it from the staff count page
+  submittedById   String?
+  submittedByName String?
+  source          String?        // 'staff' | 'manager'
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   location     Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
   items        OrderListItem[]
+  countEntries  OrderCountEntry[]
+  staffRequests OrderStaffRequest[]
 
   @@schema("beverage")
 }
@@ -477,6 +496,22 @@ model OrderListItem {
   transferFromLocationId String?
   transferToLocationId   String?
   transferNote           String?  // e.g. "3 units via transfer from Palo Alto"
+  // Staff Ordering: who counted, unit pick (this line only), move + transfer
+  // tracking, and cost / case size as they were at the time (Transfers history).
+  countedById           String?
+  countedByName         String?
+  countedAt             DateTime?
+  source                String?   // 'staff' | 'manager'
+  unitIsStaffPick       Boolean?  @default(false)
+  movedById             String?
+  movedByName           String?
+  movedAt               DateTime?
+  transferStatus        String?   // 'PENDING' | 'TRANSFERRED'
+  transferredAt         DateTime?
+  transferredById       String?
+  transferredByName     String?
+  unitCostCentsSnapshot Int?
+  casePackSizeSnapshot  Int?
 
   orderList  OrderList  @relation(fields: [orderListId], references: [id], onDelete: Cascade)
   ingredient Ingredient @relation(fields: [ingredientId], references: [id])
@@ -496,6 +531,11 @@ model OrderEmail {
   status         String   @default("DRAFT")  // DRAFT, SENT, FAILED
   sentAt         DateTime?
   errorMessage   String?
+  // Staff Ordering: store + manual "Mark as sent" (emails are copied, never auto-sent)
+  locationId       String?
+  markedSentById   String?
+  markedSentByName String?
+  markedSentAt     DateTime?
   createdAt      DateTime @default(now())
 
   @@schema("beverage")
@@ -616,5 +656,120 @@ model CoverDay {
   snapshot CoverSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
 
   @@index([snapshotId, date])
+  @@schema("beverage")
+}
+
+// ============================================================================
+// STAFF ORDERING (migration 20260928000000_staff_ordering)
+// ============================================================================
+
+// One secret staff count-page link per store (like public.tip_entry_links).
+model OrderCountLink {
+  locationId    String    @id
+  token         String    @unique
+  enabled       Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  rotatedAt     DateTime?
+  createdById   String?
+  createdByName String?
+
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@schema("beverage")
+}
+
+// Which stores each person orders for (ORDER) or can only see (VIEW).
+// profileId = public.profiles.id (the Supabase user id).
+model OrderingStoreScope {
+  id          String   @id @default(cuid())
+  profileId   String   @db.Uuid
+  locationId  String
+  access      String // ORDER | VIEW
+  createdAt   DateTime @default(now())
+  createdById String?
+
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, locationId])
+  @@schema("beverage")
+}
+
+// Every staff count ever sent. OrderListItem holds the latest; older ones get supersededAt.
+model OrderCountEntry {
+  id              String    @id @default(cuid())
+  organizationId  String
+  locationId      String
+  orderListId     String?
+  ingredientId    String
+  inventoryItemId String?
+  storageAreaId   String?
+  storageAreaName String?
+  count           Float
+  unitPick        String? // CASE | BOTTLE, staff pick when the admin has not set a unit
+  countedById     String?
+  countedByName   String?
+  countedAt       DateTime  @default(now())
+  supersededAt    DateTime?
+  createdAt       DateTime  @default(now())
+
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location      Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  orderList     OrderList?     @relation(fields: [orderListId], references: [id], onDelete: SetNull)
+  ingredient    Ingredient     @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id], onDelete: SetNull)
+  storageArea   StorageArea?   @relation(fields: [storageAreaId], references: [id], onDelete: SetNull)
+
+  @@index([locationId, countedAt])
+  @@index([orderListId])
+  @@schema("beverage")
+}
+
+// Free-text "something else" lines from the staff page.
+model OrderStaffRequest {
+  id              String    @id @default(cuid())
+  organizationId  String
+  locationId      String
+  orderListId     String?
+  text            String
+  status          String    @default("OPEN") // OPEN | ADDED | DISMISSED
+  requestedById   String?
+  requestedByName String?
+  createdAt       DateTime  @default(now())
+  resolvedById    String?
+  resolvedByName  String?
+  resolvedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location     Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  orderList    OrderList?   @relation(fields: [orderListId], references: [id], onDelete: SetNull)
+
+  @@index([orderListId])
+  @@schema("beverage")
+}
+
+// Append-only history of every staff / manager / Transfers change. No relations
+// on purpose so history survives deletes (like public.tip_input_log).
+model OrderActivityLog {
+  id              String   @id @default(cuid())
+  organizationId  String
+  locationId      String?
+  orderListId     String?
+  orderListItemId String?
+  ingredientId    String?
+  entity          String // ORDER | LINE | PRODUCT | PIN | LINK | EMAIL | TRANSFER | REQUEST | SCOPE
+  action          String
+  field           String?
+  oldValue        String?
+  newValue        String?
+  actorId         String?
+  actorName       String?
+  actorKind       String // staff | manager | system
+  source          String? // staff_count | review | transfers | admin
+  note            String?
+  at              DateTime @default(now())
+
+  @@index([organizationId, at(sort: Desc)], map: "OrderActivityLog_org_at_idx")
+  @@index([orderListId])
+  @@index([ingredientId])
   @@schema("beverage")
 }
