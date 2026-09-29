@@ -5,7 +5,7 @@ import { computeTheoreticalUsage } from "@/lib/inventory/theoretical-usage";
 import { UnifiedProductsPage } from "@/components/product/unified-products-page";
 import { getOrderingScope } from "@/lib/ordering-scope";
 import { canApproveOrders } from "@/lib/permissions";
-import type { ReviewOrder } from "@/lib/order-review-types";
+import type { ReviewOrder, TransferRow } from "@/lib/order-review-types";
 
 export default async function ProductsPage() {
   const session = await requireAuth();
@@ -82,7 +82,7 @@ export default async function ProductsPage() {
   const reviewRaw = await prisma.orderList.findMany({
     where: {
       organizationId: orgId,
-      OR: [{ status: { in: ["SUBMITTED", "APPROVED"] } }, { status: "ORDERED", approvedAt: { gte: weekAgo } }],
+      OR: [{ status: { in: ["SUBMITTED", "APPROVED", "HELD"] } }, { status: "ORDERED", approvedAt: { gte: weekAgo } }],
     },
     orderBy: [{ submittedAt: "desc" }],
     select: {
@@ -108,6 +108,15 @@ export default async function ProductsPage() {
       status: true, markedSentByName: true, markedSentAt: true,
     },
   });
+  // Who held an order ("Hold until next order") and when — from the activity log.
+  const heldIds = reviewRaw.filter((o) => o.status === "HELD").map((o) => o.id);
+  const holdLogs = heldIds.length
+    ? await prisma.orderActivityLog.findMany({
+        where: { orderListId: { in: heldIds }, action: "hold" },
+        orderBy: { at: "desc" },
+        select: { orderListId: true, actorName: true, at: true },
+      })
+    : [];
   const reviewOrders: ReviewOrder[] = reviewRaw.map((o) => {
     const others = new Map<string, Date>();
     for (const e of o.countEntries) {
@@ -123,6 +132,8 @@ export default async function ProductsPage() {
       sentAt: o.submittedAt?.toISOString() ?? null,
       approvedByName: o.approvedByName,
       approvedAt: o.approvedAt?.toISOString() ?? null,
+      heldByName: holdLogs.find((h) => h.orderListId === o.id)?.actorName ?? null,
+      heldAt: holdLogs.find((h) => h.orderListId === o.id)?.at.toISOString() ?? null,
       alsoCounted: [...others.entries()].map(([name, at]) => ({ name, at: at.toISOString() })),
       requests: o.staffRequests.map((r) => ({ id: r.id, text: r.text, byName: r.requestedByName, at: r.createdAt.toISOString() })),
       lines: o.items.map((i) => ({
@@ -154,6 +165,45 @@ export default async function ProductsPage() {
         })),
     };
   });
+
+  // Transfers tab (owners/admins): every moved order line from the last year.
+  const canSeeTransfers = canApproveOrders(session);
+  const transferRaw = canSeeTransfers
+    ? await prisma.orderListItem.findMany({
+        where: {
+          transferFromLocationId: { not: null },
+          status: { not: "REJECTED" },
+          orderList: { organizationId: orgId },
+          OR: [{ movedAt: null }, { movedAt: { gte: new Date(Date.now() - 365 * 86400000) } }],
+        },
+        orderBy: { movedAt: "desc" },
+        select: {
+          id: true, movedAt: true, movedByName: true, quantityNeeded: true, unit: true, vendor: true,
+          transferFromLocationId: true, transferToLocationId: true, transferStatus: true, transferredByName: true, transferredAt: true,
+          unitCostCentsSnapshot: true, casePackSizeSnapshot: true,
+          orderList: { select: { locationId: true, status: true, createdAt: true } },
+          ingredient: { select: { name: true, bottleSizeMl: true, bottleCostCents: true, casePackSize: true, vendor: true, vendorRef: { select: { name: true } } } },
+        },
+      })
+    : [];
+  const transfers: TransferRow[] = transferRaw.map((t) => ({
+    id: t.id,
+    movedAt: (t.movedAt ?? t.orderList.createdAt).toISOString(),
+    name: t.ingredient.name,
+    bottleSizeMl: t.ingredient.bottleSizeMl,
+    vendor: t.ingredient.vendorRef?.name || t.vendor || t.ingredient.vendor || "No Vendor",
+    movedByName: t.movedByName,
+    qty: t.quantityNeeded,
+    unit: t.unit,
+    casePackSize: t.casePackSizeSnapshot ?? t.ingredient.casePackSize,
+    unitCostCents: t.unitCostCentsSnapshot ?? t.ingredient.bottleCostCents,
+    fromId: t.transferToLocationId ?? t.orderList.locationId,
+    toId: t.transferFromLocationId!,
+    status: t.transferStatus === "TRANSFERRED" ? "TRANSFERRED" : "PENDING",
+    transferredByName: t.transferredByName,
+    transferredAt: t.transferredAt?.toISOString() ?? null,
+    orderStatus: t.orderList.status,
+  }));
 
   const storeStatus: Record<string, { sentBy: string | null; sentAt: string | null; itemCount: number }> = {};
   for (const o of waitingOrders) {
@@ -394,6 +444,7 @@ export default async function ProductsPage() {
       reviewManageStoreIds={reviewManageStoreIds}
       linkStoreIds={linkStoreIds}
       role={session.role}
+      transfers={canSeeTransfers ? transfers : null}
       inProgressOrders={inProgressOrders}
       theoreticalUsage={theoreticalUsage}
     />

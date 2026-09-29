@@ -6,11 +6,12 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Mail, Undo2, X } from "lucide-react";
+import { Check, Copy, Mail, Pause, Undo2, X } from "lucide-react";
 import type { ReviewEmail, ReviewLine, ReviewOrder } from "@/lib/order-review-types";
 import {
   reviewSetQty, reviewSetUnit, reviewRemoveLine, reviewMoveLine, reviewUndoMove, reviewAddItem,
   resolveStaffRequest, approveStoreOrders, markOrderEmailSent,
+  reviewClearAll, reviewHoldOrder, reviewReleaseHeld, reviewUndoApprove,
 } from "@/lib/actions/order-review";
 
 type Loc = { id: string; name: string };
@@ -53,9 +54,10 @@ function useAction() {
 // ===========================================================================
 
 export function ReviewPanel({
-  orders, storeIds, locations, manageIds, products, onApproved,
+  orders, held, storeIds, locations, manageIds, products, onApproved,
 }: {
   orders: ReviewOrder[];           // SUBMITTED orders
+  held: ReviewOrder[];             // HELD orders ("Hold until next order")
   storeIds: string[];              // ticked in the store picker (in store order)
   locations: Loc[];
   manageIds: string[];             // stores this person may review/approve
@@ -87,6 +89,13 @@ export function ReviewPanel({
         )}
       </div>
       {error && <ErrorBar text={error} onClose={() => setError(null)} />}
+      <HeldList
+        orders={held.filter((o) => storeIds.includes(o.locationId))}
+        locations={locations}
+        manageIds={manageIds}
+        pending={pending}
+        run={run}
+      />
       {storeIds.map((id) => {
         const loc = locations.find((l) => l.id === id);
         if (!loc) return null;
@@ -95,6 +104,7 @@ export function ReviewPanel({
             key={id}
             loc={loc}
             order={openByStore.get(id) ?? null}
+            heldCount={held.filter((o) => o.locationId === id).length}
             canManage={manageIds.includes(id)}
             moveTargets={locations.filter((l) => l.id !== id && manageIds.includes(l.id))}
             locations={locations}
@@ -109,11 +119,94 @@ export function ReviewPanel({
   );
 }
 
+// Orders on "Hold until next order" — they rejoin with the store's next count.
+function HeldList({
+  orders, locations, manageIds, pending, run,
+}: {
+  orders: ReviewOrder[];
+  locations: Loc[];
+  manageIds: string[];
+  pending: boolean;
+  run: (fn: () => Promise<Result>) => void;
+}) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  if (orders.length === 0) return null;
+  return (
+    <div className="bg-[#FFFCF2] border border-dashed border-[#D4A017] rounded-xl overflow-hidden">
+      <p className={`px-4 pt-3 pb-1 text-[11px] uppercase tracking-[0.14em] font-medium ${GOLD}`}>Held until next order ({orders.length})</p>
+      <p className="px-4 pb-2 text-xs text-[var(--ink-muted)]">These come back on their own with the store&rsquo;s next count (a newer count replaces the held one for the same item).</p>
+      <div className="divide-y divide-[#EFE3BF]">
+        {orders.map((o) => {
+          const loc = locations.find((l) => l.id === o.locationId);
+          const lines = o.lines.filter((l) => l.status !== "REJECTED");
+          const isOpen = openId === o.id;
+          return (
+            <div key={o.id} className="px-4 py-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div>
+                  <p className="text-sm font-semibold text-[var(--brand-brown)]">{loc ? short(loc.name) : "Store"} <span className="font-normal text-[var(--ink-muted)]">· {lines.length} item{lines.length === 1 ? "" : "s"}</span></p>
+                  <p className="text-[11px] text-[var(--ink-muted)]">Held by {o.heldByName || "—"}{o.heldAt ? ` · ${when(o.heldAt)}` : ""} · first sent by {o.sentByName || "—"}</p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => setOpenId(isOpen ? null : o.id)} className="px-3 py-1.5 rounded-full border border-[var(--line)] bg-white text-xs font-medium">
+                    {isOpen ? "Hide items" : "Show items"}
+                  </button>
+                  {manageIds.includes(o.locationId) && (
+                    <button disabled={pending} onClick={() => run(() => reviewReleaseHeld(o.id))} className="px-3 py-1.5 rounded-full border border-[var(--brand-olive)] text-[var(--brand-olive)] bg-white text-xs font-medium disabled:opacity-50">
+                      Bring back now
+                    </button>
+                  )}
+                </div>
+              </div>
+              {isOpen && <ItemsList lines={lines} locations={locations} />}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Read-only list of an order's lines, grouped by vendor.
+function ItemsList({ lines, locations }: { lines: ReviewLine[]; locations: Loc[] }) {
+  const byVendor = new Map<string, ReviewLine[]>();
+  for (const l of lines) {
+    if (!byVendor.has(l.vendor)) byVendor.set(l.vendor, []);
+    byVendor.get(l.vendor)!.push(l);
+  }
+  if (lines.length === 0) return <p className="mt-2 text-xs text-[var(--ink-muted)]">No items.</p>;
+  return (
+    <div className="mt-2 rounded-lg border border-[var(--line)] bg-white divide-y divide-[var(--line)]">
+      {[...byVendor.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([vendor, ls]) => (
+        <div key={vendor} className="px-3 py-2">
+          <p className="text-[10px] uppercase tracking-[0.14em] font-medium text-[var(--ink-muted)] mb-1">{vendor} · {ls.length}</p>
+          {[...ls].sort((a, b) => a.name.localeCompare(b.name)).map((l) => {
+            const forStore = l.transferFromLocationId ? locations.find((x) => x.id === l.transferFromLocationId) : null;
+            return (
+              <div key={l.id} className="flex items-baseline justify-between gap-3 text-sm py-0.5">
+                <span className="min-w-0">
+                  {l.name}
+                  {l.bottleSizeMl && <span className="text-[11px] text-[var(--ink-muted)]"> · {l.bottleSizeMl}ml</span>}
+                  {forStore && <span className={`ml-1.5 text-[10px] font-semibold px-1 rounded bg-[#FFF8E1] border border-[#D4A017] ${GOLD}`}>FOR {short(forStore.name).toUpperCase()} · TRANSFER</span>}
+                </span>
+                <span className="font-semibold text-[var(--brand-olive)] whitespace-nowrap">
+                  {l.qty} {l.unit === "case" ? (l.qty === 1 ? "case" : "cases") : "btl"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function StoreCard({
-  loc, order, canManage, moveTargets, locations, products, pending, run, onApproved,
+  loc, order, heldCount, canManage, moveTargets, locations, products, pending, run, onApproved,
 }: {
   loc: Loc;
   order: ReviewOrder | null;
+  heldCount: number;
   canManage: boolean;
   moveTargets: Loc[];
   locations: Loc[];
@@ -141,6 +234,7 @@ function StoreCard({
           <h3 className="font-semibold text-[var(--brand-brown)]">{short(loc.name)}</h3>
           <p className={`text-xs ${order ? "text-[var(--brand-olive)]" : "text-[var(--ink-muted)]"}`}>
             {order ? `Sent by ${order.sentByName || "—"} · ${when(order.sentAt)}` : "Nothing waiting"}
+            {!order && heldCount > 0 && <span className={GOLD}> · held order joins the next count</span>}
           </p>
           {order && order.alsoCounted.length > 0 && (
             <p className="text-[11px] text-[var(--ink-muted)]">
@@ -149,14 +243,38 @@ function StoreCard({
           )}
           {!canManage && <p className="text-[11px] text-[var(--ink-muted)]">View only</p>}
         </div>
-        {canManage && order && active.length > 0 && (
-          <button
-            disabled={pending}
-            onClick={() => run(() => approveStoreOrders([order.id]), onApproved)}
-            className="px-4 py-2 rounded-full bg-[var(--brand-olive)] text-white text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
-          >
-            <Check className="w-4 h-4" /> Approve
-          </button>
+        {canManage && order && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {active.length > 0 && (
+              <button
+                disabled={pending}
+                onClick={() => {
+                  if (!confirm(`Remove all ${active.length} item${active.length === 1 ? "" : "s"} from ${short(loc.name)}'s order?\n\nNothing is emailed. You can bring single items back from "Show removed".`)) return;
+                  run(() => reviewClearAll(order.id));
+                }}
+                className="px-3 py-2 rounded-full border border-[var(--line)] bg-white text-sm font-medium text-red-700 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                <X className="w-4 h-4" /> Clear all
+              </button>
+            )}
+            <button
+              disabled={pending}
+              onClick={() => run(() => reviewHoldOrder(order.id))}
+              title="Not enough to order yet — keep this and add it to the next count"
+              className="px-3 py-2 rounded-full border border-[#D4A017] bg-white text-sm font-medium text-[#8A6A00] disabled:opacity-50 flex items-center gap-1.5"
+            >
+              <Pause className="w-4 h-4" /> Hold until next order
+            </button>
+            {active.length > 0 && (
+              <button
+                disabled={pending}
+                onClick={() => run(() => approveStoreOrders([order.id]), onApproved)}
+                className="px-4 py-2 rounded-full bg-[var(--brand-olive)] text-white text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
+              >
+                <Check className="w-4 h-4" /> Approve
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -422,13 +540,14 @@ export function EmailsPanel({
         if (!loc || storeOrders.length === 0) return null;
         return storeOrders.map((o) => (
           <div key={o.id} className="bg-white border border-[var(--line)] rounded-xl overflow-hidden">
-            <div className="px-4 py-3 bg-[var(--brand-cream)] border-b border-[var(--line)]">
-              <h3 className="font-semibold text-[var(--brand-brown)]">{short(loc.name)}</h3>
-              <p className="text-xs text-[var(--ink-muted)]">
-                Approved by {o.approvedByName || "—"} · {when(o.approvedAt)}
-                {o.status === "ORDERED" && <span className="text-[var(--brand-olive)] font-medium"> · all emails sent</span>}
-              </p>
-            </div>
+            <ApprovedHeader
+              order={o}
+              storeName={short(loc.name)}
+              locations={locations}
+              canManage={manageIds.includes(id)}
+              pending={pending}
+              run={run}
+            />
             <div className="divide-y divide-[var(--line)]">
               {o.emails.length === 0 && <p className="px-4 py-3 text-sm text-[var(--ink-muted)]">No emails (the order was empty).</p>}
               {o.emails.map((e) => (
@@ -438,6 +557,54 @@ export function EmailsPanel({
           </div>
         ));
       })}
+    </div>
+  );
+}
+
+// Approved card header: "Show items" (what's about to be ordered) and
+// "Undo approve" (back to Review & approve — only while nothing is marked sent).
+function ApprovedHeader({
+  order, storeName, locations, canManage, pending, run,
+}: {
+  order: ReviewOrder;
+  storeName: string;
+  locations: Loc[];
+  canManage: boolean;
+  pending: boolean;
+  run: (fn: () => Promise<Result>) => void;
+}) {
+  const [show, setShow] = useState(false);
+  const lines = order.lines.filter((l) => l.status !== "REJECTED");
+  const anySent = order.emails.some((e) => e.status === "SENT");
+  return (
+    <div className="px-4 py-3 bg-[var(--brand-cream)] border-b border-[var(--line)]">
+      <div className="flex items-start justify-between gap-2 flex-wrap">
+        <div>
+          <h3 className="font-semibold text-[var(--brand-brown)]">{storeName}</h3>
+          <p className="text-xs text-[var(--ink-muted)]">
+            Approved by {order.approvedByName || "—"} · {when(order.approvedAt)}
+            {order.status === "ORDERED" && <span className="text-[var(--brand-olive)] font-medium"> · all emails sent</span>}
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button onClick={() => setShow((v) => !v)} className="px-3 py-1.5 rounded-full border border-[var(--line)] bg-white text-xs font-medium">
+            {show ? "Hide items" : `Show items (${lines.length})`}
+          </button>
+          {canManage && !anySent && (
+            <button
+              disabled={pending}
+              onClick={() => {
+                if (!confirm(`Send ${storeName}'s order back to Review & approve?\n\nIts emails are removed and made again when you approve.`)) return;
+                run(() => reviewUndoApprove(order.id));
+              }}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-[var(--line)] bg-white text-xs font-medium"
+            >
+              <Undo2 className="w-3 h-3" /> Undo approve
+            </button>
+          )}
+        </div>
+      </div>
+      {show && <ItemsList lines={lines} locations={locations} />}
     </div>
   );
 }

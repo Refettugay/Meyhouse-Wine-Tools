@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getOrganizationId, requireAuth } from "@/lib/session";
 import { canApproveOrders } from "@/lib/permissions";
 import { canOrderForStore } from "@/lib/ordering-scope";
+import { absorbHeld } from "@/lib/order-hold";
 import { revalidatePath } from "next/cache";
 
 // ===== LOCATIONS =====
@@ -780,6 +781,10 @@ export async function submitOrderForApproval(orderListId: string) {
   // One open order per store (Refet, 2026-09-28): if the store already has an
   // order waiting for review (e.g. from a staff send), the manager's lines join
   // it — the latest count wins for the same product — and the draft goes away.
+  // A held order ("Hold until next order") comes back first, the same way.
+  await prisma.$transaction((tx) => absorbHeld(tx, orgId, order.locationId, {
+    actorId: session.userId, actorName: session.userName, actorKind: "manager", source: "admin",
+  }));
   const open = await prisma.orderList.findFirst({
     where: { organizationId: orgId, locationId: order.locationId, status: "SUBMITTED", id: { not: order.id } },
     orderBy: { submittedAt: "desc" },

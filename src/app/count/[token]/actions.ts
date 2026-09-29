@@ -14,6 +14,7 @@ import { formatBottleSize } from "@/lib/staff-count/size";
 import { effectiveUnit, orderQty, type OrderUnit } from "@/lib/ordering-math";
 import type { CountFeed, RemoveAction, SendCount, SendResult, StaffPerson } from "@/lib/staff-count/feed-types";
 import { hardDeleteIngredient } from "@/lib/product-removal";
+import { absorbHeld } from "@/lib/order-hold";
 import { revalidatePath } from "next/cache";
 
 const BAD_LINK = { ok: false as const, error: "This link isn't active. Ask your manager for the current link." };
@@ -294,6 +295,9 @@ export async function sendCounts(token: string, counts: SendCount[], request: st
       // One send per store at a time, so two phones sending together can't
       // each open a separate cart.
       await tx.$executeRaw`select pg_advisory_xact_lock(hashtext(${"staff-count:" + store.locationId}))`;
+      // An order the manager held until next time comes back now; this send's
+      // counts then replace its lines for the same products.
+      await absorbHeld(tx, store.organizationId, store.locationId, actor);
       let order = await tx.orderList.findFirst({
         where: { organizationId: store.organizationId, locationId: store.locationId, status: "SUBMITTED" },
         orderBy: { submittedAt: "desc" },

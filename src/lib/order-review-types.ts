@@ -36,14 +36,38 @@ export type ReviewEmail = {
 export type ReviewOrder = {
   id: string;
   locationId: string;
-  status: string;             // SUBMITTED | APPROVED | ORDERED
+  status: string;             // SUBMITTED | HELD | APPROVED | ORDERED
   sentByName: string | null;
   sentAt: string | null;
   approvedByName: string | null;
   approvedAt: string | null;
+  heldByName: string | null;  // "Hold until next order"
+  heldAt: string | null;
   // other people who counted for this order (name + latest time)
   alsoCounted: { name: string; at: string }[];
   requests: { id: string; text: string; byName: string | null; at: string }[];
   lines: ReviewLine[];
   emails: ReviewEmail[];
+};
+
+// Transfers tab — one moved order line. "from" = the store that orders it and
+// sends it on; "to" = the store that needs it. Cost/case size are the values
+// saved on the line when it was moved (current product values if missing).
+export type TransferRow = {
+  id: string;
+  movedAt: string | null;
+  name: string;
+  bottleSizeMl: number | null;
+  vendor: string;
+  movedByName: string | null;
+  qty: number;
+  unit: string;                // "case" | "bottle"
+  casePackSize: number | null;
+  unitCostCents: number | null; // per bottle
+  fromId: string;
+  toId: string;
+  status: "PENDING" | "TRANSFERRED";
+  transferredByName: string | null;
+  transferredAt: string | null;
+  orderStatus: string;         // SUBMITTED | HELD | APPROVED | ORDERED …
 };

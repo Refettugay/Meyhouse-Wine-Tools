@@ -9,13 +9,14 @@ import { generateApprovedOrderEmails, sendOrderEmails, markOrdersOrdered } from 
 import { addBottleSize } from "@/lib/actions/settings";
 import { setProductOrderUnit } from "@/lib/actions/ordering";
 import type { SubCategory } from "@/lib/category-types";
-import { Mail } from "lucide-react";
+import { Mail, ArrowLeftRight } from "lucide-react";
 import { useResizableColumns } from "@/hooks/use-resizable-columns";
 import { MenuPricingReadOnly } from "@/components/product/menu-pricing-readonly";
 import { AddVendorDrawer } from "@/components/vendor/add-vendor-drawer";
 import { StaffLinksDrawer, type CountLinkInfo } from "@/components/product/staff-links-drawer";
 import { ReviewPanel, EmailsPanel } from "@/components/product/order-review-panel";
-import type { ReviewOrder } from "@/lib/order-review-types";
+import type { ReviewOrder, TransferRow } from "@/lib/order-review-types";
+import { TransfersPanel } from "@/components/product/transfers-panel";
 import {
   Search,
   Plus,
@@ -102,7 +103,7 @@ interface Vendor {
   name: string;
 }
 
-type Mode = "products" | "inventory" | "ordering" | "pricing";
+type Mode = "products" | "inventory" | "ordering" | "pricing" | "transfers";
 type SortField = "name" | "size" | "case" | "vendor" | "category" | "area" | "shelf" | "area2" | "shelf2" | "cost" | "pour" | "pourCost" | "suggested";
 type SortDir = "asc" | "desc";
 
@@ -397,6 +398,7 @@ export function UnifiedProductsPage({
   reviewOrders,
   reviewManageStoreIds,
   role,
+  transfers,
   inProgressOrders,
   theoreticalUsage,
 }: {
@@ -419,6 +421,8 @@ export function UnifiedProductsPage({
   reviewOrders: ReviewOrder[];
   reviewManageStoreIds: string[];
   role: string;
+  // Transfers tab rows — null = not an owner/admin (tab hidden)
+  transfers: TransferRow[] | null;
   inProgressOrders: {
     id: string;
     locationId: string;
@@ -480,7 +484,9 @@ export function UnifiedProductsPage({
     } catch {}
   };
   const openReviewOrders = useMemo(() => reviewOrders.filter((o) => o.status === "SUBMITTED"), [reviewOrders]);
-  const approvedReviewOrders = useMemo(() => reviewOrders.filter((o) => o.status !== "SUBMITTED"), [reviewOrders]);
+  const approvedReviewOrders = useMemo(() => reviewOrders.filter((o) => o.status === "APPROVED" || o.status === "ORDERED"), [reviewOrders]);
+  const heldReviewOrders = useMemo(() => reviewOrders.filter((o) => o.status === "HELD"), [reviewOrders]);
+  const heldCount = useMemo(() => heldReviewOrders.filter((o) => orderStoreIds.includes(o.locationId)).length, [heldReviewOrders, orderStoreIds]);
   const waitingCount = useMemo(
     () => openReviewOrders.filter((o) => orderStoreIds.includes(o.locationId) && o.lines.some((l) => l.status !== "REJECTED")).length,
     [openReviewOrders, orderStoreIds],
@@ -535,7 +541,7 @@ export function UnifiedProductsPage({
 
   // Mode from URL
   const urlMode = searchParams.get("mode") as Mode | null;
-  const [mode, setMode] = useState<Mode>(urlMode || "products");
+  const [mode, setMode] = useState<Mode>(urlMode === "transfers" && !transfers ? "products" : urlMode || "products");
 
   // ===== FULL SCREEN VIEW =====
   // Purely additive: when ON, collapses the surrounding chrome so the product
@@ -2256,7 +2262,7 @@ export function UnifiedProductsPage({
           Active cell is solid Sophra olive; inactive cells are transparent so
           the warm cream container reads as a single rounded "track" beneath. */}
       <div
-        className={`grid grid-cols-4 gap-1 rounded-[10px] ${fullScreenView ? "p-0.5 mb-2" : "p-1 mb-4"}`}
+        className={`grid ${transfers ? "grid-cols-5" : "grid-cols-4"} gap-1 rounded-[10px] ${fullScreenView ? "p-0.5 mb-2" : "p-1 mb-4"}`}
         style={{ background: "#EDE5D0" }}
       >
         {[
@@ -2264,6 +2270,7 @@ export function UnifiedProductsPage({
           { key: "inventory" as Mode, label: "Count", icon: ClipboardList },
           { key: "products" as Mode, label: "Inventory", icon: Package },
           { key: "pricing" as Mode, label: "Pricing", icon: DollarSign },
+          ...(transfers ? [{ key: "transfers" as Mode, label: "Transfers", icon: ArrowLeftRight }] : []),
         ].map((tab) => {
           const isActive = mode === tab.key;
           return (
@@ -2295,7 +2302,7 @@ export function UnifiedProductsPage({
       </div>
 
       {/* Filters (Products / Inventory / Pricing — the Order tab has its own filter box) */}
-      {mode !== "ordering" && (
+      {mode !== "ordering" && mode !== "transfers" && (
       <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 ${fullScreenView ? "mb-2 [&_select]:py-1 [&_input]:py-1" : "mb-4"}`}>
         <div className="relative col-span-2 sm:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
@@ -2381,6 +2388,9 @@ export function UnifiedProductsPage({
                 {label}
                 {n !== null && n > 0 && (
                   <span className={`ml-1.5 text-xs px-1.5 rounded-full ${orderView === v ? "bg-white/20" : "bg-[#FFF8E1] text-[#8A6A00]"}`}>{n}</span>
+                )}
+                {v === "review" && heldCount > 0 && (
+                  <span className={`ml-1.5 text-xs px-1.5 rounded-full border border-dashed ${orderView === v ? "border-white/60" : "border-[#D4A017] text-[#8A6A00]"}`}>Held {heldCount}</span>
                 )}
               </button>
             ))}
@@ -3925,6 +3935,7 @@ export function UnifiedProductsPage({
             {orderView === "review" ? (
               <ReviewPanel
                 orders={openReviewOrders}
+                held={heldReviewOrders}
                 storeIds={orderStoreIds}
                 locations={locations}
                 manageIds={reviewManageStoreIds}
@@ -4601,6 +4612,8 @@ export function UnifiedProductsPage({
       )}
 
       {mode === "pricing" && <MenuPricingReadOnly />}
+
+      {mode === "transfers" && transfers && <TransfersPanel rows={transfers} locations={locations} />}
 
       <StaffLinksDrawer
         open={showStaffLinks}

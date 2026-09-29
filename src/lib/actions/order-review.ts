@@ -18,6 +18,7 @@ import { requireAuth } from "@/lib/session";
 import { canManageStoreOrders } from "@/lib/ordering-scope";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@/generated/prisma/client";
+import { absorbHeld, mergeOrderInto } from "@/lib/order-hold";
 
 type Session = Awaited<ReturnType<typeof requireAuth>>;
 type Tx = Prisma.TransactionClient;
@@ -301,6 +302,110 @@ export async function resolveStaffRequest(requestId: string, status: "ADDED" | "
       }),
     }),
   ]);
+  revalidate();
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Whole-order actions: Clear all, Hold until next order, Undo approve
+// ---------------------------------------------------------------------------
+
+async function orderForEdit(orderId: string, statuses: string[]) {
+  const session = await requireAuth();
+  const order = await prisma.orderList.findFirst({
+    where: { id: orderId, organizationId: session.organizationId },
+    select: { id: true, status: true, locationId: true, location: { select: { name: true } } },
+  });
+  if (!order) return { error: "Order not found." as const };
+  if (!statuses.includes(order.status)) return { error: "This order changed — refresh the page." as const };
+  if (!(await canManageStoreOrders(session, order.locationId))) {
+    return { error: "You can view this store but not change its order." as const };
+  }
+  return { session, order };
+}
+
+// "Clear all": every line is removed (kept as REJECTED, so "Show removed" can
+// still bring one back). Nothing is emailed.
+export async function reviewClearAll(orderId: string) {
+  const r = await orderForEdit(orderId, ["SUBMITTED"]);
+  if ("error" in r) return { error: r.error };
+  const { session, order } = r;
+  await prisma.$transaction(async (tx) => {
+    const res = await tx.orderListItem.updateMany({ where: { orderListId: order.id, status: { not: "REJECTED" } }, data: { status: "REJECTED" } });
+    await tx.orderActivityLog.create({
+      data: logData(session, {
+        locationId: order.locationId, orderListId: order.id, entity: "ORDER", action: "clear_all",
+        note: `${res.count} line${res.count === 1 ? "" : "s"} removed`,
+      }),
+    });
+  });
+  revalidate();
+  return { success: true };
+}
+
+// "Hold until next order": the order leaves the Review list and comes back
+// (merged) with the store's next count — see lib/order-hold.ts.
+export async function reviewHoldOrder(orderId: string) {
+  const r = await orderForEdit(orderId, ["SUBMITTED"]);
+  if ("error" in r) return { error: r.error };
+  const { session, order } = r;
+  await prisma.$transaction([
+    prisma.orderList.update({ where: { id: order.id }, data: { status: "HELD" } }),
+    prisma.orderActivityLog.create({
+      data: logData(session, {
+        locationId: order.locationId, orderListId: order.id, entity: "ORDER", action: "hold",
+        field: "status", oldValue: "SUBMITTED", newValue: "HELD", note: "Hold until next order",
+      }),
+    }),
+  ]);
+  revalidate();
+  return { success: true };
+}
+
+// "Bring back now" on a held order (without waiting for the next count).
+export async function reviewReleaseHeld(orderId: string) {
+  const r = await orderForEdit(orderId, ["HELD"]);
+  if ("error" in r) return { error: r.error };
+  const { session, order } = r;
+  await prisma.$transaction((tx) =>
+    absorbHeld(tx, session.organizationId, order.locationId, { actorId: session.userId, actorName: session.userName, actorKind: "manager", source: "review" }),
+  );
+  revalidate();
+  return { success: true };
+}
+
+// "Undo approve": back to Review & approve so it can be fixed. Only while no
+// email has been marked sent. The draft emails are thrown away (approving
+// again rebuilds them). If the store has a newer open order, this one joins it.
+export async function reviewUndoApprove(orderId: string) {
+  const r = await orderForEdit(orderId, ["APPROVED", "ORDERED"]);
+  if ("error" in r) return { error: r.error };
+  const { session, order } = r;
+  const sent = await prisma.orderEmail.count({ where: { orderListId: order.id, status: "SENT" } });
+  if (sent > 0) return { error: `${sent} email${sent === 1 ? " was" : "s were"} already marked sent — undo "Mark as sent" first.` };
+  await prisma.$transaction(async (tx) => {
+    await tx.orderEmail.deleteMany({ where: { orderListId: order.id } });
+    await tx.orderList.update({
+      where: { id: order.id },
+      data: { status: "SUBMITTED", approvedAt: null, approvedBy: null, approvedByName: null },
+    });
+    const newer = await tx.orderList.findFirst({
+      where: { organizationId: session.organizationId, locationId: order.locationId, status: "SUBMITTED", id: { not: order.id } },
+      orderBy: { submittedAt: "desc" },
+      select: { id: true },
+    });
+    let merged = "";
+    if (newer) {
+      const m = await mergeOrderInto(tx, order.id, newer.id);
+      merged = ` · joined the newer open order (${m.replaced} line(s) replaced by newer counts)`;
+    }
+    await tx.orderActivityLog.create({
+      data: logData(session, {
+        locationId: order.locationId, orderListId: newer?.id ?? order.id, entity: "ORDER", action: "undo_approve",
+        field: "status", oldValue: order.status, newValue: "SUBMITTED", note: `Back to review${merged}`,
+      }),
+    });
+  });
   revalidate();
   return { success: true };
 }
