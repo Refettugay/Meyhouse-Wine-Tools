@@ -307,6 +307,33 @@ export async function resolveStaffRequest(requestId: string, status: "ADDED" | "
 }
 
 // ---------------------------------------------------------------------------
+// Live updates: the Order tab asks every few seconds "anything new?" (the
+// newest ordering activity) and refreshes itself when the answer changes.
+// ---------------------------------------------------------------------------
+
+export async function orderingPulse(): Promise<{ key: string; lastSend: { store: string; by: string; id: string } | null }> {
+  const session = await requireAuth();
+  const [latest, send] = await Promise.all([
+    prisma.orderActivityLog.findFirst({
+      where: { organizationId: session.organizationId },
+      orderBy: { at: "desc" },
+      select: { id: true },
+    }),
+    prisma.orderActivityLog.findFirst({
+      where: { organizationId: session.organizationId, action: "staff_send" },
+      orderBy: { at: "desc" },
+      select: { id: true, locationId: true, actorName: true },
+    }),
+  ]);
+  let lastSend = null;
+  if (send) {
+    const loc = send.locationId ? await prisma.location.findUnique({ where: { id: send.locationId }, select: { name: true } }) : null;
+    lastSend = { store: loc ? short(loc.name) : "", by: send.actorName || "Staff", id: send.id };
+  }
+  return { key: latest?.id ?? "", lastSend };
+}
+
+// ---------------------------------------------------------------------------
 // Whole-order actions: Clear all, Hold until next order, Undo approve
 // ---------------------------------------------------------------------------
 

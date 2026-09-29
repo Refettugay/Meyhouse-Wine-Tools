@@ -15,6 +15,7 @@ import { MenuPricingReadOnly } from "@/components/product/menu-pricing-readonly"
 import { AddVendorDrawer } from "@/components/vendor/add-vendor-drawer";
 import { StaffLinksDrawer, type CountLinkInfo } from "@/components/product/staff-links-drawer";
 import { ReviewPanel, EmailsPanel } from "@/components/product/order-review-panel";
+import { orderingPulse } from "@/lib/actions/order-review";
 import type { ReviewOrder, TransferRow } from "@/lib/order-review-types";
 import { TransfersPanel } from "@/components/product/transfers-panel";
 import {
@@ -487,6 +488,7 @@ export function UnifiedProductsPage({
   const approvedReviewOrders = useMemo(() => reviewOrders.filter((o) => o.status === "APPROVED" || o.status === "ORDERED"), [reviewOrders]);
   const heldReviewOrders = useMemo(() => reviewOrders.filter((o) => o.status === "HELD"), [reviewOrders]);
   const heldCount = useMemo(() => heldReviewOrders.filter((o) => orderStoreIds.includes(o.locationId)).length, [heldReviewOrders, orderStoreIds]);
+
   const waitingCount = useMemo(
     () => openReviewOrders.filter((o) => orderStoreIds.includes(o.locationId) && o.lines.some((l) => l.status !== "REJECTED")).length,
     [openReviewOrders, orderStoreIds],
@@ -542,6 +544,34 @@ export function UnifiedProductsPage({
   // Mode from URL
   const urlMode = searchParams.get("mode") as Mode | null;
   const [mode, setMode] = useState<Mode>(urlMode === "transfers" && !transfers ? "products" : urlMode || "products");
+
+  // Live Order tab: every 10s (and when the window comes back into view) ask
+  // the server "anything new?"; if so, reload the data in place — no page
+  // refresh needed after a staff "Send to manager".
+  const pulseKey = useRef<string | null>(null);
+  const lastSendSeen = useRef<string | null>(null);
+  const [newSend, setNewSend] = useState<{ store: string; by: string } | null>(null);
+  useEffect(() => {
+    if (mode !== "ordering") return;
+    let stopped = false;
+    const check = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const p = await orderingPulse();
+        if (stopped) return;
+        if (pulseKey.current !== null && p.key !== pulseKey.current) router.refresh();
+        if (p.lastSend) {
+          if (lastSendSeen.current !== null && p.lastSend.id !== lastSendSeen.current) setNewSend({ store: p.lastSend.store, by: p.lastSend.by });
+          lastSendSeen.current = p.lastSend.id;
+        }
+        pulseKey.current = p.key;
+      } catch {}
+    };
+    check();
+    const t = setInterval(check, 10_000);
+    document.addEventListener("visibilitychange", check);
+    return () => { stopped = true; clearInterval(t); document.removeEventListener("visibilitychange", check); };
+  }, [mode, router]);
 
   // ===== FULL SCREEN VIEW =====
   // Purely additive: when ON, collapses the surrounding chrome so the product
@@ -2364,6 +2394,23 @@ export function UnifiedProductsPage({
       {(mode === "products" || mode === "pricing") && (
         <div className="flex justify-end mt-1">
           {fullScreenToggle}
+        </div>
+      )}
+
+      {/* A staff "Send to manager" just arrived (live check above). */}
+      {mode === "ordering" && newSend && (
+        <div className="mt-1 mb-2 flex items-center justify-between gap-3 rounded-xl border border-[var(--brand-olive)] bg-[#F6F8F1] px-4 py-2.5 text-sm">
+          <span className="text-[var(--brand-brown)]">
+            <span className="font-semibold">New order{newSend.store ? ` from ${newSend.store}` : ""}</span> — sent by {newSend.by}
+          </span>
+          <span className="flex items-center gap-2 shrink-0">
+            {orderView !== "review" && (
+              <button onClick={() => { setOrderView("review"); setNewSend(null); }} className="px-3 py-1.5 rounded-full bg-[var(--brand-olive)] text-white text-xs font-medium">
+                Review now
+              </button>
+            )}
+            <button onClick={() => setNewSend(null)} className="text-[var(--ink-muted)] text-xs" aria-label="Dismiss">✕</button>
+          </span>
         </div>
       )}
 
