@@ -15,6 +15,12 @@ export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/count/")) {
     return NextResponse.next();
   }
+  // Staff bar Recipe Book (/bar/<secret token>): same idea — PIN sign-in, and
+  // every server action re-checks the token, a signed session cookie and the
+  // person's recipe access (src/app/bar/[token]/actions.ts).
+  if (request.nextUrl.pathname.startsWith("/bar/")) {
+    return NextResponse.next();
+  }
 
   const { response, supabase, user, isRotationRace, isInvalidToken } =
     await updateSession(request);

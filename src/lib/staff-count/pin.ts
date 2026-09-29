@@ -60,7 +60,7 @@ function hashPin(pin: string): string {
   return `scrypt$${N}$${R}$${P}$${salt.toString("base64")}$${key.toString("base64")}`;
 }
 
-async function verifyPinAsync(pin: string, stored: string): Promise<boolean> {
+export async function verifyPinAsync(pin: string, stored: string): Promise<boolean> {
   const parts = stored.split("$");
   if (parts.length !== 6 || parts[0] !== "scrypt") return false;
   const [, n, r, p, saltB64, keyB64] = parts;

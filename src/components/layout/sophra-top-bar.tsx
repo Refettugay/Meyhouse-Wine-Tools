@@ -27,6 +27,7 @@ const PRICING_HUB_TAB: Tab = {
 
 const TAIL_TABS: Tab[] = [
   { href: "/dashboard/vendors", label: "Vendors" },
+  { href: "/dashboard/bar-recipes", label: "Bar recipe book" },
 ];
 
 export function SophraTopBar({

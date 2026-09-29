@@ -9,7 +9,8 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
-    "db:migrate-from-sqlite": "tsx prisma/migrate-sqlite-to-postgres.ts"
+    "db:migrate-from-sqlite": "tsx prisma/migrate-sqlite-to-postgres.ts",
+    "test:recipes": "tsx scripts/test-recipe-calc.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
