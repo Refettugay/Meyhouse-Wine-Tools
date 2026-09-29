@@ -773,3 +773,112 @@ model OrderActivityLog {
   @@index([ingredientId])
   @@schema("beverage")
 }
+
+// ---------------------------------------------------------------------------
+// Bar Recipe Book (docs/recipe-book/Recipe_Book_Build_Spec.md). Separate from the
+// costing Recipe/RecipeIngredient above. Created by migration
+// 20260929000000_bar_recipe_book (applied via Supabase MCP, not prisma migrate).
+// Translatable text is Json {"en","tr","es"}.
+// ---------------------------------------------------------------------------
+model BarRecipe {
+  id              String    @id
+  name            String
+  subtitle        Json?
+  photoPath       String?   @map("photo_path")
+  category        String // craft | classic | na | syrup
+  stores          String[]  @default(["meyhouse", "meze-kebab"])
+  scaleMode       String    @default("none") @map("scale_mode") // portions | liters | multiplier | none
+  batchable       Boolean   @default(false)
+  defaultPortions Decimal?  @map("default_portions") @db.Decimal
+  dilutionPct     Decimal   @default(0) @map("dilution_pct") @db.Decimal // 0.2 = 20%
+  pourFromBatchOz Decimal?  @map("pour_from_batch_oz") @db.Decimal
+  glass           Json?
+  ice             Json?
+  garnish         Json?
+  howTo           Json?     @map("how_to")
+  storage         String? // freezer | fridge
+  notes           Json?
+  method          Json? // {"en": [steps], "tr": [...], "es": [...]}
+  baseYieldL      Decimal?  @map("base_yield_l") @db.Decimal
+  glassL          Decimal?  @map("glass_l") @db.Decimal
+  needsReview     Boolean   @default(false) @map("needs_review")
+  needsSpec       Boolean   @default(false) @map("needs_spec")
+  active          Boolean   @default(true)
+  sortOrder       Int       @default(0) @map("sort_order")
+  updatedBy       String?   @map("updated_by") @db.Uuid
+  updatedByName   String?   @map("updated_by_name")
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  ingredients BarRecipeIngredient[]
+
+  @@map("bar_recipe")
+  @@schema("beverage")
+}
+
+model BarRecipeIngredient {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId  String   @map("recipe_id")
+  sortOrder Int      @default(0) @map("sort_order")
+  name      Json
+  batchName String?  @map("batch_name")
+  qty       Decimal? @db.Decimal
+  unit      String? // oz | dash | kg | g | L | ea | cup | ml
+  text      Json?
+  inBatch   Boolean  @default(true) @map("in_batch")
+  note      Json?
+
+  recipe BarRecipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId, sortOrder], map: "bar_recipe_ingredient_recipe_idx")
+  @@map("bar_recipe_ingredient")
+  @@schema("beverage")
+}
+
+// Append-only: a DB trigger refuses UPDATE / DELETE / TRUNCATE for every role.
+model BarRecipeChangeLog {
+  id                BigInt   @id @default(autoincrement())
+  recipeId          String   @map("recipe_id")
+  changedByPersonId String?  @map("changed_by_person_id") @db.Uuid
+  changedByName     String   @map("changed_by_name")
+  changedAt         DateTime @default(now()) @map("changed_at") @db.Timestamptz
+  source            String // staff_page | admin
+  device            String?
+  language          String? // en | tr | es
+  action            String // create | update | archive | restore | revert
+  revertedLogId     BigInt?  @map("reverted_log_id")
+  before            Json?
+  after             Json
+  summary           String
+
+  @@index([recipeId, changedAt(sort: Desc)], map: "bar_recipe_change_log_recipe_idx")
+  @@index([changedAt(sort: Desc)], map: "bar_recipe_change_log_time_idx")
+  @@map("bar_recipe_change_log")
+  @@schema("beverage")
+}
+
+// "Recipe access" per Schedule position (public.positions.id). No row = off.
+model PositionRecipeAccess {
+  positionId    String   @id @map("position_id") @db.Uuid
+  enabled       Boolean  @default(false)
+  updatedBy     String?  @map("updated_by") @db.Uuid
+  updatedByName String?  @map("updated_by_name")
+  updatedAt     DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("position_recipe_access")
+  @@schema("beverage")
+}
+
+// The ONE staff Recipe Book link for the whole group (single row, id = 1).
+model BarRecipeLink {
+  id            Int       @id @default(1) @db.SmallInt
+  token         String    @unique
+  enabled       Boolean   @default(true)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  rotatedAt     DateTime? @map("rotated_at") @db.Timestamptz
+  createdById   String?   @map("created_by_id") @db.Uuid
+  createdByName String?   @map("created_by_name")
+
+  @@map("bar_recipe_link")
+  @@schema("beverage")
+}

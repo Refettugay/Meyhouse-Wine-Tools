@@ -1,0 +1,6057 @@
+[
+ {
+  "id": "pins-needles",
+  "name": "Pins & Needles",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 16,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Haku Vodka",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "St George Spiced Pear Liq",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Sage Tea Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Adaçayı şurubu",
+     "es": "Jarabe de té de salvia"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.25,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Rock Glass",
+   "Ice": "Big Clear Ice Cube",
+   "Garnish": "Buzz Button",
+   "How to": "Pour 4oz batch in shaker, shake well."
+  },
+  "pour_from_batch_oz": 4.0,
+  "i18n": {
+   "glass": {
+    "tr": "Rock bardağı",
+    "es": "Vaso rocks"
+   },
+   "ice": {
+    "tr": "Büyük şeffaf buz küpü",
+    "es": "Cubo de hielo grande transparente"
+   },
+   "garnish": {
+    "tr": "Buzz button çiçeği",
+    "es": "Flor buzz button"
+   },
+   "how_to": {
+    "tr": "4 oz batch’i shaker’a dök, iyice çalkala.",
+    "es": "Sirve 4 oz del batch en la coctelera y agita bien."
+   }
+  }
+ },
+ {
+  "id": "island-chai",
+  "name": "Island Chai",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 16,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Knob Creek 7yr Rye",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "St George Spiced Pear Liq",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Mathieu Paquet Creme De Framboise",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Sage Tea Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Adaçayı şurubu",
+     "es": "Jarabe de té de salvia"
+    }
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   }
+  ],
+  "build": {}
+ },
+ {
+  "id": "raki-rollie",
+  "name": "Raki Rollie",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 15,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Efe Green Raki",
+    "qty": 1.25,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Hangar Vodka",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.25,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Ginger Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Zencefil şurubu",
+     "es": "Jarabe de jengibre"
+    }
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Cucumber Juice",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Salatalık suyu",
+     "es": "Jugo de pepino"
+    }
+   }
+  ],
+  "build": {}
+ },
+ {
+  "id": "cosmeypolitan",
+  "name": "Cosmeypolitan",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 19,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Hanson Meyer Lemon Vodka",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Dry Curacao",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Ginger Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Zencefil şurubu",
+     "es": "Jarabe de jengibre"
+    }
+   },
+   {
+    "name": "Pomegranate Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Nar suyu",
+     "es": "Jugo de granada"
+    }
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   }
+  ],
+  "build": {}
+ },
+ {
+  "id": "nargarita",
+  "name": "Nargarita",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 12,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "El Tesoro Blanco Tequila",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Pama Pomegranate Liq",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Amaro Nonino",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Pomegranate Juice",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Nar suyu",
+     "es": "Jugo de granada"
+    }
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Cinnamon Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Tarçın şurubu",
+     "es": "Jarabe de canela"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Rock Glass",
+   "Ice": "Big Clear Ice Cube",
+   "Garnish": "Lime Wheel"
+  },
+  "pour_from_batch_oz": 4.0,
+  "i18n": {
+   "glass": {
+    "tr": "Rock bardağı",
+    "es": "Vaso rocks"
+   },
+   "ice": {
+    "tr": "Büyük şeffaf buz küpü",
+    "es": "Cubo de hielo grande transparente"
+   },
+   "garnish": {
+    "tr": "Lime halkası",
+    "es": "Rueda de limón verde"
+   }
+  }
+ },
+ {
+  "id": "prince-negroni",
+  "name": "Prince Negroni",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 19,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Sipsmith Gin",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Chazalette Sweet Vermouth",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Fugit Gran Classico",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true
+   }
+  ],
+  "build": {}
+ },
+ {
+  "id": "cappadocia-fire",
+  "name": "Cappadocia Fire",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 16,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Madre Mezcal",
+    "batch_name": "Serrano Infused Madre Mezcal",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Aperol",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Green Chartreuse",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Slice of Fresh Serrano Pepper",
+    "qty": null,
+    "unit": null,
+    "text": "2 slice",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Taze serrano biberi dilimi",
+     "es": "Rodaja de chile serrano fresco"
+    },
+    "text_i18n": {
+     "tr": "2 dilim",
+     "es": "2 rodajas"
+    }
+   }
+  ],
+  "build": {
+   "Garnish": "Roasted Serrano Pepper"
+  },
+  "notes": [
+   "OR ANATOLIAN SUNSET (FOR MEZE& KEBAB use Plain Mezcal)"
+  ],
+  "i18n": {
+   "garnish": {
+    "tr": "Közlenmiş serrano biberi",
+    "es": "Chile serrano asado"
+   },
+   "notes": {
+    "tr": [
+     "VEYA ANATOLIAN SUNSET (Meze & Kebab için sade mezcal kullan)"
+    ],
+    "es": [
+     "O ANATOLIAN SUNSET (en Meze & Kebab usar mezcal normal)"
+    ]
+   }
+  }
+ },
+ {
+  "id": "last-sip",
+  "name": "Last Sip",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 5,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Mozart Dark Chocolate Liq",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Cointreau",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Scrappy's Chocolate Bitters",
+    "qty": 3.0,
+    "unit": "dash",
+    "in_batch": true
+   }
+  ],
+  "build": {
+   "Garnish": "Orange Express"
+  },
+  "i18n": {
+   "garnish": {
+    "tr": "Portakal kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de naranja"
+   }
+  }
+ },
+ {
+  "id": "meyhouse-vesper-martini",
+  "name": "Meyhouse Vesper Martini",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 25,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Hanson Meyer Lemon Vodka",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Monkey 47 Gin",
+    "qty": 3.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Lillet Blanc",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Lavender Bitters",
+    "qty": 3.0,
+    "unit": "dash",
+    "in_batch": true
+   }
+  ],
+  "build": {
+   "Garnish": "Orange Express"
+  },
+  "pour_from_batch_oz": 4.5,
+  "storage": "Keep In Freezer",
+  "i18n": {
+   "garnish": {
+    "tr": "Portakal kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de naranja"
+   }
+  }
+ },
+ {
+  "id": "medi-fizz",
+  "name": "Medi Fizz",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Bar Hill Gin",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Fever-Tree Mediterranean Tonic",
+    "qty": 3.0,
+    "unit": "oz",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Garnish": "Slice of Half Wheel Grapefruit"
+  },
+  "i18n": {
+   "garnish": {
+    "tr": "Yarım greyfurt halkası",
+    "es": "Media rueda de toronja"
+   }
+  }
+ },
+ {
+  "id": "chilean-fashion",
+  "name": "Chilean Fashion",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 10,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Lapostelle XO Pisco",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Scrappy's Chocolate Bitters",
+    "qty": 3.0,
+    "unit": "dash",
+    "in_batch": true
+   },
+   {
+    "name": "Cinnamon Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Tarçın şurubu",
+     "es": "Jarabe de canela"
+    }
+   }
+  ],
+  "build": {
+   "Garnish": "Orange Express"
+  },
+  "pour_from_batch_oz": 2.5,
+  "storage": "Keep In Freezer",
+  "i18n": {
+   "garnish": {
+    "tr": "Portakal kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de naranja"
+   }
+  }
+ },
+ {
+  "id": "bodrum-fashion",
+  "name": "Bodrum Fashion",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 20,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Whistle Pig Piggy Back 6yr RYE",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Angostura Bitters",
+    "qty": 3.0,
+    "unit": "dash",
+    "in_batch": true
+   },
+   {
+    "name": "Sage Tea Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Adaçayı şurubu",
+     "es": "Jarabe de té de salvia"
+    }
+   }
+  ],
+  "build": {},
+  "pour_from_batch_oz": 2.5,
+  "storage": "Keep In Fridge"
+ },
+ {
+  "id": "nar-75-na",
+  "name": "Nar 75 NA",
+  "category": "na",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 20,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "POM Pomegranate Juice",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "POM nar suyu",
+     "es": "Jugo de granada POM"
+    }
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Cinnamon Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Tarçın şurubu",
+     "es": "Jarabe de canela"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Fever-Tree Mediterranean Tonic",
+    "qty": null,
+    "unit": null,
+    "text": "top off",
+    "in_batch": false,
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Collin",
+   "Ice": "Regular Ice",
+   "Garnish": "Rosemary & Grapefruit Half Wheel",
+   "How to": "Pour into shaker with ice, shake well. Pour into Collin glass with fresh ice, then top it with Med. Fever Tonic."
+  },
+  "pour_from_batch_oz": 4.25,
+  "storage": "Keep In Fridge",
+  "i18n": {
+   "glass": {
+    "tr": "Collins bardağı",
+    "es": "Vaso Collins"
+   },
+   "ice": {
+    "tr": "Normal buz",
+    "es": "Hielo normal"
+   },
+   "garnish": {
+    "tr": "Biberiye + yarım greyfurt halkası",
+    "es": "Romero + media rueda de toronja"
+   },
+   "how_to": {
+    "tr": "Buzlu shaker’a dök, iyice çalkala. Taze buzlu Collins bardağına dök, üstünü Fever-Tree Mediterranean tonik ile tamamla.",
+    "es": "Vierte en la coctelera con hielo y agita bien. Sirve en vaso Collins con hielo nuevo y completa con tónica Fever-Tree Mediterranean."
+   }
+  }
+ },
+ {
+  "id": "ginger-75-na",
+  "name": "Ginger 75 NA",
+  "category": "na",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 25,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Seedlip Spice",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Ginger Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Zencefil şurubu",
+     "es": "Jarabe de jengibre"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Fever-Tree Mediterranean Tonic",
+    "qty": null,
+    "unit": null,
+    "text": "top off",
+    "in_batch": false,
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Collin",
+   "Ice": "Regular Ice",
+   "Garnish": "Rosemary & Grapefruit Half Wheel",
+   "How to": "Pour into shaker with ice, shake well. Pour into Collin glass with fresh ice, then top it with Med. Fever Tonic."
+  },
+  "pour_from_batch_oz": 4.25,
+  "storage": "Keep In Fridge",
+  "i18n": {
+   "glass": {
+    "tr": "Collins bardağı",
+    "es": "Vaso Collins"
+   },
+   "ice": {
+    "tr": "Normal buz",
+    "es": "Hielo normal"
+   },
+   "garnish": {
+    "tr": "Biberiye + yarım greyfurt halkası",
+    "es": "Romero + media rueda de toronja"
+   },
+   "how_to": {
+    "tr": "Buzlu shaker’a dök, iyice çalkala. Taze buzlu Collins bardağına dök, üstünü Fever-Tree Mediterranean tonik ile tamamla.",
+    "es": "Vierte en la coctelera con hielo y agita bien. Sirve en vaso Collins con hielo nuevo y completa con tónica Fever-Tree Mediterranean."
+   }
+  }
+ },
+ {
+  "id": "turkish-coffee-martini",
+  "name": "Turkish Coffee Martini",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": true,
+  "default_portions": 16,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Hangar Vodka",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Licor 43",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Chilled Turkish Coffee",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Soğutulmuş Türk kahvesi",
+     "es": "Café turco frío"
+    }
+   },
+   {
+    "name": "St George NOLA Coffee Liqueur",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true
+   }
+  ],
+  "build": {}
+ },
+ {
+  "id": "aegean-fashion",
+  "name": "Aegean Fashion",
+  "category": "craft",
+  "stores": [
+   "meyhouse"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Skinos Mastik Liq (keep in freezer)",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Scrappy's Lavender Bitters",
+    "qty": 7.0,
+    "unit": "dash",
+    "in_batch": false
+   }
+  ],
+  "build": {}
+ },
+ {
+  "id": "turkish-delight",
+  "name": "Turkish Delight",
+  "category": "craft",
+  "stores": [
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.2,
+  "ingredients": [
+   {
+    "name": "Hanson Vodka",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Mathieu Paquet Creme De Framboise",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   }
+  ],
+  "build": {}
+ },
+ {
+  "id": "anatolian-sunset",
+  "name": "Anatolian Sunset",
+  "category": "craft",
+  "stores": [
+   "meze-kebab"
+  ],
+  "batchable": true,
+  "default_portions": 20,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Madre Mezcal",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Aperol",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Accompani Flora Green",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Slice of Fresh Serrano Pepper",
+    "qty": null,
+    "unit": null,
+    "text": "2 slice",
+    "note": "if you want spicy; muddle inside the shaker",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Taze serrano biberi dilimi",
+     "es": "Rodaja de chile serrano fresco"
+    },
+    "text_i18n": {
+     "tr": "2 dilim",
+     "es": "2 rodajas"
+    },
+    "note_i18n": {
+     "tr": "acı istenirse; shaker’ın içinde ez",
+     "es": "si lo quieren picante; machacar en la coctelera"
+    }
+   }
+  ],
+  "build": {
+   "Garnish": "Roasted Serrano Pepper"
+  },
+  "notes": [
+   "(Not Spicy Version of Cap. Fire)"
+  ],
+  "i18n": {
+   "garnish": {
+    "tr": "Közlenmiş serrano biberi",
+    "es": "Chile serrano asado"
+   },
+   "notes": {
+    "tr": [
+     "(Cappadocia Fire’ın acısız versiyonu)"
+    ],
+    "es": [
+     "(Versión sin picante del Cappadocia Fire)"
+    ]
+   }
+  }
+ },
+ {
+  "id": "meze-kebab-fashion",
+  "name": "Meze Kebab Fashion",
+  "category": "craft",
+  "stores": [
+   "meze-kebab"
+  ],
+  "batchable": true,
+  "default_portions": 20,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Sazerac 100 proof RYE",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Sage Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Adaçayı şurubu",
+     "es": "Jarabe de salvia"
+    }
+   },
+   {
+    "name": "Angostura Bitters",
+    "qty": 3.0,
+    "unit": "dash",
+    "in_batch": true
+   }
+  ],
+  "build": {},
+  "notes": [
+   "(OLD FASHION VAR.)"
+  ],
+  "storage": "Keep In Fridge",
+  "i18n": {
+   "notes": {
+    "tr": [
+     "(Old fashioned varyasyonu)"
+    ],
+    "es": [
+     "(Variación de Old Fashioned)"
+    ]
+   }
+  }
+ },
+ {
+  "id": "limoni",
+  "name": "Limoni",
+  "category": "craft",
+  "stores": [
+   "meze-kebab"
+  ],
+  "batchable": true,
+  "default_portions": 20,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Beefeater Gin",
+    "qty": 3.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Hanson Meyer Lemon Vodka",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Fugit Kina Kina",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Lemon Twist",
+    "qty": null,
+    "unit": null,
+    "text": "express",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon kabuğu twist",
+     "es": "Twist de limón"
+    },
+    "text_i18n": {
+     "tr": "kabuğu sık",
+     "es": "exprimir"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Lemon Express"
+  },
+  "notes": [
+   "(VESPER VARIATION)"
+  ],
+  "storage": "Keep In Fridge",
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Limon kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de limón"
+   },
+   "notes": {
+    "tr": [
+     "(Vesper varyasyonu)"
+    ],
+    "es": [
+     "(Variación de Vesper)"
+    ]
+   }
+  }
+ },
+ {
+  "id": "italyan",
+  "name": "Italyan",
+  "category": "craft",
+  "stores": [
+   "meze-kebab"
+  ],
+  "batchable": true,
+  "default_portions": 15,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Beefeater Gin",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Chazalette Sweet Vermouth",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Campari",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Fugit Kina Kina",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Fugit Gran Classico",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true
+   }
+  ],
+  "build": {},
+  "notes": [
+   "(NEGRONI VARIATION)"
+  ],
+  "storage": "Keep In Fridge",
+  "i18n": {
+   "notes": {
+    "tr": [
+     "(Negroni varyasyonu)"
+    ],
+    "es": [
+     "(Variación de Negroni)"
+    ]
+   }
+  }
+ },
+ {
+  "id": "seven-hills",
+  "name": "Seven Hills",
+  "category": "craft",
+  "stores": [
+   "meze-kebab"
+  ],
+  "batchable": true,
+  "default_portions": 20,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Sazerac 100 proof RYE",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Chazalette Sweet Vermouth",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Angostura Bitters",
+    "qty": 2.0,
+    "unit": "dash",
+    "in_batch": true
+   },
+   {
+    "name": "Accompani Marigold",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true
+   },
+   {
+    "name": "Fugit Gran Classico",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": true
+   }
+  ],
+  "build": {},
+  "notes": [
+   "(MANHATTAN VARIATION)"
+  ],
+  "storage": "Keep In Fridge",
+  "i18n": {
+   "notes": {
+    "tr": [
+     "(Manhattan varyasyonu)"
+    ],
+    "es": [
+     "(Variación de Manhattan)"
+    ]
+   }
+  }
+ },
+ {
+  "id": "ginger-mule",
+  "name": "Ginger Mule",
+  "category": "na",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": true,
+  "default_portions": 16,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Cucumber Juice",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Salatalık suyu",
+     "es": "Jugo de pepino"
+    }
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Fever-Tree Ginger Beer",
+    "qty": null,
+    "unit": null,
+    "text": "fill rest",
+    "in_batch": false,
+    "text_i18n": {
+     "tr": "kalanını doldur",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Moscow Mule Copper Cup",
+   "Ice": "Regular Ice",
+   "Garnish": "Lime Wheel",
+   "How to": "Pour 3.5oz batch in MM Copper Cup, fill the rest of the cup with Ginger Beer."
+  },
+  "pour_from_batch_oz": 3.5,
+  "i18n": {
+   "glass": {
+    "tr": "Moscow Mule bakır kupa",
+    "es": "Taza de cobre Moscow Mule"
+   },
+   "ice": {
+    "tr": "Normal buz",
+    "es": "Hielo normal"
+   },
+   "garnish": {
+    "tr": "Lime halkası",
+    "es": "Rueda de limón verde"
+   },
+   "how_to": {
+    "tr": "3.5 oz batch’i Moscow Mule bakır kupaya dök, kalanını ginger beer ile doldur.",
+    "es": "Sirve 3.5 oz del batch en la taza de cobre Moscow Mule y completa con ginger beer."
+   }
+  }
+ },
+ {
+  "id": "nar-collins",
+  "name": "Nar Collins",
+  "category": "na",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": true,
+  "default_portions": 16,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Pomegranate Juice",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Nar suyu",
+     "es": "Jugo de granada"
+    }
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Cinnamon Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": true,
+    "name_i18n": {
+     "tr": "Tarçın şurubu",
+     "es": "Jarabe de canela"
+    }
+   },
+   {
+    "name": "Fever-Tree Mediterranean Tonic",
+    "qty": null,
+    "unit": null,
+    "text": "fill rest",
+    "in_batch": false,
+    "text_i18n": {
+     "tr": "kalanını doldur",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Tall (Collin) Glass",
+   "Ice": "Regular Ice",
+   "Garnish": "Maraschino Cherry",
+   "How to": "Pour 4oz batch in Collins Glass, fill the rest of the cup with Mediterenean Tonic."
+  },
+  "pour_from_batch_oz": 3.5,
+  "i18n": {
+   "glass": {
+    "tr": "Uzun (Collins) bardak",
+    "es": "Vaso alto (Collins)"
+   },
+   "ice": {
+    "tr": "Normal buz",
+    "es": "Hielo normal"
+   },
+   "garnish": {
+    "tr": "Maraschino kirazı",
+    "es": "Cereza marrasquino"
+   },
+   "how_to": {
+    "tr": "4 oz batch’i Collins bardağına dök, kalanını Mediterranean tonik ile doldur.",
+    "es": "Sirve 4 oz del batch en el vaso Collins y completa con tónica Mediterranean."
+   }
+  }
+ },
+ {
+  "id": "margarita",
+  "name": "Margarita",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Tequila",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen tekila",
+     "es": "Tequila a elección"
+    }
+   },
+   {
+    "name": "Cointreau",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Rocks",
+   "Garnish": "Lime + Salt rim",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Lime + tuzlu kenar",
+    "es": "Limón verde + borde de sal"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "manhattan",
+  "name": "Manhattan",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Bourbon",
+    "qty": 2.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen bourbon",
+     "es": "Bourbon a elección"
+    }
+   },
+   {
+    "name": "Sweet Vermouth",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Angostura Bitters",
+    "qty": 3.0,
+    "unit": "dash",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Cherry",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Kiraz",
+    "es": "Cereza"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "old-fashion",
+  "name": "Old Fashion",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Whiskey, Bourbon",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen viski / bourbon",
+     "es": "Whisky / bourbon a elección"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Angostura Bitters",
+    "qty": 3.0,
+    "unit": "dash",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Big rock",
+   "Garnish": "Orange Peel Express + Cherry",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Büyük küp buz",
+    "es": "Hielo grande"
+   },
+   "garnish": {
+    "tr": "Portakal kabuğu sık + kiraz",
+    "es": "Exprimir cáscara de naranja + cereza"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "martini",
+  "name": "Martini",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka / Gin",
+    "qty": 3.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka / cin",
+     "es": "Vodka / ginebra a elección"
+    }
+   },
+   {
+    "name": "Dry Vermouth",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Martini",
+   "Garnish": "Desired Garnish (lemon express, olives etc.)",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Martini kadehi",
+    "es": "Copa de martini"
+   },
+   "garnish": {
+    "tr": "İsteğe göre garnitür (limon kabuğu yağı, zeytin vb.)",
+    "es": "Decoración a elección (aroma de limón, aceitunas, etc.)"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "dirty-martini",
+  "name": "Dirty Martini",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka / Gin",
+    "qty": 3.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka / cin",
+     "es": "Vodka / ginebra a elección"
+    }
+   },
+   {
+    "name": "Olive Brine",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Zeytin salamurası",
+     "es": "Salmuera de aceituna"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Martini",
+   "Garnish": "Olives",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Martini kadehi",
+    "es": "Copa de martini"
+   },
+   "garnish": {
+    "tr": "Zeytin",
+    "es": "Aceitunas"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "extra-dirty-martini",
+  "name": "Extra Dirty Martini",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka / Gin",
+    "qty": 3.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka / cin",
+     "es": "Vodka / ginebra a elección"
+    }
+   },
+   {
+    "name": "Olive Brine",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Zeytin salamurası",
+     "es": "Salmuera de aceituna"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Martini",
+   "Garnish": "Olives",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Martini kadehi",
+    "es": "Copa de martini"
+   },
+   "garnish": {
+    "tr": "Zeytin",
+    "es": "Aceitunas"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "filthy-martini",
+  "name": "Filthy Martini",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka / Gin",
+    "qty": 3.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka / cin",
+     "es": "Vodka / ginebra a elección"
+    }
+   },
+   {
+    "name": "Olive Brine",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Zeytin salamurası",
+     "es": "Salmuera de aceituna"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Martini",
+   "Garnish": "Olives",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Martini kadehi",
+    "es": "Copa de martini"
+   },
+   "garnish": {
+    "tr": "Zeytin",
+    "es": "Aceitunas"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "dry-martini",
+  "name": "Dry Martini",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka / Gin",
+    "qty": 4.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka / cin",
+     "es": "Vodka / ginebra a elección"
+    }
+   },
+   {
+    "name": "Rinse The Glass with Dry Vermouth",
+    "qty": null,
+    "unit": null,
+    "text": "splash",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Bardağı dry vermut ile çalkala",
+     "es": "Enjuagar la copa con vermut seco"
+    },
+    "text_i18n": {
+     "tr": "bir miktar",
+     "es": "un chorrito"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Martini",
+   "Garnish": "Desired Garnish (lemon express, olives etc.)",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Martini kadehi",
+    "es": "Copa de martini"
+   },
+   "garnish": {
+    "tr": "İsteğe göre garnitür (limon kabuğu yağı, zeytin vb.)",
+    "es": "Decoración a elección (aroma de limón, aceitunas, etc.)"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "extra-dry-martini",
+  "name": "Extra Dry Martini",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka / Gin",
+    "qty": 4.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka / cin",
+     "es": "Vodka / ginebra a elección"
+    }
+   },
+   {
+    "name": "Touch of Dry Vermouth",
+    "qty": 1.0,
+    "unit": "dash",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Bir damla dry vermut",
+     "es": "Un toque de vermut seco"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Martini",
+   "Garnish": "Desired Garnish (lemon express, olives etc.)",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Martini kadehi",
+    "es": "Copa de martini"
+   },
+   "garnish": {
+    "tr": "İsteğe göre garnitür (limon kabuğu yağı, zeytin vb.)",
+    "es": "Decoración a elección (aroma de limón, aceitunas, etc.)"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "straight-up-martini",
+  "name": "Straight Up Martini",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka / Gin",
+    "qty": 4.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka / cin",
+     "es": "Vodka / ginebra a elección"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Martini",
+   "Garnish": "Desired Garnish (lemon express, olives etc.)",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Martini kadehi",
+    "es": "Copa de martini"
+   },
+   "garnish": {
+    "tr": "İsteğe göre garnitür (limon kabuğu yağı, zeytin vb.)",
+    "es": "Decoración a elección (aroma de limón, aceitunas, etc.)"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "boulevardier",
+  "name": "Boulevardier",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Bourbon",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen bourbon",
+     "es": "Bourbon a elección"
+    }
+   },
+   {
+    "name": "Sweet Vermouth",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Campari",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Big Rock",
+   "Garnish": "Orange Peel Express",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Büyük küp buz",
+    "es": "Hielo grande"
+   },
+   "garnish": {
+    "tr": "Portakal kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de naranja"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "negroni",
+  "name": "Negroni",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Gin",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Campari",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Sweet Vermouth",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Big Rock",
+   "Garnish": "Orange Peel Express",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Büyük küp buz",
+    "es": "Hielo grande"
+   },
+   "garnish": {
+    "tr": "Portakal kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de naranja"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "whiskey-sour",
+  "name": "Whiskey Sour",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Bourbon",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Egg White",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Yumurta akı",
+     "es": "Clara de huevo"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Bitter dots",
+   "How to": "Dry Shake + Full Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Bitter damlaları",
+    "es": "Gotas de amargo"
+   },
+   "how_to": {
+    "tr": "Buzsuz çalkala + buzla çalkala",
+    "es": "Agitar sin hielo + agitar con hielo"
+   }
+  }
+ },
+ {
+  "id": "amaretto-sour",
+  "name": "Amaretto Sour",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Amaretto",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Egg White",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Yumurta akı",
+     "es": "Clara de huevo"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Big Rock",
+   "Garnish": "Lemon Express + Cherry",
+   "How to": "Dry Shake + Full Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Büyük küp buz",
+    "es": "Hielo grande"
+   },
+   "garnish": {
+    "tr": "Limon kabuğu sık + kiraz",
+    "es": "Exprimir cáscara de limón + cereza"
+   },
+   "how_to": {
+    "tr": "Buzsuz çalkala + buzla çalkala",
+    "es": "Agitar sin hielo + agitar con hielo"
+   }
+  }
+ },
+ {
+  "id": "moscow-mule",
+  "name": "Moscow Mule",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Vodka",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Ginger Beer",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Ginger beer",
+     "es": "Ginger beer"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Brass Mug",
+   "Ice": "Rocks",
+   "Garnish": "Mint Boquette + Lime Wheel",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Pirinç kupa",
+    "es": "Taza de latón"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Nane demeti + lime halkası",
+    "es": "Ramito de menta + rueda de limón verde"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "mimosa",
+  "name": "Mimosa",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Orange Juice",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Portakal suyu",
+     "es": "Jugo de naranja"
+    }
+   },
+   {
+    "name": "Dalla Balla Prosecco",
+    "qty": 8.0,
+    "unit": "oz",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Flute",
+   "Garnish": "Orange Peel",
+   "How to": "Pour directly in the glass"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Flüt kadeh",
+    "es": "Copa flauta"
+   },
+   "garnish": {
+    "tr": "Portakal kabuğu",
+    "es": "Cáscara de naranja"
+   },
+   "how_to": {
+    "tr": "Doğrudan bardağa dök",
+    "es": "Servir directamente en la copa"
+   }
+  }
+ },
+ {
+  "id": "americano",
+  "name": "Americano",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Sweet Vermouth",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Campari",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Soda",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Soda",
+     "es": "Soda"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Rocks",
+   "Garnish": "Orange Peel Express",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Portakal kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de naranja"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "aperol-spritz",
+  "name": "Aperol Spritz",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Aperol",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Prosecco",
+    "qty": 3.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Club Soda",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Soda",
+     "es": "Soda"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Wine Glass",
+   "Ice": "Rocks",
+   "Garnish": "1/4 Orange Wheel",
+   "How to": "Pour directly in the glass"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Şarap kadehi",
+    "es": "Copa de vino"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Çeyrek portakal dilimi",
+    "es": "Cuarto de rueda de naranja"
+   },
+   "how_to": {
+    "tr": "Doğrudan bardağa dök",
+    "es": "Servir directamente en la copa"
+   }
+  }
+ },
+ {
+  "id": "gin-tonic",
+  "name": "Gin Tonic",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Gin or Vodka",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen cin veya votka",
+     "es": "Ginebra o vodka a elección"
+    }
+   },
+   {
+    "name": "Fever Tree Mediterenean Tonic or Soda",
+    "qty": 3.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Fever-Tree Mediterranean tonik veya soda",
+     "es": "Tónica Fever-Tree Mediterranean o soda"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Wine Glass",
+   "Ice": "Rocks",
+   "Garnish": "1/4 Orange Wheel",
+   "How to": "Pour directly in the glass"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Şarap kadehi",
+    "es": "Copa de vino"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Çeyrek portakal dilimi",
+    "es": "Cuarto de rueda de naranja"
+   },
+   "how_to": {
+    "tr": "Doğrudan bardağa dök",
+    "es": "Servir directamente en la copa"
+   }
+  }
+ },
+ {
+  "id": "vodka-tonic-or-soda",
+  "name": "Vodka Tonic Or Soda",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Gin or Vodka",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen cin veya votka",
+     "es": "Ginebra o vodka a elección"
+    }
+   },
+   {
+    "name": "Fever Tree Mediterenean Tonic or Soda",
+    "qty": 3.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Fever-Tree Mediterranean tonik veya soda",
+     "es": "Tónica Fever-Tree Mediterranean o soda"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Wine Glass",
+   "Ice": "Rocks",
+   "Garnish": "1/4 Orange Wheel",
+   "How to": "Pour directly in the glass"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Şarap kadehi",
+    "es": "Copa de vino"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Çeyrek portakal dilimi",
+    "es": "Cuarto de rueda de naranja"
+   },
+   "how_to": {
+    "tr": "Doğrudan bardağa dök",
+    "es": "Servir directamente en la copa"
+   }
+  }
+ },
+ {
+  "id": "cape-cod-pomegranate",
+  "name": "Cape Cod (Pomegranate)",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Pomegranate Juice",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Nar suyu",
+     "es": "Jugo de granada"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Highball",
+   "Ice": "Rocks",
+   "Garnish": "Lime Wheel",
+   "How to": "Stir / Build"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Highball bardağı",
+    "es": "Vaso highball"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Lime halkası",
+    "es": "Rueda de limón verde"
+   },
+   "how_to": {
+    "tr": "Karıştır / bardakta hazırla",
+    "es": "Remover / preparar en el vaso"
+   }
+  }
+ },
+ {
+  "id": "vodka-collins",
+  "name": "Vodka Collins",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Soda",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Soda",
+     "es": "Soda"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Highball",
+   "Ice": "Rocks",
+   "Garnish": "Lemon Wheel + Cherry",
+   "How to": "Shake, top Soda"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Highball bardağı",
+    "es": "Vaso highball"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Limon halkası + kiraz",
+    "es": "Rueda de limón + cereza"
+   },
+   "how_to": {
+    "tr": "Çalkala, üstüne soda",
+    "es": "Agitar, completar con soda"
+   }
+  }
+ },
+ {
+  "id": "cosmopolitan-pomegranate",
+  "name": "Cosmopolitan (Pomegranate)",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Cointreau",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Pomegranate Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Nar suyu",
+     "es": "Jugo de granada"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Orange Peel Express",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Portakal kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de naranja"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "gibson",
+  "name": "Gibson",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka / Gin",
+    "qty": 3.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka / cin",
+     "es": "Vodka / ginebra a elección"
+    }
+   },
+   {
+    "name": "Dry Vermouth",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Martini",
+   "Garnish": "Cocktail Onion",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Martini kadehi",
+    "es": "Copa de martini"
+   },
+   "garnish": {
+    "tr": "Kokteyl soğanı",
+    "es": "Cebollita de cóctel"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "gimlet",
+  "name": "Gimlet",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka / Gin",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka / cin",
+     "es": "Vodka / ginebra a elección"
+    }
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Lime Wheel",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Lime halkası",
+    "es": "Rueda de limón verde"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "greyhound-fresh-grapefruit",
+  "name": "Greyhound (Fresh Grapefruit)",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Fresh Grapefruit Juice",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Taze greyfurt suyu",
+     "es": "Jugo de toronja fresco"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Highball",
+   "Ice": "Rocks",
+   "Garnish": "Grapefruit Wedge",
+   "How to": "Stir / Build"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Highball bardağı",
+    "es": "Vaso highball"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Greyfurt dilimi",
+    "es": "Gajo de toronja"
+   },
+   "how_to": {
+    "tr": "Karıştır / bardakta hazırla",
+    "es": "Remover / preparar en el vaso"
+   }
+  }
+ },
+ {
+  "id": "kamikaze",
+  "name": "Kamikaze",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Cointreau",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Lime Wheel",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Lime halkası",
+    "es": "Rueda de limón verde"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "lemon-drop",
+  "name": "Lemon Drop",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Cointreau",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Martini",
+   "Garnish": "Sugar Rim + Lemon Twist",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Martini kadehi",
+    "es": "Copa de martini"
+   },
+   "garnish": {
+    "tr": "Şekerli kenar + limon twist",
+    "es": "Borde de azúcar + twist de limón"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "long-island-iced-tea",
+  "name": "Long Island Iced Tea",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Vodka",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Gin",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Light Rum",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Tequila",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Cointreau",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Coke",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Kola",
+     "es": "Coca-Cola"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Highball",
+   "Ice": "Rocks",
+   "Garnish": "Lemon Wedge",
+   "How to": "Shake spirits, top Coke"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Highball bardağı",
+    "es": "Vaso highball"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Limon dilimi",
+    "es": "Gajo de limón"
+   },
+   "how_to": {
+    "tr": "Alkolleri çalkala, üstüne kola",
+    "es": "Agitar los licores, completar con Coca-Cola"
+   }
+  }
+ },
+ {
+  "id": "mudslide",
+  "name": "Mudslide",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Coffee Liqueur",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Irish Cream",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Heavy Cream",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Krema",
+     "es": "Crema espesa"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Rocks",
+   "Garnish": "Chocolate Drizzle",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Çikolata sosu",
+    "es": "Hilo de chocolate"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "screwdriver",
+  "name": "Screwdriver",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Orange Juice",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Portakal suyu",
+     "es": "Jugo de naranja"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Highball",
+   "Ice": "Rocks",
+   "Garnish": "Orange Wheel",
+   "How to": "Stir / Build"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Highball bardağı",
+    "es": "Vaso highball"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Portakal halkası",
+    "es": "Rueda de naranja"
+   },
+   "how_to": {
+    "tr": "Karıştır / bardakta hazırla",
+    "es": "Remover / preparar en el vaso"
+   }
+  }
+ },
+ {
+  "id": "sea-breeze-pomegranate",
+  "name": "Sea Breeze (Pomegranate)",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Pomegranate Juice",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Nar suyu",
+     "es": "Jugo de granada"
+    }
+   },
+   {
+    "name": "Fresh Grapefruit Juice",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Taze greyfurt suyu",
+     "es": "Jugo de toronja fresco"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Highball",
+   "Ice": "Rocks",
+   "Garnish": "Lime Wedge",
+   "How to": "Stir / Build"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Highball bardağı",
+    "es": "Vaso highball"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Lime dilimi",
+    "es": "Gajo de limón verde"
+   },
+   "how_to": {
+    "tr": "Karıştır / bardakta hazırla",
+    "es": "Remover / preparar en el vaso"
+   }
+  }
+ },
+ {
+  "id": "vodka-sour",
+  "name": "Vodka Sour",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Egg White",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Yumurta akı",
+     "es": "Clara de huevo"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Bitter dots",
+   "How to": "Dry Shake + Full Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Bitter damlaları",
+    "es": "Gotas de amargo"
+   },
+   "how_to": {
+    "tr": "Buzsuz çalkala + buzla çalkala",
+    "es": "Agitar sin hielo + agitar con hielo"
+   }
+  }
+ },
+ {
+  "id": "white-russian",
+  "name": "White Russian",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Vodka",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Coffee Liqueur",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Heavy Cream",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Krema",
+     "es": "Crema espesa"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Rocks",
+   "How to": "Build, float cream"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "how_to": {
+    "tr": "Bardakta hazırla, kremayı üste yavaşça dök",
+    "es": "Preparar en el vaso, crema flotando encima"
+   }
+  }
+ },
+ {
+  "id": "aviation",
+  "name": "Aviation",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Gin",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Maraschino Liqueur",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Creme de Violette",
+    "qty": 0.25,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Cherry",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Kiraz",
+    "es": "Cereza"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "corpse-reviver-2",
+  "name": "Corpse Reviver #2",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Gin",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Cointreau",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lillet Blanc",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Absinthe",
+    "qty": null,
+    "unit": null,
+    "text": "rinse",
+    "in_batch": false,
+    "text_i18n": {
+     "tr": "bardağı çalkala",
+     "es": "enjuagar la copa"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Orange Peel Express",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Portakal kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de naranja"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "derby",
+  "name": "Derby",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Gin",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Peach Bitters",
+    "qty": 2.0,
+    "unit": "dash",
+    "in_batch": false
+   },
+   {
+    "name": "Fresh Mint",
+    "qty": null,
+    "unit": null,
+    "text": "2 leaves",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Taze nane",
+     "es": "Menta fresca"
+    },
+    "text_i18n": {
+     "tr": "2 yaprak",
+     "es": "2 hojas"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Mint Leaf",
+   "How to": "Stir"
+  },
+  "notes": [
+   "Classic Savoy spec - confirm matches house version"
+  ],
+  "needs_review": true,
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Nane yaprağı",
+    "es": "Hoja de menta"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   },
+   "notes": {
+    "tr": [
+     "Klasik Savoy tarifi — ev versiyonuyla aynı mı teyit et"
+    ],
+    "es": [
+     "Receta clásica Savoy — confirmar que coincide con la de la casa"
+    ]
+   }
+  }
+ },
+ {
+  "id": "french-75",
+  "name": "French 75",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Gin",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Prosecco / Champagne",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Flute",
+   "Garnish": "Lemon Twist",
+   "How to": "Shake gin+lemon+syrup, top sparkling"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Flüt kadeh",
+    "es": "Copa flauta"
+   },
+   "garnish": {
+    "tr": "Limon kabuğu twist",
+    "es": "Twist de limón"
+   },
+   "how_to": {
+    "tr": "Cin + limon + şurubu çalkala, üstüne köpüklü şarap",
+    "es": "Agitar ginebra + limón + jarabe, completar con espumoso"
+   }
+  }
+ },
+ {
+  "id": "last-word",
+  "name": "Last Word",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Gin",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Green Chartreuse",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Maraschino Liqueur",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Cherry",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Kiraz",
+    "es": "Cereza"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "necromancer",
+  "name": "Necromancer",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Gin",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lillet Blanc",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Creme de Mure (blackberry)",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Lemon Twist",
+   "How to": "Shake"
+  },
+  "notes": [
+   "Recipe varies - confirm house version"
+  ],
+  "needs_review": true,
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Limon kabuğu twist",
+    "es": "Twist de limón"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   },
+   "notes": {
+    "tr": [
+     "Tarif değişkenlik gösterir — ev versiyonunu teyit et"
+    ],
+    "es": [
+     "La receta varía — confirmar la versión de la casa"
+    ]
+   }
+  }
+ },
+ {
+  "id": "old-tom",
+  "name": "Old Tom",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [],
+  "build": {
+   "Glass": "Confirm",
+   "Ice": "Confirm",
+   "Garnish": "Confirm",
+   "How to": "Confirm house spec"
+  },
+  "notes": [
+   "NEEDS HOUSE SPEC - confirm recipe with bar",
+   "(Old Tom gin style - likely Martinez or house serve)"
+  ],
+  "needs_spec": true,
+  "i18n": {
+   "glass": {
+    "tr": "Teyit edilecek",
+    "es": "Por confirmar"
+   },
+   "ice": {
+    "tr": "Teyit edilecek",
+    "es": "Por confirmar"
+   },
+   "garnish": {
+    "tr": "Teyit edilecek",
+    "es": "Por confirmar"
+   },
+   "how_to": {
+    "tr": "Tarifi barla teyit et",
+    "es": "Confirmar receta de la casa"
+   },
+   "notes": {
+    "tr": [
+     "EV TARİFİ GEREKLİ — tarifi barla teyit et",
+     "(Old Tom cin tarzı — muhtemelen Martinez veya ev servisi)"
+    ],
+    "es": [
+     "FALTA RECETA DE LA CASA — confirmar con el bar",
+     "(Estilo ginebra Old Tom — probablemente Martinez o servicio de la casa)"
+    ]
+   }
+  }
+ },
+ {
+  "id": "tom-collins",
+  "name": "Tom Collins",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Gin",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Soda",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Soda",
+     "es": "Soda"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Highball",
+   "Ice": "Rocks",
+   "Garnish": "Lemon Wheel + Cherry",
+   "How to": "Shake, top Soda"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Highball bardağı",
+    "es": "Vaso highball"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Limon halkası + kiraz",
+    "es": "Rueda de limón + cereza"
+   },
+   "how_to": {
+    "tr": "Çalkala, üstüne soda",
+    "es": "Agitar, completar con soda"
+   }
+  }
+ },
+ {
+  "id": "vesper",
+  "name": "Vesper",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Gin",
+    "qty": 3.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Desired Vodka",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen votka",
+     "es": "Vodka a elección"
+    }
+   },
+   {
+    "name": "Lillet Blanc",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Martini",
+   "Garnish": "Lemon Twist",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Martini kadehi",
+    "es": "Copa de martini"
+   },
+   "garnish": {
+    "tr": "Limon kabuğu twist",
+    "es": "Twist de limón"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "margarita-cadillac",
+  "name": "Margarita - Cadillac",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Tequila (Reposado)",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen tekila (reposado)",
+     "es": "Tequila a elección (reposado)"
+    }
+   },
+   {
+    "name": "Grand Marnier",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Agave Nectar",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Agave şurubu",
+     "es": "Néctar de agave"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Rocks",
+   "Garnish": "Lime + Salt rim",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Lime + tuzlu kenar",
+    "es": "Limón verde + borde de sal"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "margarita-skinny",
+  "name": "Margarita - Skinny",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Tequila",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen tekila",
+     "es": "Tequila a elección"
+    }
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Agave Nectar",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Agave şurubu",
+     "es": "Néctar de agave"
+    }
+   },
+   {
+    "name": "Orange Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Portakal suyu",
+     "es": "Jugo de naranja"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Rocks",
+   "Garnish": "Lime Wheel",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Lime halkası",
+    "es": "Rueda de limón verde"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "margarita-spicy",
+  "name": "Margarita - Spicy",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Tequila",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen tekila",
+     "es": "Tequila a elección"
+    }
+   },
+   {
+    "name": "Cointreau",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 1.1,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Agave Nectar",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Agave şurubu",
+     "es": "Néctar de agave"
+    }
+   },
+   {
+    "name": "Jalapeno",
+    "qty": null,
+    "unit": null,
+    "text": "2-3 slices",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Jalapeño",
+     "es": "Jalapeño"
+    },
+    "text_i18n": {
+     "tr": "2-3 dilim",
+     "es": "2-3 rodajas"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Rocks",
+   "Garnish": "Jalapeno + Tajin/Salt rim",
+   "How to": "Muddle jalapeno, Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Jalapeño + Tajín/tuzlu kenar",
+    "es": "Jalapeño + borde de Tajín/sal"
+   },
+   "how_to": {
+    "tr": "Jalapeñoyu ez, çalkala",
+    "es": "Machacar el jalapeño, agitar"
+   }
+  }
+ },
+ {
+  "id": "margarita-up",
+  "name": "Margarita - Up",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Tequila",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen tekila",
+     "es": "Tequila a elección"
+    }
+   },
+   {
+    "name": "Cointreau",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 1.1,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Lime + Salt rim",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Lime + tuzlu kenar",
+    "es": "Limón verde + borde de sal"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "mezcal-mule",
+  "name": "Mezcal Mule",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Mezcal",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Ginger Beer",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Ginger beer",
+     "es": "Ginger beer"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Brass Mug",
+   "Ice": "Rocks",
+   "Garnish": "Mint Bouquet + Lime Wheel",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Pirinç kupa",
+    "es": "Taza de latón"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Nane demeti + lime halkası",
+    "es": "Ramito de menta + rueda de limón verde"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "oaxacan-old-fashioned",
+  "name": "Oaxacan Old Fashioned",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Tequila (Reposado)",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen tekila (reposado)",
+     "es": "Tequila a elección (reposado)"
+    }
+   },
+   {
+    "name": "Mezcal",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Agave Nectar",
+    "qty": 0.25,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Agave şurubu",
+     "es": "Néctar de agave"
+    }
+   },
+   {
+    "name": "Angostura Bitters",
+    "qty": 2.0,
+    "unit": "dash",
+    "in_batch": false
+   },
+   {
+    "name": "Mole Bitters",
+    "qty": 1.0,
+    "unit": "dash",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Big rock",
+   "Garnish": "Orange Peel Express",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Büyük küp buz",
+    "es": "Hielo grande"
+   },
+   "garnish": {
+    "tr": "Portakal kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de naranja"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "paloma-grapefruit",
+  "name": "Paloma (Grapefruit)",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Tequila",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen tekila",
+     "es": "Tequila a elección"
+    }
+   },
+   {
+    "name": "Fresh Grapefruit Juice",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Taze greyfurt suyu",
+     "es": "Jugo de toronja fresco"
+    }
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Agave Nectar",
+    "qty": 0.25,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Agave şurubu",
+     "es": "Néctar de agave"
+    }
+   },
+   {
+    "name": "Soda",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Soda",
+     "es": "Soda"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Highball",
+   "Ice": "Rocks",
+   "Garnish": "Grapefruit Wedge + Salt rim",
+   "How to": "Build, stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Highball bardağı",
+    "es": "Vaso highball"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Greyfurt dilimi + tuzlu kenar",
+    "es": "Gajo de toronja + borde de sal"
+   },
+   "how_to": {
+    "tr": "Bardakta hazırla, karıştır",
+    "es": "Preparar en el vaso, remover"
+   }
+  }
+ },
+ {
+  "id": "ranch-water",
+  "name": "Ranch Water",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Tequila (Blanco)",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen tekila (blanco)",
+     "es": "Tequila a elección (blanco)"
+    }
+   },
+   {
+    "name": "Lime Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Lime suyu",
+     "es": "Jugo de limón verde"
+    }
+   },
+   {
+    "name": "Topo Chico / Soda",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Topo Chico / soda",
+     "es": "Topo Chico / soda"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Highball",
+   "Ice": "Rocks",
+   "Garnish": "Lime Wedge",
+   "How to": "Build, stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Highball bardağı",
+    "es": "Vaso highball"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Lime dilimi",
+    "es": "Gajo de limón verde"
+   },
+   "how_to": {
+    "tr": "Bardakta hazırla, karıştır",
+    "es": "Preparar en el vaso, remover"
+   }
+  }
+ },
+ {
+  "id": "tequila-sunrise-grapefruit",
+  "name": "Tequila Sunrise (Grapefruit)",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Tequila",
+    "qty": 1.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen tekila",
+     "es": "Tequila a elección"
+    }
+   },
+   {
+    "name": "Fresh Grapefruit Juice",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Taze greyfurt suyu",
+     "es": "Jugo de toronja fresco"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   },
+   {
+    "name": "Grenadine",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Grenadin",
+     "es": "Granadina"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Highball",
+   "Ice": "Rocks",
+   "Garnish": "Orange Wheel + Cherry",
+   "How to": "Build, sink grenadine"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Highball bardağı",
+    "es": "Vaso highball"
+   },
+   "ice": {
+    "tr": "Küp buz",
+    "es": "Hielo en cubos"
+   },
+   "garnish": {
+    "tr": "Portakal halkası + kiraz",
+    "es": "Rueda de naranja + cereza"
+   },
+   "how_to": {
+    "tr": "Bardakta hazırla, grenadini dibe dök",
+    "es": "Preparar en el vaso, granadina al fondo"
+   }
+  }
+ },
+ {
+  "id": "tequila-sour",
+  "name": "Tequila Sour",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Tequila",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen tekila",
+     "es": "Tequila a elección"
+    }
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Egg White",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Yumurta akı",
+     "es": "Clara de huevo"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Bitter dots",
+   "How to": "Dry Shake + Full Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Bitter damlaları",
+    "es": "Gotas de amargo"
+   },
+   "how_to": {
+    "tr": "Buzsuz çalkala + buzla çalkala",
+    "es": "Agitar sin hielo + agitar con hielo"
+   }
+  }
+ },
+ {
+  "id": "black-manhattan",
+  "name": "Black Manhattan",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Whiskey, Bourbon",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen viski / bourbon",
+     "es": "Whisky / bourbon a elección"
+    }
+   },
+   {
+    "name": "Averna Amaro",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Angostura Bitters",
+    "qty": 2.0,
+    "unit": "dash",
+    "in_batch": false
+   },
+   {
+    "name": "Orange Bitters",
+    "qty": 1.0,
+    "unit": "dash",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Cherry",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Kiraz",
+    "es": "Cereza"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "final-ward",
+  "name": "Final Ward",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Rye Whiskey",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Green Chartreuse",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Maraschino Liqueur",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Cherry",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Kiraz",
+    "es": "Cereza"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "hot-toddy",
+  "name": "Hot Toddy",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Desired Whiskey, Bourbon",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "İstenen viski / bourbon",
+     "es": "Whisky / bourbon a elección"
+    }
+   },
+   {
+    "name": "Honey",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Bal",
+     "es": "Miel"
+    }
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Hot Water",
+    "qty": null,
+    "unit": null,
+    "text": "to top",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Sıcak su",
+     "es": "Agua caliente"
+    },
+    "text_i18n": {
+     "tr": "üstünü tamamla",
+     "es": "completar"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Mug / Toddy Glass",
+   "Garnish": "Lemon Wheel + Clove + Cinnamon Stick",
+   "How to": "Build, stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Kupa / toddy bardağı",
+    "es": "Taza / vaso de toddy"
+   },
+   "garnish": {
+    "tr": "Limon halkası + karanfil + tarçın çubuğu",
+    "es": "Rueda de limón + clavo + canela en rama"
+   },
+   "how_to": {
+    "tr": "Bardakta hazırla, karıştır",
+    "es": "Preparar en el vaso, remover"
+   }
+  }
+ },
+ {
+  "id": "new-york-sour",
+  "name": "New York Sour",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Bourbon / Rye",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Egg White",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Yumurta akı",
+     "es": "Clara de huevo"
+    }
+   },
+   {
+    "name": "Red Wine",
+    "qty": null,
+    "unit": null,
+    "text": "0.5 float",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Kırmızı şarap",
+     "es": "Vino tinto"
+    },
+    "text_i18n": {
+     "tr": "0.5 oz üste",
+     "es": "0.5 oz flotando"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Big Rock",
+   "Garnish": "Red Wine Float",
+   "How to": "Dry Shake + Full Shake, float wine"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Büyük küp buz",
+    "es": "Hielo grande"
+   },
+   "garnish": {
+    "tr": "Üste kırmızı şarap",
+    "es": "Capa de vino tinto"
+   },
+   "how_to": {
+    "tr": "Buzsuz çalkala + buzla çalkala, üste şarap",
+    "es": "Agitar sin hielo + con hielo, vino flotando"
+   }
+  }
+ },
+ {
+  "id": "paper-plane",
+  "name": "Paper Plane",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Bourbon",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Aperol",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Amaro Nonino",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "How to": "Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "how_to": {
+    "tr": "Çalkala",
+    "es": "Agitar"
+   }
+  }
+ },
+ {
+  "id": "penicillin",
+  "name": "Penicillin",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Blended Scotch",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon suyu",
+     "es": "Jugo de limón"
+    }
+   },
+   {
+    "name": "Honey-Ginger Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Ballı zencefil şurubu",
+     "es": "Jarabe de miel y jengibre"
+    }
+   },
+   {
+    "name": "Islay Scotch",
+    "qty": null,
+    "unit": null,
+    "text": "0.25 float",
+    "in_batch": false,
+    "text_i18n": {
+     "tr": "0.25 oz üste",
+     "es": "0.25 oz flotando"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Big rock",
+   "Garnish": "Candied Ginger",
+   "How to": "Shake, float Islay"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Büyük küp buz",
+    "es": "Hielo grande"
+   },
+   "garnish": {
+    "tr": "Şekerlenmiş zencefil",
+    "es": "Jengibre confitado"
+   },
+   "how_to": {
+    "tr": "Çalkala, üste Islay viski",
+    "es": "Agitar, whisky Islay flotando"
+   }
+  }
+ },
+ {
+  "id": "revolver",
+  "name": "Revolver",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Bourbon",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Coffee Liqueur",
+    "qty": 0.5,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Orange Bitters",
+    "qty": 2.0,
+    "unit": "dash",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Orange Peel Express",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Portakal kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de naranja"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "rusty-nail",
+  "name": "Rusty Nail",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Scotch",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Drambuie",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Ice": "Big rock",
+   "Garnish": "Lemon Peel Express",
+   "How to": "Stir / Build"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "ice": {
+    "tr": "Büyük küp buz",
+    "es": "Hielo grande"
+   },
+   "garnish": {
+    "tr": "Limon kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de limón"
+   },
+   "how_to": {
+    "tr": "Karıştır / bardakta hazırla",
+    "es": "Remover / preparar en el vaso"
+   }
+  }
+ },
+ {
+  "id": "sazerac",
+  "name": "Sazerac",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Rye Whiskey",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.25,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Peychaud's Bitters",
+    "qty": 3.0,
+    "unit": "dash",
+    "in_batch": false
+   },
+   {
+    "name": "Angostura Bitters",
+    "qty": 1.0,
+    "unit": "dash",
+    "in_batch": false
+   },
+   {
+    "name": "Absinthe",
+    "qty": null,
+    "unit": null,
+    "text": "rinse",
+    "in_batch": false,
+    "text_i18n": {
+     "tr": "bardağı çalkala",
+     "es": "enjuagar la copa"
+    }
+   }
+  ],
+  "build": {
+   "Glass": "Double Old Fashion",
+   "Garnish": "Lemon Peel Express",
+   "How to": "Stir"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Double old fashioned bardağı",
+    "es": "Vaso old fashioned doble"
+   },
+   "garnish": {
+    "tr": "Limon kabuğu sık (yağını)",
+    "es": "Exprimir cáscara de limón"
+   },
+   "how_to": {
+    "tr": "Karıştır (stir)",
+    "es": "Remover"
+   }
+  }
+ },
+ {
+  "id": "pisco-sour",
+  "name": "Pisco Sour",
+  "category": "classic",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "batchable": false,
+  "default_portions": null,
+  "dilution_pct": 0.0,
+  "ingredients": [
+   {
+    "name": "Pisco",
+    "qty": 2.0,
+    "unit": "oz",
+    "in_batch": false
+   },
+   {
+    "name": "Lemon / Lime Juice",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Limon / lime suyu",
+     "es": "Jugo de limón / limón verde"
+    }
+   },
+   {
+    "name": "Simple Syrup",
+    "qty": 0.75,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Şeker şurubu",
+     "es": "Jarabe simple"
+    }
+   },
+   {
+    "name": "Egg White",
+    "qty": 1.0,
+    "unit": "oz",
+    "in_batch": false,
+    "name_i18n": {
+     "tr": "Yumurta akı",
+     "es": "Clara de huevo"
+    }
+   },
+   {
+    "name": "Angostura Bitters",
+    "qty": 3.0,
+    "unit": "dash",
+    "in_batch": false
+   }
+  ],
+  "build": {
+   "Glass": "Coupe",
+   "Garnish": "Bitter dots",
+   "How to": "Dry Shake + Full Shake"
+  },
+  "i18n": {
+   "glass": {
+    "tr": "Coupe kadeh",
+    "es": "Copa coupe"
+   },
+   "garnish": {
+    "tr": "Bitter damlaları",
+    "es": "Gotas de amargo"
+   },
+   "how_to": {
+    "tr": "Buzsuz çalkala + buzla çalkala",
+    "es": "Agitar sin hielo + agitar con hielo"
+   }
+  }
+ },
+ {
+  "id": "limonata",
+  "name": "Limonata",
+  "subtitle": "LIMONATA  (Lemonade / Limonada)",
+  "category": "na",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "scale_mode": "liters",
+  "base_yield_l": 6.5,
+  "glass_l": 0.3,
+  "ingredients": [
+   {
+    "name": "Lemons",
+    "unit": "ea",
+    "qty": 15.0,
+    "name_i18n": {
+     "tr": "Limon",
+     "es": "Limones"
+    }
+   },
+   {
+    "name": "Oranges",
+    "unit": "ea",
+    "qty": 2.0,
+    "name_i18n": {
+     "tr": "Portakal",
+     "es": "Naranjas"
+    }
+   },
+   {
+    "name": "Sugar",
+    "unit": "g",
+    "qty": 800.0,
+    "name_i18n": {
+     "tr": "Şeker",
+     "es": "Azúcar"
+    }
+   },
+   {
+    "name": "Water",
+    "unit": "L",
+    "qty": null,
+    "text": "top up to final volume",
+    "name_i18n": {
+     "tr": "Su",
+     "es": "Agua"
+    },
+    "text_i18n": {
+     "tr": "son hacme tamamla",
+     "es": "completar hasta el volumen final"
+    }
+   }
+  ],
+  "method": {
+   "en": [
+    "1. Peel the lemons and oranges; set the peels aside in a container.",
+    "2. Juice the peeled lemons and orange.",
+    "3. Add the sugar to the juice.",
+    "4. Combine the juice, sugar, and the reserved peels in one container.",
+    "5. Whisk 2–3 minutes until the sugar fully dissolves.",
+    "6. Let it rest 20–25 minutes.",
+    "7. Strain through a strainer into a clean container.",
+    "8. Top with water to reach the final volume. Ready to serve."
+   ],
+   "es": [
+    "1. Pela los limones y las naranjas; reserva las cáscaras en un recipiente.",
+    "2. Exprime los limones y la naranja pelados.",
+    "3. Añade el azúcar al jugo.",
+    "4. Combina el jugo, el azúcar y las cáscaras reservadas en un recipiente.",
+    "5. Bate 2–3 minutos hasta que el azúcar se disuelva por completo.",
+    "6. Deja reposar 20–25 minutos.",
+    "7. Cuela en un recipiente limpio.",
+    "8. Añade agua hasta llegar al volumen final. Listo para servir."
+   ],
+   "tr": [
+    "1. Limon ve portakalların kabuklarını soyup bir kaba koy.",
+    "2. Kabuğunu soyduğun limonları ve portakalı sık.",
+    "3. Çıkan suya şekeri ekle.",
+    "4. Hepsini bir kaba al ve soyduğun kabukları da ekle.",
+    "5. Çırpıcı ile 2–3 dakika, şeker eriyene kadar iyice çırp.",
+    "6. 20–25 dakika beklet.",
+    "7. Temiz bir kaba strainer ile süzerek koy.",
+    "8. Son hacme gelene kadar su ekle. Hazır."
+   ]
+  }
+ },
+ {
+  "id": "ayran",
+  "name": "Ayran",
+  "subtitle": "AYRAN  (Yogurt Drink / Bebida de Yogur)",
+  "category": "na",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "scale_mode": "liters",
+  "base_yield_l": 11.5,
+  "glass_l": 0.3,
+  "ingredients": [
+   {
+    "name": "Meyhouse Yogurt",
+    "unit": "kg",
+    "qty": 6.0,
+    "name_i18n": {
+     "tr": "Meyhouse yoğurdu",
+     "es": "Yogur Meyhouse"
+    }
+   },
+   {
+    "name": "Labneh",
+    "unit": "kg",
+    "qty": 1.5,
+    "name_i18n": {
+     "tr": "Labne",
+     "es": "Labneh"
+    }
+   },
+   {
+    "name": "Salt",
+    "unit": "cup",
+    "qty": 0.75,
+    "name_i18n": {
+     "tr": "Tuz",
+     "es": "Sal"
+    }
+   },
+   {
+    "name": "Water",
+    "unit": "L",
+    "qty": 4.0,
+    "name_i18n": {
+     "tr": "Su",
+     "es": "Agua"
+    }
+   }
+  ],
+  "method": {
+   "en": [
+    "1. Combine the yogurt, labneh, salt, and water in a large container.",
+    "2. Blend with an immersion blender until smooth for 5 minutes. Serve chilled."
+   ],
+   "es": [
+    "1. Combina el yogur, el labneh, la sal y el agua en un recipiente grande.",
+    "2. Licúa con una licuadora de inmersión hasta que quede suave 5 minutos. Sirve frío."
+   ],
+   "tr": [
+    "1. Yoğurt, labne, tuz ve suyu büyük bir kaba al.",
+    "2. El blenderı ile 5 dakika pürüzsüz olana kadar karıştır. Soğuk servis et."
+   ]
+  }
+ },
+ {
+  "id": "cinnamon-syrup",
+  "name": "Cinnamon Syrup",
+  "category": "syrup",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "scale_mode": "multiplier",
+  "ingredients": [
+   {
+    "name": "Sugar",
+    "unit": "kg",
+    "qty": 2.5,
+    "name_i18n": {
+     "tr": "Şeker",
+     "es": "Azúcar"
+    }
+   },
+   {
+    "name": "Water",
+    "unit": "L",
+    "qty": 3.0,
+    "name_i18n": {
+     "tr": "Su",
+     "es": "Agua"
+    }
+   },
+   {
+    "name": "Lemon",
+    "unit": "ea",
+    "qty": 0.5,
+    "name_i18n": {
+     "tr": "Limon",
+     "es": "Limón"
+    }
+   },
+   {
+    "name": "Cinnamon Sticks",
+    "unit": "ea",
+    "qty": 6.0,
+    "name_i18n": {
+     "tr": "Tarçın çubuğu",
+     "es": "Canela en rama"
+    }
+   }
+  ],
+  "method": {
+   "en": [
+    "1. Combine sugar, water, half a lemon, and the cinnamon sticks in a pot.",
+    "2. Boil for 30 minutes.",
+    "3. Strain with a double strainer. Ready to use."
+   ],
+   "tr": [
+    "Şekeri, suyu, yarım limonu ve tarçın çubuklarını bir tencereye koy.",
+    "30 dakika kaynat.",
+    "Çift süzgeçle süz. Kullanıma hazır."
+   ],
+   "es": [
+    "Pon el azúcar, el agua, medio limón y las ramas de canela en una olla.",
+    "Hierve 30 minutos.",
+    "Cuela con doble colador. Listo para usar."
+   ]
+  }
+ },
+ {
+  "id": "sage-syrup",
+  "name": "Sage Syrup",
+  "category": "syrup",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "scale_mode": "multiplier",
+  "ingredients": [
+   {
+    "name": "Sugar",
+    "unit": "kg",
+    "qty": 2.5,
+    "name_i18n": {
+     "tr": "Şeker",
+     "es": "Azúcar"
+    }
+   },
+   {
+    "name": "Water",
+    "unit": "L",
+    "qty": 3.0,
+    "name_i18n": {
+     "tr": "Su",
+     "es": "Agua"
+    }
+   },
+   {
+    "name": "Lemon",
+    "unit": "ea",
+    "qty": 0.5,
+    "name_i18n": {
+     "tr": "Limon",
+     "es": "Limón"
+    }
+   },
+   {
+    "name": "Fresh Sage",
+    "unit": null,
+    "qty": null,
+    "text": "1 handful",
+    "name_i18n": {
+     "tr": "Taze adaçayı",
+     "es": "Salvia fresca"
+    },
+    "text_i18n": {
+     "tr": "1 avuç",
+     "es": "1 puñado"
+    }
+   }
+  ],
+  "method": {
+   "en": [
+    "1. Combine sugar, water, half a lemon, and a handful of fresh sage in a pot.",
+    "2. Boil for 30 minutes.",
+    "3. Strain with a double strainer. Ready to use."
+   ],
+   "tr": [
+    "Şekeri, suyu, yarım limonu ve bir avuç taze adaçayını bir tencereye koy.",
+    "30 dakika kaynat.",
+    "Çift süzgeçle süz. Kullanıma hazır."
+   ],
+   "es": [
+    "Pon el azúcar, el agua, medio limón y un puñado de salvia fresca en una olla.",
+    "Hierve 30 minutos.",
+    "Cuela con doble colador. Listo para usar."
+   ]
+  }
+ },
+ {
+  "id": "ginger-syrup",
+  "name": "Ginger Syrup",
+  "category": "syrup",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "scale_mode": "multiplier",
+  "ingredients": [
+   {
+    "name": "Ginger",
+    "unit": "gr",
+    "qty": 400.0,
+    "name_i18n": {
+     "tr": "Zencefil",
+     "es": "Jengibre"
+    }
+   },
+   {
+    "name": "Sugar",
+    "unit": "kg",
+    "qty": 2.5,
+    "name_i18n": {
+     "tr": "Şeker",
+     "es": "Azúcar"
+    }
+   },
+   {
+    "name": "Water",
+    "unit": "L",
+    "qty": 3.0,
+    "name_i18n": {
+     "tr": "Su",
+     "es": "Agua"
+    }
+   },
+   {
+    "name": "Lemon",
+    "unit": "ea",
+    "qty": 0.5,
+    "name_i18n": {
+     "tr": "Limon",
+     "es": "Limón"
+    }
+   }
+  ],
+  "method": {
+   "en": [
+    "1. Chop the ginger into chunks.",
+    "2. Combine ginger, sugar, water, and half a lemon in a pot.",
+    "3. Boil for 30 minutes.",
+    "4. Blend for 1 minute with a hand blender.",
+    "5. Strain with a double strainer. Ready to use."
+   ],
+   "tr": [
+    "Zencefili iri parçalar halinde doğra.",
+    "Zencefili, şekeri, suyu ve yarım limonu bir tencereye koy.",
+    "30 dakika kaynat.",
+    "El blenderıyla 1 dakika karıştır.",
+    "Çift süzgeçle süz. Kullanıma hazır."
+   ],
+   "es": [
+    "Corta el jengibre en trozos.",
+    "Pon el jengibre, el azúcar, el agua y medio limón en una olla.",
+    "Hierve 30 minutos.",
+    "Licúa 1 minuto con licuadora de mano.",
+    "Cuela con doble colador. Listo para usar."
+   ]
+  }
+ },
+ {
+  "id": "simple-syrup",
+  "name": "Simple Syrup",
+  "category": "syrup",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "scale_mode": "multiplier",
+  "ingredients": [
+   {
+    "name": "Sugar",
+    "unit": "kg",
+    "qty": 2.5,
+    "name_i18n": {
+     "tr": "Şeker",
+     "es": "Azúcar"
+    }
+   },
+   {
+    "name": "Hot / Boiling Water",
+    "unit": "L",
+    "qty": 3.0,
+    "name_i18n": {
+     "tr": "Sıcak / kaynar su",
+     "es": "Agua caliente / hirviendo"
+    }
+   },
+   {
+    "name": "Lemon",
+    "unit": "ea",
+    "qty": 0.5,
+    "name_i18n": {
+     "tr": "Limon",
+     "es": "Limón"
+    }
+   }
+  ],
+  "method": {
+   "en": [
+    "1. Fill half of the bottle with sugar.",
+    "2. Top with hot or boiling water.",
+    "3. Whisk about 2 minutes until fully dissolved. Ready to use."
+   ],
+   "tr": [
+    "Şişenin yarısını şekerle doldur.",
+    "Üstünü sıcak veya kaynar suyla tamamla.",
+    "Şeker tamamen eriyene kadar yaklaşık 2 dakika çırp. Kullanıma hazır."
+   ],
+   "es": [
+    "Llena la mitad de la botella con azúcar.",
+    "Completa con agua caliente o hirviendo.",
+    "Bate unos 2 minutos hasta que se disuelva por completo. Listo para usar."
+   ]
+  }
+ },
+ {
+  "id": "grenadine-syrup",
+  "name": "Grenadine Syrup",
+  "category": "syrup",
+  "stores": [
+   "meyhouse",
+   "meze-kebab"
+  ],
+  "scale_mode": "multiplier",
+  "ingredients": [
+   {
+    "name": "Pomegranate Juice",
+    "unit": "ml",
+    "qty": 710.0,
+    "name_i18n": {
+     "tr": "Nar suyu",
+     "es": "Jugo de granada"
+    }
+   },
+   {
+    "name": "Sugar",
+    "unit": "gr",
+    "qty": 450.0,
+    "name_i18n": {
+     "tr": "Şeker",
+     "es": "Azúcar"
+    }
+   }
+  ],
+  "method": {
+   "en": [
+    "1. Combine the pomegranate juice and sugar.",
+    "2. Boil for 8 minutes. Ready to use."
+   ],
+   "tr": [
+    "Nar suyunu ve şekeri birleştir.",
+    "8 dakika kaynat. Kullanıma hazır."
+   ],
+   "es": [
+    "Combina el jugo de granada y el azúcar.",
+    "Hierve 8 minutos. Listo para usar."
+   ]
+  }
+ }
+]
