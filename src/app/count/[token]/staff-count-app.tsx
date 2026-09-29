@@ -463,6 +463,7 @@ function CountList({
             </button>
           ))}
         </div>
+        <p className="text-[11px] text-[var(--ink-muted)]">Count what&rsquo;s on the shelf — the order is worked out for you.</p>
         {chipBanner && (
           <p className={`text-xs px-3 py-2 rounded-lg bg-[#FFF8E1] border ${GOLD_BORDER} ${GOLD_TEXT}`}>
             {areaName(chip)} already counted by {chipBanner.byName} today at {fmtTime(chipBanner.at)}
@@ -556,29 +557,38 @@ function CountRow({
   return (
     <div className={`px-3 py-2 flex items-center gap-2 ${counted ? "bg-[#FAF7F1]" : ""}`}>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-[var(--brand-brown)] truncate">
+        <p className="text-sm font-medium text-[var(--brand-brown)] leading-snug line-clamp-2 break-words">
           {item.name}
           {item.size && <span className="ml-1.5 text-[11px] font-normal text-[var(--ink-muted)]">{item.size}</span>}
         </p>
         <p className="text-[11px] text-[var(--ink-muted)] truncate">{subParts.join(" · ")}</p>
-        <p className="text-[11px] truncate">
-          <span className={item.par > 0 ? "text-[var(--ink-muted)]" : GOLD_TEXT}>Par {item.par}</span>
-          {short !== null && (
-            short > 0
-              ? <span className="text-[var(--brand-olive)] font-medium"> · short {short} → {qty} {unitWord(unit, qty, item.keg)}</span>
-              : <span className="text-green-700"> · OK</span>
-          )}
-        </p>
+        {short !== null && (
+          <p className="text-[11px] truncate">
+            {short > 0
+              ? <span className="text-[var(--brand-olive)] font-medium">Short {short} → {qty} {unitWord(unit, qty, item.keg)}</span>
+              : <span className="text-green-700">OK — at or above par</span>}
+          </p>
+        )}
+      </div>
+
+      {/* Par — beside CS/BTL, the same size as the two unit buttons together. */}
+      <div
+        className={`w-11 h-12 shrink-0 rounded border flex flex-col items-center justify-center bg-white ${item.par > 0 ? "border-[var(--line)]" : GOLD_BORDER}`}
+        aria-label={`Par ${item.par}`}
+        title={item.par > 0 ? undefined : "No par set"}
+      >
+        <span className="text-[9px] tracking-[0.08em] text-[var(--ink-muted)] leading-none">PAR</span>
+        <span className={`text-lg font-semibold leading-tight ${item.par > 0 ? "text-[var(--brand-brown)]" : GOLD_TEXT}`}>{item.par}</span>
       </div>
 
       {/* CS/BTL: display-only when the admin set it; otherwise staff may pick (this order only). */}
-      <div className="flex flex-col gap-1 shrink-0" aria-label="Order unit">
+      <div className="w-11 h-12 flex flex-col gap-1 shrink-0" aria-label="Order unit">
         {(["CASE", "BOTTLE"] as const).map((u) => {
           const label = u === "CASE" ? "CS" : "BTL";
           if (item.unit) {
             const on = item.unit === u;
             return (
-              <span key={u} className={`w-10 text-center text-[10px] font-semibold py-0.5 rounded ${on ? "bg-[var(--brand-olive)] text-white" : "bg-[var(--brand-cream)] text-[var(--ink-muted)] opacity-50"}`}>
+              <span key={u} className={`w-11 h-[22px] flex items-center justify-center text-[10px] font-semibold rounded ${on ? "bg-[var(--brand-olive)] text-white" : "bg-[var(--brand-cream)] text-[var(--ink-muted)] opacity-50"}`}>
                 {label}
               </span>
             );
@@ -589,7 +599,7 @@ function CountRow({
               key={u}
               onClick={() => setPick(u)}
               aria-pressed={on}
-              className={`w-10 text-center text-[10px] font-semibold py-0.5 rounded border border-dashed ${GOLD_BORDER} ${on ? "bg-[#D4A017] text-white" : "bg-white " + GOLD_TEXT}`}
+              className={`w-11 h-[22px] flex items-center justify-center text-[10px] font-semibold rounded border border-dashed ${GOLD_BORDER} ${on ? "bg-[#D4A017] text-white" : "bg-white " + GOLD_TEXT}`}
             >
               {label}
             </button>
@@ -598,7 +608,7 @@ function CountRow({
       </div>
 
       <div className="flex items-center shrink-0">
-        <button onClick={() => step(-0.5)} aria-label="Minus" className="w-10 h-10 rounded-l-xl border border-[var(--line)] bg-white text-lg active:bg-[var(--line)]">−</button>
+        <button onClick={() => step(-0.5)} aria-label="Minus" className="w-9 sm:w-10 h-10 rounded-l-xl border border-[var(--line)] bg-white text-lg active:bg-[var(--line)]">−</button>
         {typing ? (
           <input
             autoFocus
@@ -622,7 +632,7 @@ function CountRow({
             {counted ? count : "—"}
           </button>
         )}
-        <button onClick={() => step(0.5)} aria-label="Plus" className="w-10 h-10 rounded-r-xl border border-[var(--line)] bg-white text-lg active:bg-[var(--line)]">+</button>
+        <button onClick={() => step(0.5)} aria-label="Plus" className="w-9 sm:w-10 h-10 rounded-r-xl border border-[var(--line)] bg-white text-lg active:bg-[var(--line)]">+</button>
       </div>
     </div>
   );
