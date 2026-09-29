@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1, // no auto-zoom when a count box is tapped
   themeColor: "#F5EFE3",
 };
 

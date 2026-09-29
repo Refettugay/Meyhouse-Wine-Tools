@@ -1,12 +1,14 @@
 "use client";
 
-// Staff count page (phone-first, works on tablet). Count-only: − / + in
-// 0.5-bottle steps; "−" on an uncounted item = 0 (out). Counts are saved on
-// the device as they go (survive lock/refresh) and cleared after a send.
+// Staff count page (phone-first, works on tablet). − / + move in 0.5-bottle
+// steps; typing keeps the exact number (0.25, 0.1…). "−" on an uncounted item
+// = 0 (out). Press and hold a row for the remove menu (same three choices as
+// the admin Beverage tool). Counts are saved on the device as they go
+// (survive lock/refresh) and cleared after a send.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { listStaff, signIn, createPin, signOut, loadCountFeed, sendCounts } from "./actions";
-import type { CountFeed, CountItem, StaffPerson } from "@/lib/staff-count/feed-types";
+import { listStaff, signIn, createPin, signOut, loadCountFeed, sendCounts, removeItem } from "./actions";
+import type { CountFeed, CountItem, RemoveAction, StaffPerson } from "@/lib/staff-count/feed-types";
 import { TYPE_CHIPS } from "@/lib/staff-count/types";
 import { orderQty, type OrderUnit } from "@/lib/ordering-math";
 
@@ -84,6 +86,30 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
       else setStage("pick");
     })();
   }, [token, openCount]);
+
+  // Press-and-hold menu → server, then update the list here (no reload).
+  async function handleRemove(item: CountItem, action: RemoveAction): Promise<string | null> {
+    const r = await removeItem(token, item.id, action);
+    if (!r.ok) {
+      if (r.signedOut) setStage("pick");
+      return r.error;
+    }
+    setFeed((f) => {
+      if (!f) return f;
+      if (action === "delete") return { ...f, items: f.items.filter((i) => i.id !== item.id) };
+      return {
+        ...f,
+        items: f.items.map((i) => i.id !== item.id ? i
+          : action === "database" ? { ...i, offMenu: true }
+          : { ...i, phasingOut: action === "mark" }),
+      };
+    });
+    if (action === "delete") {
+      setCounts((c) => { const n = { ...c }; delete n[item.id]; return n; });
+      setPicks((p) => { const n = { ...p }; delete n[item.id]; return n; });
+    }
+    return null;
+  }
 
   async function handleSignOut() {
     await signOut(token);
@@ -187,7 +213,7 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
               onChange={(e) => setRequest(e.target.value.slice(0, 500))}
               rows={2}
               placeholder="e.g. we're out of cocktail napkins"
-              className="mt-1 w-full px-3 py-2 border border-[var(--line)] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
+              className="mt-1 w-full px-3 py-2 border border-[var(--line)] rounded-lg text-base bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
             />
           </label>
           {error && <p className="text-sm text-red-700">{error}</p>}
@@ -254,6 +280,7 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
           return next;
         })}
         setPick={(id, u) => setPicks((p) => ({ ...p, [id]: u }))}
+        onRemove={handleRemove}
       />
       <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-[var(--line)] px-4 py-3 flex items-center gap-3">
         <span className="text-xs text-[var(--ink-muted)] flex-1">
@@ -304,7 +331,7 @@ function PickName({ people, onPick }: { people: StaffPerson[]; onPick: (p: Staff
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search your name"
-        className="w-full px-3 py-2.5 border border-[var(--line)] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
+        className="w-full px-3 py-2.5 border border-[var(--line)] rounded-lg text-base bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
       />
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {shown.map((p) => (
@@ -381,14 +408,16 @@ function CreatePin({ name, busy, error, onBack, onSave }: { name: string; busy: 
 }
 
 function CountList({
-  feed, counts, picks, setCount, setPick,
+  feed, counts, picks, setCount, setPick, onRemove,
 }: {
   feed: CountFeed;
   counts: Record<string, number>;
   picks: Record<string, OrderUnit>;
   setCount: (id: string, v: number | null) => void;
   setPick: (id: string, u: OrderUnit) => void;
+  onRemove: (item: CountItem, action: RemoveAction) => Promise<string | null>;
 }) {
+  const [menuFor, setMenuFor] = useState<CountItem | null>(null);
   const [q, setQ] = useState("");
   const [groupBy, setGroupBy] = useState<"type" | "area">("area");
   const [chip, setChip] = useState<string>("ALL");
@@ -437,7 +466,7 @@ function CountList({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search"
-            className="flex-1 min-w-0 px-3 py-2 border border-[var(--line)] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
+            className="flex-1 min-w-0 px-3 py-1.5 border border-[var(--line)] rounded-lg text-base bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
           />
           <div className="inline-flex rounded-full border border-[var(--line)] bg-white p-0.5 text-xs font-medium" role="group" aria-label="Group by">
             {(["area", "type"] as const).map((g) => (
@@ -492,6 +521,7 @@ function CountList({
                   pick={picks[i.id]}
                   setCount={(v) => setCount(i.id, v)}
                   setPick={(u) => setPick(i.id, u)}
+                  onHold={() => setMenuFor(i)}
                 />
               ))}
             </div>
@@ -521,18 +551,97 @@ function CountList({
                   pick={picks[i.id]}
                   setCount={(v) => setCount(i.id, v)}
                   setPick={(u) => setPick(i.id, u)}
+                  onHold={() => setMenuFor(i)}
                 />
               ))}
             </div>
           )}
         </section>
       )}
+      {menuFor && <RemoveMenu item={menuFor} onClose={() => setMenuFor(null)} onRemove={onRemove} />}
     </div>
   );
 }
 
+// Bottom sheet opened by press-and-hold — same wording as the admin Beverage tool.
+function RemoveMenu({ item, onClose, onRemove }: { item: CountItem; onClose: () => void; onRemove: (item: CountItem, action: RemoveAction) => Promise<string | null> }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const run = async (action: RemoveAction) => {
+    if (action === "delete" && !confirm(`Permanently delete "${item.name}"? This cannot be undone.`)) return;
+    setBusy(true); setError(null);
+    const err = await onRemove(item, action);
+    setBusy(false);
+    if (err) setError(err); else onClose();
+  };
+  const opt = "w-full text-left px-4 py-3 active:bg-[var(--brand-cream)] disabled:opacity-50";
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center">
+      <div className="absolute inset-0 bg-black/30" onClick={busy ? undefined : onClose} />
+      <div className="relative w-full max-w-md bg-white rounded-t-2xl shadow-lg pb-[max(env(safe-area-inset-bottom),12px)]">
+        <p className="px-4 pt-4 pb-2 text-sm font-medium text-[var(--brand-brown)] border-b border-[var(--line)]">
+          {item.name}
+          {item.size && <span className="ml-1.5 text-[11px] font-normal text-[var(--ink-muted)]">{item.size}</span>}
+        </p>
+        <button disabled={busy} onClick={() => run(item.phasingOut ? "unmark" : "mark")} className={`${opt} border-b border-[var(--line)]`}>
+          <p className="text-sm font-medium text-amber-700">{item.phasingOut ? "Cancel Phase-Out" : "Mark to Remove"}</p>
+          <p className="text-[11px] text-[var(--ink-muted)]">{item.phasingOut ? "Stop phasing out (this store)" : "Keep until stock runs out (this store), then decide"}</p>
+        </button>
+        {!item.offMenu && (
+          <button disabled={busy} onClick={() => run("database")} className={`${opt} border-b border-[var(--line)]`}>
+            <p className="text-sm font-medium text-[var(--brand-brown)]">Move to Product Database</p>
+            <p className="text-[11px] text-[var(--ink-muted)]">Tasted but not on menu yet</p>
+          </button>
+        )}
+        <button disabled={busy} onClick={() => run("delete")} className={opt}>
+          <p className="text-sm font-medium text-red-600">Permanently Delete</p>
+          <p className="text-[11px] text-[var(--ink-muted)]">Removes from database — cannot be undone</p>
+        </button>
+        {error && <p className="px-4 pb-2 text-sm text-red-700">{error}</p>}
+        <div className="px-4 pt-1">
+          <button disabled={busy} onClick={onClose} className="w-full py-3 rounded-full border border-[var(--line)] bg-white text-sm font-medium">
+            {busy ? "Working…" : "Cancel"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Press and hold (~0.5s) anywhere on the row except its buttons / count box.
+// Moving the finger (a scroll) cancels it. Right-click works on a computer.
+function useHold(onHold: () => void) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const cancel = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; start.current = null; };
+  const onControl = (t: EventTarget) => !!(t as HTMLElement).closest("button, input");
+  return {
+    onPointerDown: (e: React.PointerEvent) => {
+      if (onControl(e.target)) return;
+      cancel();
+      start.current = { x: e.clientX, y: e.clientY };
+      timer.current = setTimeout(() => {
+        timer.current = null;
+        try { navigator.vibrate?.(15); } catch {}
+        onHold();
+      }, 500);
+    },
+    onPointerMove: (e: React.PointerEvent) => {
+      if (start.current && Math.hypot(e.clientX - start.current.x, e.clientY - start.current.y) > 10) cancel();
+    },
+    onPointerUp: cancel,
+    onPointerCancel: cancel,
+    onPointerLeave: cancel,
+    onContextMenu: (e: React.MouseEvent) => {
+      if (onControl(e.target)) return;
+      e.preventDefault();
+      if (timer.current || e.button === 2) { cancel(); onHold(); }
+    },
+  };
+}
+
 function CountRow({
-  item, sub, count, pick, setCount, setPick,
+  item, sub, count, pick, setCount, setPick, onHold,
 }: {
   item: CountItem;
   sub: string;
@@ -540,7 +649,9 @@ function CountRow({
   pick: OrderUnit | undefined;
   setCount: (v: number | null) => void;
   setPick: (u: OrderUnit) => void;
+  onHold: () => void;
 }) {
+  const hold = useHold(onHold);
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState("");
   const counted = count !== undefined;
@@ -550,18 +661,21 @@ function CountRow({
 
   const step = (d: number) => {
     if (!counted) { setCount(d < 0 ? 0 : 0.5); return; } // "−" on uncounted = 0 (out)
-    setCount(Math.max(0, Math.round(((count as number) + d) * 2) / 2));
+    setCount(Math.max(0, Math.round(((count as number) + d) * 100) / 100)); // typed 0.25 → + → 0.75
   };
   const subParts = [sub, item.vendor, item.casePack ? `${item.casePack}/cs` : null].filter(Boolean);
 
   return (
-    <div className={`px-3 py-2 flex items-center gap-2 ${counted ? "bg-[#FAF7F1]" : ""}`}>
+    <div {...hold} className={`px-3 py-2 flex items-center gap-2 select-none [-webkit-touch-callout:none] ${counted ? "bg-[#FAF7F1]" : ""}`}>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-[var(--brand-brown)] leading-snug line-clamp-2 break-words">
           {item.name}
           {item.size && <span className="ml-1.5 text-[11px] font-normal text-[var(--ink-muted)]">{item.size}</span>}
         </p>
-        <p className="text-[11px] text-[var(--ink-muted)] truncate">{subParts.join(" · ")}</p>
+        <p className="text-[11px] text-[var(--ink-muted)] truncate">
+          {item.phasingOut && <span className="mr-1 text-amber-700 font-medium">Phasing out ·</span>}
+          {subParts.join(" · ")}
+        </p>
         {short !== null && (
           <p className="text-[11px] truncate">
             {short > 0
@@ -617,11 +731,13 @@ function CountRow({
             onChange={(e) => setDraft(e.target.value)}
             onBlur={() => {
               const n = parseFloat(draft);
-              setCount(draft.trim() === "" ? null : Number.isFinite(n) && n >= 0 ? Math.round(n * 2) / 2 : count ?? null);
+              // Keep the number exactly as typed (to 2 decimals) — no snapping to 0.5.
+              setCount(draft.trim() === "" ? null : Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : count ?? null);
               setTyping(false);
             }}
             onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-            className="w-12 h-10 border-y border-[var(--line)] text-center text-sm font-semibold focus:outline-none"
+            // 16px: iPhone zooms the page into any text box smaller than that.
+            className="w-12 h-10 border-y border-[var(--line)] text-center text-base font-semibold focus:outline-none"
           />
         ) : (
           <button

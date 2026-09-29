@@ -17,7 +17,11 @@ export type CountItem = {
   unit: "CASE" | "BOTTLE" | null; // admin-set CS/BTL; null = Not set (staff may pick)
   keg: boolean;
   offMenu: boolean;         // active but not On Menu → collapsed "Off menu" section
+  phasingOut: boolean;      // "Mark to Remove" set for this store
 };
+
+// Press-and-hold row menu — same three choices as the admin Beverage tool.
+export type RemoveAction = "mark" | "unmark" | "database" | "delete";
 
 export type AreaCounted = { byName: string; at: string; byMe: boolean };
 

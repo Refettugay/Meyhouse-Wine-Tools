@@ -12,7 +12,9 @@ import { getStaffSession, setStaffSession, clearStaffSession, type StaffSession 
 import { typeChipFor } from "@/lib/staff-count/types";
 import { formatBottleSize } from "@/lib/staff-count/size";
 import { effectiveUnit, orderQty, type OrderUnit } from "@/lib/ordering-math";
-import type { CountFeed, SendCount, SendResult, StaffPerson } from "@/lib/staff-count/feed-types";
+import type { CountFeed, RemoveAction, SendCount, SendResult, StaffPerson } from "@/lib/staff-count/feed-types";
+import { hardDeleteIngredient } from "@/lib/product-removal";
+import { revalidatePath } from "next/cache";
 
 const BAD_LINK = { ok: false as const, error: "This link isn't active. Ask your manager for the current link." };
 const NOT_CONFIGURED = { ok: false as const, error: "The count page isn't set up yet. Tell your manager." };
@@ -138,6 +140,7 @@ export async function loadCountFeed(token: string): Promise<{ ok: true; feed: Co
       select: {
         id: true,
         parLevel: true,
+        markedForRemoval: true,
         storageArea: { select: { id: true, name: true } },
         ingredient: {
           select: {
@@ -186,6 +189,7 @@ export async function loadCountFeed(token: string): Promise<{ ok: true; feed: Co
       unit: effectiveUnit(g.orderUnit, cps),
       keg: cps === -3,
       offMenu: g.menuStatus !== "ON_MENU",
+      phasingOut: i.markedForRemoval === "PENDING",
     };
   });
 
@@ -199,6 +203,53 @@ export async function loadCountFeed(token: string): Promise<{ ok: true; feed: Co
       countedToday,
     },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Press-and-hold remove menu (same three choices as the admin Beverage tool)
+// ---------------------------------------------------------------------------
+// "mark"/"unmark" = Mark to Remove for THIS store only; "database" = Move to
+// Product Database; "delete" = Permanently Delete. Every one is logged.
+
+export async function removeItem(token: string, inventoryItemId: string, action: RemoveAction): Promise<{ ok: true } | { ok: false; error: string; signedOut?: boolean }> {
+  if (!pinConfigured()) return NOT_CONFIGURED;
+  const auth = await signedIn(token);
+  if (!auth) return (await resolveCountLink(token)) ? SIGNED_OUT : BAD_LINK;
+  const { store, session } = auth;
+
+  const inv = await prisma.inventoryItem.findFirst({
+    where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId },
+    select: { ingredientId: true, ingredient: { select: { name: true } } },
+  });
+  if (!inv) return { ok: false, error: "That item is no longer on this store's list." };
+
+  const log = {
+    organizationId: store.organizationId, locationId: store.locationId, ingredientId: inv.ingredientId, entity: "PRODUCT",
+    actorId: session.personId, actorName: session.name, actorKind: "staff", source: "staff_count",
+  };
+
+  if (action === "mark" || action === "unmark") {
+    await prisma.inventoryItem.updateMany({
+      where: { ingredientId: inv.ingredientId, locationId: store.locationId, organizationId: store.organizationId },
+      data: { markedForRemoval: action === "mark" ? "PENDING" : null },
+    });
+    await prisma.orderActivityLog.create({ data: { ...log, action: action === "mark" ? "mark_to_remove" : "cancel_phase_out", note: inv.ingredient.name } });
+  } else if (action === "database") {
+    await prisma.ingredient.update({
+      where: { id: inv.ingredientId, organizationId: store.organizationId },
+      data: { onMenu: false, menuStatus: "DATABASE" },
+    });
+    await prisma.orderActivityLog.create({ data: { ...log, action: "move_to_database", note: inv.ingredient.name } });
+  } else if (action === "delete") {
+    // Log first (without the product link) so the record survives the delete.
+    await prisma.orderActivityLog.create({ data: { ...log, ingredientId: null, action: "hard_delete", note: `Permanently deleted "${inv.ingredient.name}"` } });
+    await hardDeleteIngredient(inv.ingredientId, store.organizationId);
+    revalidatePath("/dashboard/recipes");
+  } else {
+    return { ok: false, error: "Unknown action." };
+  }
+  revalidatePath("/dashboard/products");
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------------------
