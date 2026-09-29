@@ -10,6 +10,7 @@ import { resolveCountLink, type CountLinkStore } from "@/lib/staff-count/link";
 import { checkPin, setInitialPin, isValidPinFormat, pinConfigured } from "@/lib/staff-count/pin";
 import { getStaffSession, setStaffSession, clearStaffSession, type StaffSession } from "@/lib/staff-count/session";
 import { typeChipFor } from "@/lib/staff-count/types";
+import { formatBottleSize } from "@/lib/staff-count/size";
 import { effectiveUnit, orderQty, type OrderUnit } from "@/lib/ordering-math";
 import type { CountFeed, SendCount, SendResult, StaffPerson } from "@/lib/staff-count/feed-types";
 
@@ -141,6 +142,7 @@ export async function loadCountFeed(token: string): Promise<{ ok: true; feed: Co
         ingredient: {
           select: {
             name: true, ingredientCategory: true, orderUnit: true, casePackSize: true, vendor: true, menuStatus: true,
+            bottleSizeMl: true, bottleSizeUnit: true,
             vendorRef: { select: { name: true } },
           },
         },
@@ -174,6 +176,7 @@ export async function loadCountFeed(token: string): Promise<{ ok: true; feed: Co
     return {
       id: i.id,
       name: g.name,
+      size: formatBottleSize(g.bottleSizeMl, g.bottleSizeUnit),
       type: typeChipFor(g.ingredientCategory),
       areaId: i.storageArea?.id ?? null,
       areaName: i.storageArea?.name ?? null,

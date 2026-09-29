@@ -165,7 +165,10 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
             ) : (
               orderLines.map((l) => (
                 <div key={l.item.id} className="flex items-center justify-between px-3 py-2 text-sm">
-                  <span className="truncate pr-2">{l.item.name}</span>
+                  <span className="truncate pr-2">
+                    {l.item.name}
+                    {l.item.size && <span className="ml-1 text-[11px] text-[var(--ink-muted)]">{l.item.size}</span>}
+                  </span>
                   <span className="font-semibold text-[var(--brand-olive)] whitespace-nowrap">
                     {l.qty} {unitWord(l.unit, l.qty, l.item.keg)}
                     {l.unit === null && <span className={`ml-1 text-[10px] ${GOLD_TEXT}`}>(unit?)</span>}
@@ -553,7 +556,10 @@ function CountRow({
   return (
     <div className={`px-3 py-2 flex items-center gap-2 ${counted ? "bg-[#FAF7F1]" : ""}`}>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-[var(--brand-brown)] truncate">{item.name}</p>
+        <p className="text-sm font-medium text-[var(--brand-brown)] truncate">
+          {item.name}
+          {item.size && <span className="ml-1.5 text-[11px] font-normal text-[var(--ink-muted)]">{item.size}</span>}
+        </p>
         <p className="text-[11px] text-[var(--ink-muted)] truncate">{subParts.join(" · ")}</p>
         <p className="text-[11px] truncate">
           <span className={item.par > 0 ? "text-[var(--ink-muted)]" : GOLD_TEXT}>Par {item.par}</span>

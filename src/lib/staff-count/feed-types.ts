@@ -7,6 +7,7 @@ export type StaffPerson = { id: string; name: string; hasPin: boolean };
 export type CountItem = {
   id: string;              // InventoryItem id
   name: string;
+  size: string | null;     // bottle / container size, e.g. "750ml", "1L"
   type: TypeChip;
   areaId: string | null;   // StorageArea id (null = Unassigned)
   areaName: string | null;
