@@ -23,15 +23,23 @@ export function StaffLinksDrawer({
   const [busy, setBusy] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmRotate, setConfirmRotate] = useState<string | null>(null); // store id asking "are you sure?"
+  const [notice, setNotice] = useState<string | null>(null);
   const origin = typeof window === "undefined" ? "" : window.location.origin;
 
   async function run(id: string, fn: () => Promise<{ error?: string } | { success: boolean }>) {
     setBusy(id);
     setError(null);
-    const r = await fn();
-    setBusy(null);
-    if ("error" in r && r.error) setError(r.error);
-    else router.refresh();
+    setNotice(null);
+    try {
+      const r = await fn();
+      if ("error" in r && r.error) setError(r.error);
+      else router.refresh();
+    } catch {
+      setError("Couldn't reach the server. Refresh the page and try again.");
+    } finally {
+      setBusy(null);
+    }
   }
 
   return (
@@ -52,6 +60,7 @@ export function StaffLinksDrawer({
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {error && <p className="text-xs bg-red-50 border border-red-200 text-red-700 rounded-lg px-3 py-2">{error}</p>}
+          {notice && !error && <p className="text-xs bg-green-50 border border-green-200 text-green-800 rounded-lg px-3 py-2">{notice}</p>}
           {stores.length === 0 && <p className="text-sm text-[var(--ink-muted)]">You don&rsquo;t manage any store&rsquo;s link.</p>}
           {stores.map((s) => {
             const link = links[s.id];
@@ -90,18 +99,37 @@ export function StaffLinksDrawer({
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] text-[var(--ink-muted)]">Since {new Date(link.since).toLocaleDateString()}</span>
-                      <button
-                        disabled={busy === s.id}
-                        onClick={() => {
-                          if (confirm(`Make a new link for ${s.name}? The current link stops working right away and anyone signed in on it is signed out.`)) {
-                            run(s.id, () => rotateCountLink(s.id));
-                          }
-                        }}
-                        className="text-xs text-[var(--brand-brown)] underline disabled:opacity-50"
-                      >
-                        New link (rotate)
-                      </button>
+                      {confirmRotate !== s.id && (
+                        <button
+                          disabled={busy === s.id}
+                          onClick={() => { setConfirmRotate(s.id); setError(null); setNotice(null); }}
+                          className="px-3 py-1.5 rounded-full border border-[var(--line)] text-xs font-medium text-[var(--brand-brown)] disabled:opacity-50"
+                        >
+                          Make a new link
+                        </button>
+                      )}
                     </div>
+                    {confirmRotate === s.id && (
+                      <div className="rounded-lg border border-[#D4A017] bg-[#FFF8E1] p-2 text-xs text-[#8A6A00] space-y-2">
+                        <p>The current link stops working right away and anyone signed in on it is signed out. Staff will need the new link.</p>
+                        <div className="flex gap-2">
+                          <button
+                            disabled={busy === s.id}
+                            onClick={async () => {
+                              await run(s.id, () => rotateCountLink(s.id));
+                              setConfirmRotate(null);
+                              setNotice(`New link made for ${s.name.replace("Meyhouse ", "")}. Copy it and share it with staff.`);
+                            }}
+                            className="px-3 py-1.5 rounded-full bg-[var(--brand-olive)] text-white font-medium disabled:opacity-50"
+                          >
+                            {busy === s.id ? "Making…" : "Yes, make a new link"}
+                          </button>
+                          <button onClick={() => setConfirmRotate(null)} className="px-3 py-1.5 rounded-full border border-[var(--line)] bg-white">
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <button

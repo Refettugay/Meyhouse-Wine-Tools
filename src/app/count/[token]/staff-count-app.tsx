@@ -271,7 +271,9 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
 
 function Shell({ storeName, me, onSignOut, children }: { storeName: string; me?: string; onSignOut?: () => void; children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[var(--brand-cream)] pb-24">
+    // The app's <body> is h-full + overflow-hidden (admin screens scroll inside
+    // their own panels), so this page must be its own scroll container.
+    <div className="h-full overflow-y-auto overscroll-contain bg-[var(--brand-cream)] pb-24">
       <header className="sticky top-0 z-20 bg-[var(--brand-cream)] border-b border-[var(--line)] px-4 py-3 flex items-center justify-between">
         <div>
           <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-muted)]">Count</p>
