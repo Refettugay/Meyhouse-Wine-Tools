@@ -24,20 +24,22 @@ function storeDay(d: Date): string {
 
 async function rosterFor(store: CountLinkStore): Promise<StaffPerson[]> {
   if (!store.scheduleLocationId) return [];
-  const rows = await prisma.$queryRaw<{ id: string; full_name: string | null; has_pin: boolean; access_on: boolean }[]>`
-    select p.id::text as id, p.full_name, (pp.pin_hash is not null) as has_pin,
-           coalesce(pp.access_enabled, true) as access_on
-    from public.profile_locations pl
-    join public.profiles p on p.id = pl.user_id
+  // Only ACTIVE people with "Staff ordering (count page)" switched ON for this store
+  // (Team page -> public.staff_ordering_access). No row = off. Inactive = no longer works
+  // here, so always blocked. Tip Entry's access switch is about tips and plays no part.
+  const rows = await prisma.$queryRaw<{ id: string; full_name: string | null; has_pin: boolean }[]>`
+    select p.id::text as id, p.full_name, (pp.pin_hash is not null) as has_pin
+    from public.staff_ordering_access soa
+    join public.profile_locations pl on pl.user_id = soa.person_id and pl.location_id = soa.location_id
+    join public.profiles p on p.id = soa.person_id
     left join public.person_pins pp on pp.person_id = p.id
-    where pl.location_id = ${store.scheduleLocationId}::uuid
-      -- active staff, plus owners/managers even when inactive in Schedule
-      -- (Refet is kept inactive so he isn't scheduled, but he counts/tests)
-      and (p.active = true or p.role in ('owner', 'manager'))
+    where soa.location_id = ${store.scheduleLocationId}::uuid
+      and soa.enabled = true
+      and p.active = true
     order by p.full_name`;
   return rows
     .filter((r) => (r.full_name || "").trim())
-    .map((r) => ({ id: r.id, name: (r.full_name || "").trim(), hasPin: r.has_pin, accessOff: !r.access_on }));
+    .map((r) => ({ id: r.id, name: (r.full_name || "").trim(), hasPin: r.has_pin }));
 }
 
 async function signedIn(token: string): Promise<{ store: CountLinkStore; session: StaffSession } | null> {
@@ -45,9 +47,8 @@ async function signedIn(token: string): Promise<{ store: CountLinkStore; session
   if (!store) return null;
   const session = await getStaffSession(token, store.locationId);
   if (!session) return null;
-  // Still on this store's roster with Tip Entry access on? (removed or
-  // switched-off people lose access right away)
-  const ok = (await rosterFor(store)).some((p) => p.id === session.personId && !p.accessOff);
+  // Still allowed at this store? (switched off, unassigned or made inactive -> out right away)
+  const ok = (await rosterFor(store)).some((p) => p.id === session.personId);
   return ok ? { store, session } : null;
 }
 
@@ -61,7 +62,7 @@ export async function listStaff(token: string): Promise<{ ok: true; storeName: s
   if (!store) return BAD_LINK;
   const people = await rosterFor(store);
   const session = await getStaffSession(token, store.locationId);
-  const me = session && people.some((p) => p.id === session.personId && !p.accessOff) ? session.name : null;
+  const me = session && people.some((p) => p.id === session.personId) ? session.name : null;
   return { ok: true, storeName: store.name.replace("Meyhouse ", ""), people, me };
 }
 
@@ -70,14 +71,12 @@ export async function signIn(token: string, personId: string, pin: string): Prom
   const store = await resolveCountLink(token);
   if (!store) return BAD_LINK;
   const person = (await rosterFor(store)).find((p) => p.id === personId);
-  if (!person) return { ok: false, error: "That name isn't on this store's team." };
-  if (person.accessOff) return { ok: false, error: "Your access is switched off. Ask a manager." };
+  if (!person) return { ok: false, error: "You're not set up for ordering at this store. Ask a manager." };
   if (!person.hasPin) return { ok: false, error: "Create your PIN first.", needsPin: true };
 
   const r = await checkPin(personId, pin);
   if (!r.ok) {
     if (r.error === "wrong") return { ok: false, error: "Wrong PIN. Try again." };
-    if (r.error === "disabled") return { ok: false, error: "Your access is switched off. Ask a manager." };
     if (r.error === "not_set") return { ok: false, error: "Create your PIN first.", needsPin: true };
     return { ok: false, error: "Enter your 4-digit PIN." };
   }
@@ -97,8 +96,7 @@ export async function createPin(token: string, personId: string, pin: string): P
   const store = await resolveCountLink(token);
   if (!store) return BAD_LINK;
   const person = (await rosterFor(store)).find((p) => p.id === personId);
-  if (!person) return { ok: false, error: "That name isn't on this store's team." };
-  if (person.accessOff) return { ok: false, error: "Your access is switched off. Ask a manager." };
+  if (!person) return { ok: false, error: "You're not set up for ordering at this store. Ask a manager." };
   if (!isValidPinFormat(pin)) return { ok: false, error: "A PIN is 4 digits." };
 
   const w = await setInitialPin(personId, pin, person.name);

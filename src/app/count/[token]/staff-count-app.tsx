@@ -98,7 +98,7 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
   if (stage === "pick") {
     return (
       <Shell storeName={storeName}>
-        <PickName people={people} onPick={(p) => { if (p.accessOff) return; setWho(p); setError(null); setStage(p.hasPin ? "pin" : "createPin"); }} />
+        <PickName people={people} onPick={(p) => { setWho(p); setError(null); setStage(p.hasPin ? "pin" : "createPin"); }} />
       </Shell>
     );
   }
@@ -306,19 +306,16 @@ function PickName({ people, onPick }: { people: StaffPerson[]; onPick: (p: Staff
           <button
             key={p.id}
             onClick={() => onPick(p)}
-            disabled={p.accessOff}
-            className="text-left px-3 py-3 rounded-xl bg-white border border-[var(--line)] text-sm font-medium text-[var(--brand-brown)] active:bg-[var(--line)] disabled:opacity-50"
+            className="text-left px-3 py-3 rounded-xl bg-white border border-[var(--line)] text-sm font-medium text-[var(--brand-brown)] active:bg-[var(--line)]"
           >
             {p.name}
-            {p.accessOff ? (
-              <span className="block text-[10px] font-normal text-[var(--ink-muted)]">Access off — ask a manager</span>
-            ) : !p.hasPin && (
+            {!p.hasPin && (
               <span className="block text-[10px] font-normal text-[var(--ink-muted)]">First time — create a PIN</span>
             )}
           </button>
         ))}
       </div>
-      {people.length === 0 && <p className="text-sm text-[var(--ink-muted)]">No team members found for this store.</p>}
+      {people.length === 0 && <p className="text-sm text-[var(--ink-muted)]">No one is set up for ordering yet — ask your manager.</p>}
     </div>
   );
 }

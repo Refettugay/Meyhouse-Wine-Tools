@@ -76,20 +76,20 @@ async function verifyPinAsync(pin: string, stored: string): Promise<boolean> {
 
 export type PinCheck =
   | { ok: true }
-  | { ok: false; error: "not_set" | "bad_format" | "disabled" | "wrong" };
+  | { ok: false; error: "not_set" | "bad_format" | "wrong" };
 
 // Tap a name + type a PIN. The count page has NO lockout (Refet, 2026-09-28):
 // unlimited tries, nobody is ever locked out, and wrong tries here do NOT touch
 // person_pins' attempt counter — so they never count toward the My Tips lockout.
 // A wrong PIN just answers ~1s later, to slow down guessing.
-// Tip Entry's access switch applies here too: access off = can't count.
+// Who may count is decided by "Staff ordering (count page)" (see the roster in
+// app/count/[token]/actions.ts); Tip Entry's access switch is about tips only.
 export async function checkPin(personId: string, pin: unknown): Promise<PinCheck> {
   if (!isValidPinFormat(pin)) return { ok: false, error: "bad_format" };
-  const rows = await prisma.$queryRaw<{ pin_hash: string | null; access_enabled: boolean }[]>`
-    select pin_hash, access_enabled from public.person_pins where person_id = ${personId}::uuid`;
+  const rows = await prisma.$queryRaw<{ pin_hash: string | null }[]>`
+    select pin_hash from public.person_pins where person_id = ${personId}::uuid`;
   const r = rows[0];
   if (!r || !r.pin_hash) return { ok: false, error: "not_set" };
-  if (!r.access_enabled) return { ok: false, error: "disabled" };
   if (await verifyPinAsync(pin, r.pin_hash)) return { ok: true };
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return { ok: false, error: "wrong" };

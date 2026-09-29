@@ -2,7 +2,7 @@
 // only what staff need to count. Shared by server actions and the client.
 import type { TypeChip } from "./types";
 
-export type StaffPerson = { id: string; name: string; hasPin: boolean; accessOff: boolean };
+export type StaffPerson = { id: string; name: string; hasPin: boolean };
 
 export type CountItem = {
   id: string;              // InventoryItem id
