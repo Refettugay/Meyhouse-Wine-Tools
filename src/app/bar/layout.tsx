@@ -1,13 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Figtree } from "next/font/google";
-import "./bar.css";
+import { rbSerif, rbSans } from "@/components/recipe-book/fonts";
+import "@/components/recipe-book/recipe-book.css";
 
 // The staff Recipe Book is its own island (like Tip Entry and the count page):
 // no Sophra chrome, no links out, not indexable, and the link token never
 // leaks through a Referer header.
-const serif = Fraunces({ subsets: ["latin", "latin-ext"], variable: "--font-rb-serif", display: "swap", axes: ["opsz"] });
-const sans = Figtree({ subsets: ["latin", "latin-ext"], variable: "--font-rb-sans", display: "swap" });
-
 export const metadata: Metadata = {
   title: { absolute: "Meyhouse Bar Recipes" },
   robots: { index: false, follow: false },
@@ -25,5 +22,5 @@ export const viewport: Viewport = {
 };
 
 export default function BarLayout({ children }: { children: React.ReactNode }) {
-  return <div className={`rb ${serif.variable} ${sans.variable}`}>{children}</div>;
+  return <div className={`rb ${rbSerif.variable} ${rbSans.variable}`}>{children}</div>;
 }

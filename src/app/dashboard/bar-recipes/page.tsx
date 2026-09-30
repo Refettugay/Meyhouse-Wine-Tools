@@ -1,9 +1,13 @@
 import { prisma } from "@/lib/db";
 import { barRecipeAdmin } from "@/lib/actions/bar-recipes";
 import { RecipeLinkCard } from "@/components/bar-recipes/recipe-link-card";
+import { AdminBookEntry } from "@/components/bar-recipes/admin-book-entry";
+import { rbSerif, rbSans } from "@/components/recipe-book/fonts";
+import "@/components/recipe-book/recipe-book.css";
 
-// Admin home of the staff bar Recipe Book (owners + managers). Phase 2: the
-// one group link. Phase 3 adds the editor and the change history here.
+// Admin home of the staff bar Recipe Book (owners + managers): the one group
+// link, then the Recipe Book itself — same screens as the staff page (editor,
+// change history, revert), saves stamped with the signed-in account.
 export const dynamic = "force-dynamic";
 
 export default async function BarRecipesPage() {
@@ -26,7 +30,7 @@ export default async function BarRecipesPage() {
   ]);
   const total = counts.reduce((s, c) => s + c._count._all, 0);
   return (
-    <div className="p-4 lg:p-8 max-w-3xl space-y-6">
+    <div className="p-4 lg:p-8 max-w-6xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Bar recipe book</h1>
         <p className="text-[var(--ink-muted)] text-sm mt-1">
@@ -45,6 +49,11 @@ export default async function BarRecipesPage() {
         <p>
           Ticked now: {accessRows.length ? accessRows.map((r) => r.name).join(", ") : <span className="text-[var(--ink-muted)]">no positions</span>}
         </p>
+      </div>
+      <div className="rounded-xl overflow-clip border border-[var(--line)]">
+        <div className={`rb rb-embed ${rbSerif.variable} ${rbSans.variable}`}>
+          <AdminBookEntry />
+        </div>
       </div>
     </div>
   );

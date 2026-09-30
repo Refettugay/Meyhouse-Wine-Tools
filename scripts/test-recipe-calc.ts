@@ -7,7 +7,10 @@ import assert from "node:assert/strict";
 import {
   calcPortions, calcLiters, calcMultiplier, fmtOz, fmtDashMl, fmt, fmtFrac, fmtMl, parseAmount,
 } from "../src/lib/recipe-book/calc";
-import type { Recipe, ScaleMode, Unit } from "../src/lib/recipe-book/types";
+import type { Recipe, ScaleMode, Snapshot, Tri, Unit } from "../src/lib/recipe-book/types";
+import { buildInput, dataOf, draftFrom, warnings } from "../src/components/recipe-book/draft";
+import { summarize, validate } from "../src/lib/recipe-book/diff";
+import { makeT, pick } from "../src/components/recipe-book/i18n";
 
 type SeedIng = { name: string; qty: number | null; unit: string | null; in_batch?: boolean; batch_name?: string; text?: string };
 type SeedRecipe = {
@@ -118,6 +121,95 @@ check("Dilution water only when dilution_pct > 0", () => {
   const c = calcPortions(r, 16);
   assert.equal(fmtOz(c.dilutionOz), "12.75"); // 64 oz × 0.2 = 12.8 -> nearest 0.25
   assert.equal(fmtOz(c.totalOz), "76.75");
+});
+
+// ---------------------------------------------------------------------------
+// Editing (Phase 3): full seed recipes with translations, as the page gets them
+// ---------------------------------------------------------------------------
+type AnyObj = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+function triOf(en: string | undefined, i?: AnyObj): Tri | null {
+  if (!en) return null;
+  return { en, ...(i?.tr ? { tr: i.tr } : {}), ...(i?.es ? { es: i.es } : {}) };
+}
+const joinLines = (v: unknown) => (Array.isArray(v) ? v.join("\n") : (v as string | undefined));
+function full(r: AnyObj): Recipe {
+  const b = r.build || {}, i = r.i18n || {};
+  return {
+    id: r.id, name: r.name, category: r.category, stores: r.stores, mode: mode(r as SeedRecipe), batchable: !!r.batchable,
+    defaultPortions: r.default_portions ?? null, dilutionPct: r.dilution_pct ?? 0, pourOz: r.pour_from_batch_oz ?? null,
+    glass: triOf(b.Glass, i.glass), ice: triOf(b.Ice, i.ice), garnish: triOf(b.Garnish, i.garnish), howTo: triOf(b["How to"], i.how_to),
+    storage: r.storage ? (/freezer/i.test(r.storage) ? "freezer" : "fridge") : null,
+    notes: triOf(joinLines(r.notes), i.notes ? { tr: joinLines(i.notes.tr), es: joinLines(i.notes.es) } : undefined),
+    method: r.method ?? null, baseYieldL: r.base_yield_l ?? null, glassL: r.glass_l ?? null,
+    needsReview: !!r.needs_review, needsSpec: !!r.needs_spec, active: true, photoPath: null,
+    photoUrl: null, thumbUrl: null, updatedAt: "2026-09-29T00:00:00.000Z", last: null,
+    ingredients: r.ingredients.map((g: AnyObj) => ({
+      name: triOf(g.name, g.name_i18n) ?? { en: "" }, batchName: g.batch_name ?? null, qty: g.qty ?? null,
+      unit: g.unit === "gr" ? "g" : g.unit ?? null, text: triOf(g.text, g.text_i18n), inBatch: g.in_batch ?? true, note: triOf(g.note, g.note_i18n),
+    })),
+  };
+}
+const snapOf = (r: Recipe): Snapshot => {
+  const { photoUrl, thumbUrl, updatedAt, last, ...snap } = r; // eslint-disable-line @typescript-eslint/no-unused-vars
+  return snap;
+};
+// What the server stores after validating what the page sent.
+function serverAfter(before: Snapshot, input: ReturnType<typeof buildInput>): Snapshot {
+  const v = validate(input.data);
+  if (!v.ok) throw new Error(v.message);
+  return { id: before.id, ...v.data, active: before.active, photoPath: before.photoPath };
+}
+
+check("Opening and saving any of the 94 recipes untouched changes nothing (EN, TR, ES)", () => {
+  const bad: string[] = [];
+  for (const raw of seed as AnyObj[]) {
+    const r = full(raw);
+    for (const lang of ["en", "tr", "es"] as const) {
+      const input = buildInput(draftFrom(r), lang);
+      const s = summarize(snapOf(r), serverAfter(snapOf(r), input));
+      if (s) bad.push(`${r.id} (${lang}): ${s}`);
+      if (JSON.stringify(dataOf(r)) !== JSON.stringify(input.data)) bad.push(`${r.id} (${lang}): page thinks it changed`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});
+
+check('Bodrum Fashion sage 0.5 -> 0.75 is logged as "Sage Tea Syrup 0.5 oz → 0.75 oz"', () => {
+  const r = full(seed.find((x) => x.id === "bodrum-fashion") as AnyObj);
+  const d = draftFrom(r);
+  d.ingredients = d.ingredients.map((g) => (g.name.en === "Sage Tea Syrup" ? { ...g, amt: "0.75" } : g));
+  const input = buildInput(d, "en");
+  assert.equal(summarize(snapOf(r), serverAfter(snapOf(r), input)), "Sage Tea Syrup 0.5 oz → 0.75 oz");
+  assert.deepEqual(warnings(r, input.data, makeT("en"), "en", pick), []); // 1.5x is not a typo
+});
+
+check("Garnish edited in Spanish is logged with (ES)", () => {
+  const r = full(seed.find((x) => x.id === "cappadocia-fire") as AnyObj);
+  const d = draftFrom(r);
+  d.garnish = { ...d.garnish, es: "Chile asado" };
+  assert.equal(summarize(snapOf(r), serverAfter(snapOf(r), buildInput(d, "es"))), "Garnish (ES): Chile serrano asado → Chile asado");
+});
+
+check("Typo guardrails: 0.5 -> 5 oz warns and suggests 0.5; zero warns; nothing in batch warns", () => {
+  const r = full(seed.find((x) => x.id === "bodrum-fashion") as AnyObj);
+  const t = makeT("en");
+  const d = draftFrom(r);
+  d.ingredients = d.ingredients.map((g) => (g.name.en === "Sage Tea Syrup" ? { ...g, amt: "5" } : g));
+  const w1 = warnings(r, buildInput(d, "en").data, t, "en", pick);
+  assert.equal(w1.length, 1);
+  assert.match(w1[0], /went from 0\.5 to 5 oz.*Did you mean 0\.5 oz\?/);
+  d.ingredients = d.ingredients.map((g) => ({ ...g, amt: g.amt === "5" ? "0" : g.amt, inBatch: false }));
+  const w2 = warnings(r, buildInput(d, "en").data, t, "en", pick);
+  assert.ok(w2.some((x) => x.includes("must be above zero")));
+  assert.ok(w2.some((x) => x.includes("Goes in the batch")));
+});
+
+check("Photo, archive and new-recipe summaries", () => {
+  const r = snapOf(full(seed[0] as AnyObj));
+  assert.equal(summarize(r, { ...r, photoPath: "x/1.jpg" }), "Photo added");
+  assert.equal(summarize({ ...r, photoPath: "x/1.jpg" }, { ...r, photoPath: "x/2.jpg" }), "Photo changed");
+  assert.equal(summarize(r, { ...r, active: false }), "Archived");
+  assert.equal(summarize(null, r), "Created Pins & Needles");
 });
 
 console.log(`\n${passed} checks passed.`);

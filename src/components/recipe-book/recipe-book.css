@@ -1,4 +1,4 @@
-/* Staff Recipe Book (/bar/<token>) — ported from the approved mock
+/* Recipe Book (staff page /bar/<token> + admin copy) — ported from the approved mock
    (docs/recipe-book/bar-recipes-mock.html). Everything is scoped under .rb so
    none of it leaks into the rest of Beverage. Bottle green + brass. */
 
@@ -144,6 +144,80 @@
   .rb .spec div:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .rb .stepper input { width: 80px; }
   .rb .hero .photo { width: 88px; height: 88px; }
+}
+
+/* Admin copy inside the Beverage dashboard: the dashboard <main> scrolls, not .rb */
+.rb.rb-embed { flex: none; min-height: 100%; overflow: visible; }
+
+/* manager tabs */
+.rb .tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; }
+.rb .tab { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 14px; white-space: nowrap; min-height: 40px; }
+.rb .tab[aria-pressed="true"] { background: var(--bottle); border-color: var(--bottle); color: var(--bottle-ink); }
+.rb .listbar { display: flex; justify-content: flex-end; margin: 10px 0 0; }
+
+/* photo */
+.rb button.photo { cursor: zoom-in; }
+.rb .big-photo { width: 100%; border-radius: 16px; display: block; }
+.rb .photo-edit { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.rb .photo-edit img, .rb .photo-edit .ph { width: 88px; height: 88px; border-radius: 14px; object-fit: cover; border: 1.5px dashed var(--line); }
+.rb .filebtn { position: relative; overflow: hidden; display: inline-flex; align-items: center; }
+.rb .filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+/* edit */
+.rb .editwrap { max-width: 760px; }
+.rb .demo { background: var(--brass-soft); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 14px; margin-bottom: 14px; }
+.rb .field { margin-bottom: 12px; }
+.rb .field > label, .rb .field > .lbl { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+.rb select, .rb textarea { font: inherit; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; width: 100%; }
+.rb textarea { min-height: 84px; resize: vertical; }
+.rb .grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.rb .checks { display: flex; flex-wrap: wrap; gap: 14px; }
+.rb .check { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; min-height: 40px; }
+.rb .check input { width: 22px; height: 22px; }
+.rb .ing { display: grid; grid-template-columns: minmax(0, 1fr) 82px 84px; gap: 6px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.rb .ing .row2 { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.rb .ing .row2 .check { font-size: 13px; min-height: 36px; }
+.rb .ing .row2 .spacer { flex: 1; }
+.rb .ing .row2 input.bname { flex: 1 1 180px; width: auto; padding: 7px 10px; font-size: 14px; }
+.rb .iconbtn { border: 1.5px solid var(--line); background: var(--surface); border-radius: 10px; min-width: 40px; height: 40px; font-size: 18px; line-height: 1; }
+.rb .iconbtn.danger { color: var(--warn); }
+.rb .iconbtn:disabled { opacity: .35; }
+.rb .sticky { position: sticky; bottom: 0; background: var(--bg); padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; border-top: 1px solid var(--line); margin-top: 16px; z-index: 2; }
+.rb .sticky .left { margin-right: auto; }
+.rb .btn.warn { background: var(--warn); color: #fff; }
+.rb .btn:disabled { opacity: .55; }
+.rb .formerr { color: var(--warn); font-weight: 600; margin-top: 8px; }
+
+/* modals */
+.rb .warnbox { background: var(--warn-soft); color: var(--warn); border-radius: var(--radius-sm); padding: 12px 12px 12px 30px; margin: 12px 0; list-style: disc; }
+.rb .warnbox li { margin: 4px 0; }
+.rb .sheet .pin { margin-top: 0; }
+.rb .sheet-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 12px; }
+
+/* history */
+.rb .filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0 14px; }
+.rb .filters label { font-size: 12px; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; gap: 3px; }
+.rb .filters select, .rb .filters input { padding: 8px 10px; font-size: 14px; }
+.rb .hrow { display: block; width: 100%; text-align: left; background: var(--surface); border: 0; border-bottom: 1px solid var(--line); padding: 12px 14px; }
+.rb .hlist .hrow:first-child { border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+.rb .hlist .hrow:last-child { border-radius: 0 0 var(--radius-sm) var(--radius-sm); border-bottom: 0; }
+.rb .hrow .s { font-size: 14px; color: var(--muted); display: block; }
+.rb .diff { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin: 14px 0; }
+.rb .diff > div { background: var(--surface); border-radius: var(--radius-sm); padding: 12px; font-size: 14px; overflow-x: auto; }
+.rb .diff h3 { font-family: var(--sans); font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.rb .diff .ln { padding: 2px 0; overflow-wrap: anywhere; }
+.rb .diff .chg { background: var(--brass-soft); color: var(--brass); font-weight: 700; border-radius: 4px; padding: 0 3px; }
+.rb .diff img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; display: block; margin-bottom: 6px; }
+
+/* access */
+.rb .switch { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--surface); padding: 14px; border-bottom: 1px solid var(--line); }
+
+.rb .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-weight: 600; z-index: 20; max-width: calc(100vw - 32px); text-align: center; }
+
+@media (min-width: 640px) { .rb .filters { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 420px) {
+  .rb .ing { grid-template-columns: minmax(0, 1fr) 72px 76px; }
+  .rb .diff { grid-template-columns: 1fr; }
 }
 
 /* tablets: two-column list, recipe splits into spec | calculator */

@@ -8,6 +8,10 @@ import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/session";
 import { newCountToken } from "@/lib/staff-count/link";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { loadActiveRecipes } from "@/lib/recipe-book/load";
+import { saveRecipeSafe, setActive, revertTo, listHistory, getEntry, accessOverview, type Editor } from "@/lib/recipe-book/edit";
+import type { AccessOverview, EntryResult, FeedResult, HistoryFilters, HistoryResult, SaveInput, SaveResult } from "@/lib/recipe-book/types";
 
 export async function barRecipeAdmin(): Promise<{ ok: true; userId: string; userName: string; organizationId: string } | { ok: false; error: string }> {
   const session = await requireAuth();
@@ -50,4 +54,80 @@ export async function setRecipeLinkEnabled(enabled: boolean): Promise<{ error: s
   });
   revalidatePath("/dashboard/bar-recipes");
   return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Admin copy of the Recipe Book (same screens as the staff page). Owners and
+// managers only; saves are stamped with their account (no PIN).
+// ---------------------------------------------------------------------------
+async function adminEditor(): Promise<{ editor: Editor; role: "owner" | "manager" } | null> {
+  const a = await barRecipeAdmin();
+  if (!a.ok) return null;
+  const rows = await prisma.$queryRaw<{ role: string }[]>`select role from public.profiles where id = ${a.userId}::uuid`;
+  return { editor: { personId: a.userId, name: a.userName }, role: rows[0]?.role === "owner" ? "owner" : "manager" };
+}
+
+async function adminDevice(): Promise<string | null> {
+  try {
+    const ua = (await headers()).get("user-agent");
+    return ua ? `admin · ${ua.slice(0, 190)}` : "admin";
+  } catch {
+    return "admin";
+  }
+}
+
+export async function loadFeedAdmin(): Promise<FeedResult> {
+  try {
+    const a = await adminEditor();
+    if (!a) return { ok: false, error: "signed_out" };
+    return { ok: true, feed: { me: { name: a.editor.name, role: a.role }, recipes: await loadActiveRecipes() } };
+  } catch {
+    return { ok: false, error: "server" };
+  }
+}
+
+export async function saveRecipeAdmin(input: SaveInput): Promise<SaveResult> {
+  const a = await adminEditor();
+  if (!a) return { ok: false, error: "forbidden" };
+  return saveRecipeSafe(a.editor, "admin", input, await adminDevice());
+}
+
+export async function setActiveAdmin(id: string, active: boolean): Promise<SaveResult> {
+  const a = await adminEditor();
+  if (!a) return { ok: false, error: "forbidden" };
+  return setActive(a.editor, "admin", id, active, await adminDevice());
+}
+
+export async function revertAdmin(logId: string): Promise<SaveResult> {
+  const a = await adminEditor();
+  if (!a) return { ok: false, error: "forbidden" };
+  return revertTo(a.editor, "admin", logId, await adminDevice());
+}
+
+export async function loadHistoryAdmin(filters: HistoryFilters): Promise<HistoryResult> {
+  try {
+    if (!(await adminEditor())) return { ok: false, error: "forbidden" };
+    return { ok: true, ...(await listHistory(filters ?? {})) };
+  } catch {
+    return { ok: false, error: "server" };
+  }
+}
+
+export async function loadHistoryEntryAdmin(id: string): Promise<EntryResult> {
+  try {
+    if (!(await adminEditor())) return { ok: false, error: "forbidden" };
+    const entry = await getEntry(id);
+    return entry ? { ok: true, entry } : { ok: false, error: "not_found" };
+  } catch {
+    return { ok: false, error: "server" };
+  }
+}
+
+export async function loadAccessOverviewAdmin(): Promise<AccessOverview> {
+  try {
+    if (!(await adminEditor())) return { ok: false, error: "forbidden" };
+    return { ok: true, positions: await accessOverview() };
+  } catch {
+    return { ok: false, error: "server" };
+  }
 }
