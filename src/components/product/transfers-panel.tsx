@@ -132,7 +132,7 @@ export function TransfersPanel({ rows, locations }: { rows: TransferRow[]; locat
     const lines = shown.map((r) => {
       const t = totalCents(r);
       return [
-        dayKey(r.movedAt), r.name, r.bottleSizeMl, r.vendor, r.qty, r.unit, r.casePackSize,
+        dayKey(r.movedAt), r.name, r.bottleSizeMl, r.vendor, r.qty, r.unit, r.casePackSize === -1 ? "By btl" : r.casePackSize,
         r.unitCostCents !== null ? (r.unitCostCents / 100).toFixed(2) : null, t !== null ? (t / 100).toFixed(2) : null,
         storeName(r.fromId), storeName(r.toId), r.movedByName, statusLabel(r), r.transferredByName, r.transferredAt ? whenShort(r.transferredAt) : null,
       ].map(cell).join(",");
@@ -247,8 +247,8 @@ export function TransfersPanel({ rows, locations }: { rows: TransferRow[]; locat
                       <td className="px-2 py-2 text-right whitespace-nowrap font-semibold">{r.qty} {r.unit === "case" ? "cs" : "btl"}</td>
                       <td className="px-2 py-2 text-right">
                         <EditCell
-                          value={r.casePackSize === null ? "" : String(r.casePackSize)}
-                          placeholder="—"
+                          value={r.casePackSize === null || r.casePackSize === -1 ? "" : String(r.casePackSize)}
+                          placeholder={r.casePackSize === -1 ? "By btl" : "—"}
                           disabled={busy}
                           onCommit={(v) => proposeEdit(r, "casePackSize", v)}
                         />
