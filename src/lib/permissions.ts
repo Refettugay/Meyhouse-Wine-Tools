@@ -209,6 +209,17 @@ export function canSeeTransfers(
 }
 
 /**
+ * True when this user sees the monthly budget card in the Product Hub header.
+ * Owners, admins, managers and supervisors (same roles as the Transfers tab).
+ */
+export function canSeeBudget(
+  session: SessionLike | null | undefined,
+): boolean {
+  if (!session) return false;
+  return !!session.role && TRANSFERS_ROLES.has(session.role);
+}
+
+/**
  * Has the new app-permission system been hydrated for this session?
  * (session.ts only populates permissions{} when profile_app_access has
  * rows for the user. Empty {} means "no new-system data — use legacy".)

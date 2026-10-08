@@ -1,4 +1,4 @@
-// Monthly beverage budget (owners/admins) — sits in the Product Hub header.
+// Monthly beverage budget (owners/admins/managers) — sits in the Product Hub header.
 // Spent = invoices logged against the month; pending = expected but not yet
 // invoiced (striped part of the bar).
 

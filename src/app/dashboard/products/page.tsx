@@ -4,7 +4,7 @@ import { getCategoriesConfig } from "@/lib/actions/settings";
 import { computeTheoreticalUsage } from "@/lib/inventory/theoretical-usage";
 import { UnifiedProductsPage } from "@/components/product/unified-products-page";
 import { getOrderingScope } from "@/lib/ordering-scope";
-import { canApproveOrders, canSeeTransfers } from "@/lib/permissions";
+import { canApproveOrders, canSeeBudget, canSeeTransfers } from "@/lib/permissions";
 import type { ReviewOrder, TransferRow } from "@/lib/order-review-types";
 import type { BudgetSummary } from "@/components/product/budget-widget";
 
@@ -428,10 +428,10 @@ export default async function ProductsPage() {
     }
   }
 
-  // Monthly budget widget (owners/admins): invoices counted against the
-  // current store-time month. No budget row for the month = widget hidden.
+  // Monthly budget widget (owners/admins/managers): invoices counted against
+  // the current store-time month. No budget row for the month = widget hidden.
   let budget: BudgetSummary | null = null;
-  if (canApproveOrders(session)) {
+  if (canSeeBudget(session)) {
     const month = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" }).slice(0, 7);
     const budgetMonth = await prisma.budgetMonth.findUnique({
       where: { organizationId_month: { organizationId: orgId, month } },

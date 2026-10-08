@@ -426,7 +426,7 @@ export function UnifiedProductsPage({
   role: string;
   // Transfers tab rows — null = not an owner/admin/manager (tab hidden)
   transfers: TransferRow[] | null;
-  // Monthly budget header widget — null/absent = hidden (not an owner/admin, or no budget set)
+  // Monthly budget header widget — null/absent = hidden (not an owner/admin/manager, or no budget set)
   budget?: BudgetSummary | null;
   inProgressOrders: {
     id: string;
