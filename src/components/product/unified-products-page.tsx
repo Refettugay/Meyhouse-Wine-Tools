@@ -18,6 +18,7 @@ import { ReviewPanel, EmailsPanel } from "@/components/product/order-review-pane
 import { orderingPulse } from "@/lib/actions/order-review";
 import type { ReviewOrder, TransferRow } from "@/lib/order-review-types";
 import { TransfersPanel } from "@/components/product/transfers-panel";
+import { BudgetWidget, type BudgetSummary } from "@/components/product/budget-widget";
 import {
   Search,
   Plus,
@@ -402,6 +403,7 @@ export function UnifiedProductsPage({
   transfers,
   inProgressOrders,
   theoreticalUsage,
+  budget,
 }: {
   products: Product[];
   locations: Location[];
@@ -424,6 +426,8 @@ export function UnifiedProductsPage({
   role: string;
   // Transfers tab rows — null = not an owner/admin/manager (tab hidden)
   transfers: TransferRow[] | null;
+  // Monthly budget header widget — null/absent = hidden (not an owner/admin, or no budget set)
+  budget?: BudgetSummary | null;
   inProgressOrders: {
     id: string;
     locationId: string;
@@ -2112,6 +2116,8 @@ export function UnifiedProductsPage({
             {locations.length > 0 && ` across ${locations.length} locations`}
           </p>
         </div>
+
+        {budget && <BudgetWidget budget={budget} />}
 
         {/* Marker toolbar — only in products mode */}
         {mode === "products" && (() => {

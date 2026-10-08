@@ -6,6 +6,7 @@ import { UnifiedProductsPage } from "@/components/product/unified-products-page"
 import { getOrderingScope } from "@/lib/ordering-scope";
 import { canApproveOrders, canSeeTransfers } from "@/lib/permissions";
 import type { ReviewOrder, TransferRow } from "@/lib/order-review-types";
+import type { BudgetSummary } from "@/components/product/budget-widget";
 
 export default async function ProductsPage() {
   const session = await requireAuth();
@@ -427,6 +428,37 @@ export default async function ProductsPage() {
     }
   }
 
+  // Monthly budget widget (owners/admins): invoices counted against the
+  // current store-time month. No budget row for the month = widget hidden.
+  let budget: BudgetSummary | null = null;
+  if (canApproveOrders(session)) {
+    const month = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" }).slice(0, 7);
+    const budgetMonth = await prisma.budgetMonth.findUnique({
+      where: { organizationId_month: { organizationId: orgId, month } },
+      select: { budgetCents: true, pendingCents: true },
+    });
+    if (budgetMonth) {
+      const invoices = await prisma.budgetInvoice.findMany({
+        where: { organizationId: orgId, month, counted: true },
+        select: { locationId: true, amountCents: true },
+      });
+      const centsByStore = new Map<string, number>();
+      for (const i of invoices) centsByStore.set(i.locationId, (centsByStore.get(i.locationId) ?? 0) + i.amountCents);
+      const [y, m] = month.split("-").map(Number);
+      budget = {
+        monthLabel: new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+        budgetCents: budgetMonth.budgetCents,
+        spentCents: invoices.reduce((sum, i) => sum + i.amountCents, 0),
+        pendingCents: budgetMonth.pendingCents,
+        // San Ramon only shows once it has invoices; the other stores always do.
+        byStore: locations
+          .filter((l) => centsByStore.has(l.id) || !l.name.includes("San Ramon"))
+          .map((l) => ({ name: l.name.replace("Meyhouse ", ""), cents: centsByStore.get(l.id) ?? 0 })),
+        invoiceCount: invoices.length,
+      };
+    }
+  }
+
   return (
     <UnifiedProductsPage
       products={serialized}
@@ -447,6 +479,7 @@ export default async function ProductsPage() {
       transfers={showTransfers ? transfers : null}
       inProgressOrders={inProgressOrders}
       theoreticalUsage={theoreticalUsage}
+      budget={budget}
     />
   );
 }

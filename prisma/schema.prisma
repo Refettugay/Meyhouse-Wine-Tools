@@ -882,3 +882,37 @@ model BarRecipeLink {
   @@map("bar_recipe_link")
   @@schema("beverage")
 }
+
+// Monthly beverage budget (Product Hub header widget). One row per month.
+model BudgetMonth {
+  id             String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  organizationId String   @map("organization_id")
+  month          String // 'YYYY-MM'
+  budgetCents    Int      @map("budget_cents")
+  pendingCents   Int      @default(0) @map("pending_cents")
+  pendingNote    String?  @map("pending_note")
+  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
+
+  @@unique([organizationId, month])
+  @@map("budget_month")
+  @@schema("beverage")
+}
+
+// Invoices logged against a month's budget. counted = false: logged only.
+model BudgetInvoice {
+  id             String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  organizationId String   @map("organization_id")
+  month          String // 'YYYY-MM'
+  locationId     String   @map("location_id")
+  vendor         String
+  invoiceNumber  String   @map("invoice_number")
+  invoiceDate    DateTime @map("invoice_date") @db.Date
+  amountCents    Int      @map("amount_cents")
+  counted        Boolean  @default(true)
+  note           String?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@index([organizationId, month], map: "budget_invoice_org_month")
+  @@map("budget_invoice")
+  @@schema("beverage")
+}
