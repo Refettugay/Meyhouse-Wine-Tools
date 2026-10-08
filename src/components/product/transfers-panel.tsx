@@ -1,6 +1,6 @@
 "use client";
 
-// Transfers tab (owners/admins). Every line moved between stores with
+// Transfers tab (owners/admins/managers). Every line moved between stores with
 // "Move to <store>" on Review & approve. List only — no inventory changes.
 // Editing case size / unit cost also changes the product in Product Hub,
 // after a warning; past rows keep the values they had.

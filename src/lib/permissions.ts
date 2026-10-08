@@ -193,6 +193,21 @@ export function canApproveOrders(
   return !!session.role && APPROVE_ORDER_ROLES.has(session.role);
 }
 
+// The Transfers tab is open to managers too (supervisors read as MANAGER —
+// see mapScheduleRoleToBeverageRole in session.ts).
+const TRANSFERS_ROLES = new Set(["OWNER", "ADMIN", "MANAGER"]);
+
+/**
+ * True when this user can see the Transfers tab in Product Hub and change
+ * transfers there (mark transferred, edit case size / unit cost).
+ */
+export function canSeeTransfers(
+  session: SessionLike | null | undefined,
+): boolean {
+  if (!session) return false;
+  return !!session.role && TRANSFERS_ROLES.has(session.role);
+}
+
 /**
  * Has the new app-permission system been hydrated for this session?
  * (session.ts only populates permissions{} when profile_app_access has

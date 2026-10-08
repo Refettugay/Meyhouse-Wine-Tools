@@ -1,6 +1,6 @@
 "use server";
 
-// Transfers tab (Staff Ordering phase 5, owners/admins only). A transfer is an
+// Transfers tab (Staff Ordering phase 5, owners/admins/managers). A transfer is an
 // order line moved with "Move to <store>" on Review & approve:
 //   transferToLocationId   = the store that orders it and sends it on (goods FROM)
 //   transferFromLocationId = the store that needs it (goods TO)
@@ -10,12 +10,12 @@
 
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/session";
-import { canApproveOrders } from "@/lib/permissions";
+import { canSeeTransfers } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 
 async function transferLine(itemId: string) {
   const session = await requireAuth();
-  if (!canApproveOrders(session)) return { error: "Only owners and admins can change transfers." as const };
+  if (!canSeeTransfers(session)) return { error: "Only owners, admins and managers can change transfers." as const };
   const item = await prisma.orderListItem.findFirst({
     where: { id: itemId, transferFromLocationId: { not: null }, orderList: { organizationId: session.organizationId } },
     select: {

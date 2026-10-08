@@ -4,7 +4,7 @@ import { getCategoriesConfig } from "@/lib/actions/settings";
 import { computeTheoreticalUsage } from "@/lib/inventory/theoretical-usage";
 import { UnifiedProductsPage } from "@/components/product/unified-products-page";
 import { getOrderingScope } from "@/lib/ordering-scope";
-import { canApproveOrders } from "@/lib/permissions";
+import { canApproveOrders, canSeeTransfers } from "@/lib/permissions";
 import type { ReviewOrder, TransferRow } from "@/lib/order-review-types";
 
 export default async function ProductsPage() {
@@ -166,9 +166,9 @@ export default async function ProductsPage() {
     };
   });
 
-  // Transfers tab (owners/admins): every moved order line from the last year.
-  const canSeeTransfers = canApproveOrders(session);
-  const transferRaw = canSeeTransfers
+  // Transfers tab (owners/admins/managers): every moved order line from the last year.
+  const showTransfers = canSeeTransfers(session);
+  const transferRaw = showTransfers
     ? await prisma.orderListItem.findMany({
         where: {
           transferFromLocationId: { not: null },
@@ -444,7 +444,7 @@ export default async function ProductsPage() {
       reviewManageStoreIds={reviewManageStoreIds}
       linkStoreIds={linkStoreIds}
       role={session.role}
-      transfers={canSeeTransfers ? transfers : null}
+      transfers={showTransfers ? transfers : null}
       inProgressOrders={inProgressOrders}
       theoreticalUsage={theoreticalUsage}
     />

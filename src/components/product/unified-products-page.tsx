@@ -422,7 +422,7 @@ export function UnifiedProductsPage({
   reviewOrders: ReviewOrder[];
   reviewManageStoreIds: string[];
   role: string;
-  // Transfers tab rows — null = not an owner/admin (tab hidden)
+  // Transfers tab rows — null = not an owner/admin/manager (tab hidden)
   transfers: TransferRow[] | null;
   inProgressOrders: {
     id: string;
