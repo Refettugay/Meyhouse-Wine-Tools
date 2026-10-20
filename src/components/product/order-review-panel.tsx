@@ -11,7 +11,7 @@ import type { ReviewEmail, ReviewLine, ReviewOrder } from "@/lib/order-review-ty
 import {
   reviewSetQty, reviewSetUnit, reviewRemoveLine, reviewMoveLine, reviewUndoMove, reviewAddItem,
   resolveStaffRequest, approveStoreOrders, markOrderEmailSent,
-  reviewClearAll, reviewHoldOrder, reviewReleaseHeld, reviewUndoApprove,
+  reviewClearAll, reviewHoldOrder, reviewReleaseHeld, reviewUndoApprove, reviewClearFromReady,
 } from "@/lib/actions/order-review";
 
 type Loc = { id: string; name: string };
@@ -600,6 +600,22 @@ function ApprovedHeader({
               className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-[var(--line)] bg-white text-xs font-medium"
             >
               <Undo2 className="w-3 h-3" /> Undo approve
+            </button>
+          )}
+          {canManage && (
+            <button
+              disabled={pending}
+              onClick={() => {
+                const unsent = order.emails.filter((e) => e.status !== "SENT").length;
+                const msg = unsent > 0
+                  ? `Clear ${storeName}'s order from Ready to email?\n\n${unsent} email${unsent === 1 ? " is" : "s are"} not marked sent. Only do this if they were already sent (or aren't needed).`
+                  : `Clear ${storeName}'s order from Ready to email?`;
+                if (!confirm(msg)) return;
+                run(() => reviewClearFromReady(order.id));
+              }}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-[var(--line)] bg-white text-xs font-medium"
+            >
+              <X className="w-3 h-3" /> Clear from list
             </button>
           )}
         </div>

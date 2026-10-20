@@ -437,6 +437,31 @@ export async function reviewUndoApprove(orderId: string) {
   return { success: true };
 }
 
+// "Clear from list": the order leaves Ready to email for good. Used when the
+// emails were sent outside the app (or are no longer needed) and nobody
+// marked them sent. An APPROVED order becomes ORDERED; unsent emails stay as
+// drafts for history. The page hides any order with a "clear_ready" log.
+export async function reviewClearFromReady(orderId: string) {
+  const r = await orderForEdit(orderId, ["APPROVED", "ORDERED"]);
+  if ("error" in r) return { error: r.error };
+  const { session, order } = r;
+  const unsent = await prisma.orderEmail.count({ where: { orderListId: order.id, status: { not: "SENT" } } });
+  await prisma.$transaction([
+    ...(order.status === "APPROVED"
+      ? [prisma.orderList.update({ where: { id: order.id }, data: { status: "ORDERED" } })]
+      : []),
+    prisma.orderActivityLog.create({
+      data: logData(session, {
+        locationId: order.locationId, orderListId: order.id, entity: "ORDER", action: "clear_ready",
+        field: "status", oldValue: order.status, newValue: "ORDERED",
+        note: unsent > 0 ? `Cleared from Ready to email · ${unsent} email${unsent === 1 ? "" : "s"} not marked sent` : "Cleared from Ready to email",
+      }),
+    }),
+  ]);
+  revalidate();
+  return { success: true };
+}
+
 // ---------------------------------------------------------------------------
 // Approve → emails to copy (never sent automatically)
 // ---------------------------------------------------------------------------

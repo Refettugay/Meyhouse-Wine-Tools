@@ -118,7 +118,14 @@ export default async function ProductsPage() {
         select: { orderListId: true, actorName: true, at: true },
       })
     : [];
-  const reviewOrders: ReviewOrder[] = reviewRaw.map((o) => {
+  // Orders someone cleared from Ready to email ("Clear from list") stay hidden.
+  const clearedReady = new Set(
+    (await prisma.orderActivityLog.findMany({
+      where: { orderListId: { in: reviewRaw.filter((o) => o.status === "ORDERED").map((o) => o.id) }, action: "clear_ready" },
+      select: { orderListId: true },
+    })).map((l) => l.orderListId),
+  );
+  const reviewOrders: ReviewOrder[] = reviewRaw.filter((o) => !clearedReady.has(o.id)).map((o) => {
     const others = new Map<string, Date>();
     for (const e of o.countEntries) {
       if (!e.countedByName || (o.submittedById && e.countedById === o.submittedById)) continue;
