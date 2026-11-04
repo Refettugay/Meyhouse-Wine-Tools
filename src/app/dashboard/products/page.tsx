@@ -184,7 +184,9 @@ export default async function ProductsPage() {
         where: {
           transferFromLocationId: { not: null },
           status: { not: "REJECTED" },
-          orderList: { organizationId: orgId },
+          // New flow starts clean: only transfers from orders approved in the
+          // shared cart (older rows were test data — kept, just hidden).
+          orderList: ORDER_CART_FLOW ? { organizationId: orgId, approvedOrderId: { not: null } } : { organizationId: orgId },
           OR: [{ movedAt: null }, { movedAt: { gte: new Date(Date.now() - 365 * 86400000) } }],
         },
         orderBy: { movedAt: "desc" },
@@ -217,7 +219,25 @@ export default async function ProductsPage() {
   }));
 
   const storeStatus: Record<string, { sentBy: string | null; sentAt: string | null; itemCount: number }> = {};
-  for (const o of waitingOrders) {
+  // New flow: "waiting" = what's in each store's shared cart (newest kiosk
+  // send, else newest add). Old Review & approve orders are ignored.
+  if (ORDER_CART_FLOW) {
+    const cartRows = await prisma.orderCartLine.findMany({
+      where: { organizationId: orgId },
+      select: { locationId: true, sources: { orderBy: { at: "desc" }, select: { kind: true, actorName: true, at: true } } },
+    });
+    for (const r of cartRows) {
+      const cur = storeStatus[r.locationId] ?? { sentBy: null, sentAt: null, itemCount: 0 };
+      cur.itemCount++;
+      const src = r.sources.find((x) => x.kind === "kiosk") ?? r.sources[0];
+      if (src && (!cur.sentAt || src.at.toISOString() > cur.sentAt)) {
+        cur.sentAt = src.at.toISOString();
+        cur.sentBy = src.kind === "kiosk" ? `Kiosk · ${src.actorName || "Staff"}` : src.actorName;
+      }
+      storeStatus[r.locationId] = cur;
+    }
+  }
+  if (!ORDER_CART_FLOW) for (const o of waitingOrders) {
     if (storeStatus[o.locationId]) continue; // newest per store wins
     storeStatus[o.locationId] = {
       sentBy: o.submittedByName || o.createdByName,
