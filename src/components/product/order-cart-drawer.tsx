@@ -34,6 +34,7 @@ export function OrderCartDrawer({
   meId,
   onClearCart,
   approveSlot,
+  approveMsg,
 }: {
   open: boolean;
   onClose: () => void;
@@ -48,6 +49,7 @@ export function OrderCartDrawer({
   meId: string;
   onClearCart: () => void;
   approveSlot?: React.ReactNode;
+  approveMsg?: string | null;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -238,7 +240,10 @@ export function OrderCartDrawer({
               <span className="text-[var(--ink-muted)]">Total: {lines.length} items</span>
               <span className="font-bold text-[var(--brand-olive-hover)]">{total > 0 ? `$${total.toFixed(2)}` : "—"}</span>
             </div>
-            <p className="text-[10px] text-[var(--ink-muted)] mb-2 text-center">Saved as you work · shared with everyone who orders for these stores.</p>
+            {approveMsg && <div className="mb-2 rounded-lg px-3 py-2 text-xs bg-red-50 border border-red-200 text-red-700">{approveMsg}</div>}
+            <p className="text-[10px] text-[var(--ink-muted)] mb-2 text-center">
+              Saved as you work · Approve sends {cartStoreIds.map(storeName).join(" + ")} to Approved orders.
+            </p>
             <div className="flex gap-2">
               {approveSlot}
               <button onClick={() => window.print()} className="px-3 py-2 bg-[var(--brand-cream)] hover:bg-[var(--line)] rounded-lg text-xs transition-colors">Print</button>

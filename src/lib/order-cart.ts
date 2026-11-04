@@ -14,7 +14,7 @@
 
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { shortStore, type CartLineDTO, type CartRequestDTO } from "@/lib/order-cart-types";
+import { shortStore, type ApprovedOrderDTO, type CartLineDTO, type CartRequestDTO } from "@/lib/order-cart-types";
 export { shortStore };
 
 type Tx = Prisma.TransactionClient;
@@ -151,3 +151,59 @@ export async function loadCartFor(organizationId: string, locationIds: string[])
   };
 }
 
+
+// ===== Approved orders loader =====
+// The person's ACTIVE approved list + their Order history (CLEARED, newest
+// first, at most 8). Each approve writes normal OrderList/OrderListItem rows
+// (one per store) linked by OrderList.approvedOrderId.
+export async function loadApprovedFor(organizationId: string, userId: string): Promise<{ active: ApprovedOrderDTO | null; history: ApprovedOrderDTO[] }> {
+  const rows = await prisma.approvedOrder.findMany({
+    where: { organizationId, approvedById: userId, status: { in: ["ACTIVE", "CLEARED"] } },
+    orderBy: [{ clearedAt: "desc" }],
+    include: {
+      events: { orderBy: { orderedAt: "asc" } },
+      orderLists: {
+        select: {
+          locationId: true,
+          items: {
+            where: { status: { not: "REJECTED" } },
+            select: {
+              id: true, quantityNeeded: true, unit: true, vendor: true, orderedEventId: true, sourceSummary: true,
+              transferFromLocationId: true,
+              ingredient: { select: { name: true, vendor: true, vendorRef: { select: { name: true } } } },
+            },
+          },
+        },
+      },
+    },
+  });
+  const toDTO = (r: (typeof rows)[number]): ApprovedOrderDTO => ({
+    id: r.id,
+    status: r.status === "CLEARED" ? "CLEARED" : "ACTIVE",
+    approvedByName: r.approvedByName,
+    approvedAt: r.approvedAt.toISOString(),
+    firstApprovedAt: r.firstApprovedAt.toISOString(),
+    clearedAt: r.clearedAt?.toISOString() ?? null,
+    clearedByName: r.clearedByName,
+    events: r.events.map((e) => ({ id: e.id, vendorName: e.vendorName, orderedAt: e.orderedAt.toISOString(), orderedByName: e.orderedByName })),
+    lines: r.orderLists.flatMap((o) =>
+      o.items.map((i) => ({
+        id: i.id,
+        locationId: o.locationId,
+        vendor: i.vendor || i.ingredient.vendorRef?.name || i.ingredient.vendor || "No Vendor",
+        name: i.ingredient.name,
+        qty: i.quantityNeeded,
+        unit: i.unit === "case" ? ("case" as const) : ("bottle" as const),
+        orderedEventId: i.orderedEventId,
+        sourceSummary: i.sourceSummary,
+        transferForLocationId: i.transferFromLocationId,
+      })),
+    ),
+  });
+  const active = rows.find((r) => r.status === "ACTIVE");
+  const history = rows
+    .filter((r) => r.status === "CLEARED")
+    .sort((a, b) => (b.clearedAt?.getTime() ?? 0) - (a.clearedAt?.getTime() ?? 0))
+    .slice(0, 8);
+  return { active: active ? toDTO(active) : null, history: history.map(toDTO) };
+}

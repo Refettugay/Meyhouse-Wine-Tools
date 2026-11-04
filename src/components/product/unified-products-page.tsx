@@ -20,8 +20,10 @@ import type { ReviewOrder, TransferRow } from "@/lib/order-review-types";
 import { TransfersPanel } from "@/components/product/transfers-panel";
 import { BudgetWidget, type BudgetSummary } from "@/components/product/budget-widget";
 import { OrderCartDrawer } from "@/components/product/order-cart-drawer";
+import { ApprovedOrdersPanel, OrderHistoryPanel } from "@/components/product/approved-orders-panel";
+import { approveCart } from "@/lib/actions/approved-orders";
 import { cartClear, cartHeartbeat, cartSetDesktopCounts, type DesktopCount } from "@/lib/actions/order-cart";
-import type { CartLineDTO, CartRequestDTO, CartViewer } from "@/lib/order-cart-types";
+import type { ApprovedOrderDTO, CartLineDTO, CartRequestDTO, CartViewer } from "@/lib/order-cart-types";
 import { ORDER_CART_FLOW } from "@/lib/order-flags";
 import {
   Search,
@@ -94,7 +96,7 @@ interface Product {
     currentStock: number;
     lastCountedAt: string | null;
     purchasesSinceLastCount: number;
-    orderHistory: { qty: number; date: string; weekNum: number }[];
+    orderHistory: { qty: number; date: string; weekNum: number; btl?: boolean }[];
   }[];
 }
 
@@ -409,6 +411,7 @@ export function UnifiedProductsPage({
   theoreticalUsage,
   budget,
   cart: initialCart,
+  approved: initialApproved,
   meId,
 }: {
   products: Product[];
@@ -446,6 +449,8 @@ export function UnifiedProductsPage({
   theoreticalUsage: Record<string, number>;
   // Shared Order Cart (ORDER_CART_FLOW): lines + open staff notes for my stores.
   cart: { lines: CartLineDTO[]; requests: CartRequestDTO[] };
+  // Approved orders tab (my ACTIVE list) + Order history (my last 8 cleared).
+  approved: { active: ApprovedOrderDTO | null; history: ApprovedOrderDTO[] };
   meId: string;
 }) {
   const router = useRouter();
@@ -505,6 +510,22 @@ export function UnifiedProductsPage({
     [cartData.lines, cartStoreIds],
   );
   const [cartViewers, setCartViewers] = useState<CartViewer[]>([]);
+  const [approvedData, setApprovedData] = useState(initialApproved);
+  useEffect(() => { setApprovedData(initialApproved); }, [initialApproved]);
+  const [approving, setApproving] = useState(false);
+  const [approveMsg, setApproveMsg] = useState<string | null>(null);
+  // Vendors on my Approved orders list not marked Ordered yet (tab badge).
+  const vendorsToOrder = useMemo(() => {
+    const a = approvedData.active;
+    if (!a) return 0;
+    const open = new Set(a.lines.filter((l) => !l.orderedEventId).map((l) => l.vendor));
+    return open.size;
+  }, [approvedData]);
+  function applyFresh(f: { approved?: typeof initialApproved; cart?: typeof initialCart; error?: string }) {
+    if (f.approved) setApprovedData(f.approved);
+    if (f.cart) setCartData(f.cart);
+    router.refresh(); // 8-week column + everything else
+  }
 
   const [orderMenuFilter, setOrderMenuFilter] = useState<"onMenu" | "all">("onMenu");
   const [needsAttentionOnly, setNeedsAttentionOnly] = useState(false);
@@ -512,10 +533,10 @@ export function UnifiedProductsPage({
   const [unitError, setUnitError] = useState<string | null>(null);
   const [showStaffLinks, setShowStaffLinks] = useState(false);
   // Order tab sub-view: count & build / review & approve / ready to email
-  type OrderView = "build" | "review" | "emails";
+  type OrderView = "build" | "review" | "emails" | "approved" | "history";
   const [orderView, setOrderViewRaw] = useState<OrderView>(() => {
     const v = searchParams.get("view");
-    if (ORDER_CART_FLOW) return "build"; // old tabs hidden in the new flow
+    if (ORDER_CART_FLOW) return v === "approved" || v === "history" ? v : "build"; // old tabs hidden in the new flow
     return v === "review" || v === "emails" ? v : "build";
   });
   const setOrderView = (v: OrderView) => {
@@ -1714,11 +1735,14 @@ export function UnifiedProductsPage({
     weekly: number[];
     weeklyAvg: number;
     monthlyAvg: number;
+    btl: number; // bottles of an item with no case size (new flow only; not in the cases)
   } {
     const history = p.inv.orderHistory || [];
     // Build weekly buckets (0 = this week, 1 = last week, etc.)
     const weekly = [0, 0, 0, 0, 0, 0, 0, 0];
+    let btl = 0;
     for (const h of history) {
+      if (h.btl) { if (h.weekNum >= 0 && h.weekNum < 8) btl += h.qty; continue; }
       if (h.weekNum >= 0 && h.weekNum < 8) {
         weekly[h.weekNum] += h.qty;
       }
@@ -1726,7 +1750,8 @@ export function UnifiedProductsPage({
     const total = weekly.reduce((s, w) => s + w, 0);
     const weeklyAvg = total / 8;
     const monthlyAvg = weeklyAvg * 4.33;
-    return { weekly: weekly.reverse(), weeklyAvg, monthlyAvg };
+    const r1 = (n: number) => Math.round(n * 10) / 10;
+    return { weekly: ORDER_CART_FLOW ? weekly.reverse().map(r1) : weekly.reverse(), weeklyAvg, monthlyAvg, btl };
   }
 
   // Derived
@@ -2585,7 +2610,11 @@ export function UnifiedProductsPage({
         <div className={`bg-white border border-[var(--line)] rounded-xl mt-1 ${fullScreenView ? "p-2" : "p-3"}`}>
           <div className="flex items-center gap-1 mb-2 flex-wrap" role="tablist" aria-label="Order steps">
             {(ORDER_CART_FLOW
-              ? ([["build", "Count & build", null]] as const)
+              ? ([
+                  ["build", "Count & build", null],
+                  ["approved", "Approved orders", vendorsToOrder],
+                  ["history", "Order history", null],
+                ] as const)
               : ([
                   ["build", "Count & build", null],
                   ["review", "Review & approve", waitingCount],
@@ -4148,7 +4177,11 @@ export function UnifiedProductsPage({
           {/* Main ordering table — always full width; cart floats over it as a drawer */}
           <div className="min-w-0">
 
-            {orderView === "review" ? (
+            {ORDER_CART_FLOW && orderView === "approved" ? (
+              <ApprovedOrdersPanel approved={approvedData} locations={locations} onFresh={applyFresh} />
+            ) : ORDER_CART_FLOW && orderView === "history" ? (
+              <OrderHistoryPanel approved={approvedData} locations={locations} onFresh={applyFresh} onRestored={() => setOrderView("approved")} />
+            ) : orderView === "review" ? (
               <ReviewPanel
                 orders={openReviewOrders}
                 held={heldReviewOrders}
@@ -4526,6 +4559,11 @@ export function UnifiedProductsPage({
                                 <span>Wk: <span className="text-[var(--brand-brown)]">{history.weeklyAvg.toFixed(1)}</span></span>
                                 <span className="text-[var(--ink-muted)]">|</span>
                                 <span>Mo: <span className="text-[var(--brand-brown)]">{history.monthlyAvg.toFixed(1)}</span></span>
+                                {history.btl > 0 && (
+                                  <span className="px-1 rounded border border-dashed border-[#D4A017] bg-[#FFF8E1] text-[#8A6A00]" title="Ordered in bottles and this item has no case size, so it isn't in the case numbers">
+                                    +{history.btl} btl · no case size
+                                  </span>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -4553,6 +4591,32 @@ export function UnifiedProductsPage({
               products={products}
               meId={meId}
               onClearCart={handleClearCart}
+              approveMsg={approveMsg}
+              approveSlot={
+                <button
+                  onClick={async () => {
+                    if (approving || cartStoreIds.length === 0) return;
+                    setApproving(true);
+                    setApproveMsg(null);
+                    try {
+                      const r = await approveCart(cartStoreIds);
+                      if ("error" in r && r.error) setApproveMsg(r.error);
+                      applyFresh(r);
+                      if ("success" in r && r.success) {
+                        setShowCart(false);
+                        setOrderView("approved");
+                      }
+                    } catch {
+                      setApproveMsg("Couldn't approve — check the connection and try again.");
+                    }
+                    setApproving(false);
+                  }}
+                  disabled={approving || cartLineCount === 0}
+                  className="flex-1 py-2 bg-[var(--brand-olive)] hover:bg-[var(--brand-olive)] text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                >
+                  {approving ? "Approving…" : "Approve"}
+                </button>
+              }
             />
           )}
           {/* ===== ORDER CART — right-side slide-over drawer ===== */}

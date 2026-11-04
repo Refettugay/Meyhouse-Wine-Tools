@@ -7,7 +7,9 @@ import { getOrderingScope } from "@/lib/ordering-scope";
 import { canApproveOrders, canSeeBudget, canSeeTransfers } from "@/lib/permissions";
 import type { ReviewOrder, TransferRow } from "@/lib/order-review-types";
 import type { BudgetSummary } from "@/components/product/budget-widget";
-import { loadCartFor } from "@/lib/order-cart";
+import { loadApprovedFor, loadCartFor } from "@/lib/order-cart";
+import { ORDER_CART_FLOW } from "@/lib/order-flags";
+import { loadHistoryMap, type HistoryPoint } from "@/lib/order-history";
 
 export default async function ProductsPage() {
   const session = await requireAuth();
@@ -226,7 +228,7 @@ export default async function ProductsPage() {
 
   // Get order history (last 8 weeks) per ingredient per location
   const eightWeeksAgo = new Date(Date.now() - 56 * 24 * 60 * 60 * 1000);
-  const orderHistoryItems = await prisma.orderListItem.findMany({
+  const orderHistoryItems = ORDER_CART_FLOW ? [] : await prisma.orderListItem.findMany({
     where: {
       orderList: {
         organizationId: orgId,
@@ -245,9 +247,12 @@ export default async function ProductsPage() {
   });
 
   // Build order history map: ingredientId_locationId → array of { qty, date, weekNum }
+  // New flow: real "Ordered" history in cases (order_history_entry).
   const now = Date.now();
-  const orderHistoryMap = new Map<string, { qty: number; date: string; weekNum: number }[]>();
-  for (const oi of orderHistoryItems) {
+  const orderHistoryMap: Map<string, HistoryPoint[]> = ORDER_CART_FLOW
+    ? await loadHistoryMap(orgId)
+    : new Map<string, HistoryPoint[]>();
+  if (!ORDER_CART_FLOW) for (const oi of orderHistoryItems) {
     const key = `${oi.ingredientId}_${oi.orderList.locationId}`;
     if (!orderHistoryMap.has(key)) orderHistoryMap.set(key, []);
     const weeksAgo = Math.floor((now - oi.orderList.createdAt.getTime()) / (7 * 24 * 60 * 60 * 1000));
@@ -408,7 +413,11 @@ export default async function ProductsPage() {
   }));
 
   // Shared Order Cart (2026-11-03): lines for the stores this person orders for.
-  const cart = await loadCartFor(orgId, locations.filter((l) => orderingScope.access[l.id] === "ORDER").map((l) => l.id));
+  const cart = ORDER_CART_FLOW
+    ? await loadCartFor(orgId, locations.filter((l) => orderingScope.access[l.id] === "ORDER").map((l) => l.id))
+    : { lines: [], requests: [] };
+  // Approved orders + Order history (this person's own lists).
+  const approved = ORDER_CART_FLOW ? await loadApprovedFor(orgId, session.userId) : { active: null, history: [] };
 
   // Theoretical usage per (ingredient, location): how much POS sales say SHOULD
   // have been consumed since each item's last count. Keyed `${ingredientId}_${locationId}`
@@ -492,6 +501,7 @@ export default async function ProductsPage() {
       theoreticalUsage={theoreticalUsage}
       budget={budget}
       cart={cart}
+      approved={approved}
       meId={session.userId}
     />
   );
