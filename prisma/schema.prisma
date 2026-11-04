@@ -408,7 +408,8 @@ model InventoryItem {
   isWellSpirit   Boolean @default(false)
   isHalfBottle   Boolean @default(false)
   isDessertWine  Boolean @default(false)
-  markedForRemoval String?  // null, "INACTIVE", or "DATABASE"
+  markedForRemoval String?  // null, "PENDING" (phasing out), "INACTIVE" or "DATABASE"
+  kioskNote      String?  // short note shown as a yellow tag on the kiosk + Admin (per store)
   parLevel       Float   @default(0)
   currentStock   Float   @default(0)
   unit           String  @default("bottle")

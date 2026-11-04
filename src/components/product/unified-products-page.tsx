@@ -25,6 +25,8 @@ import { approveCart } from "@/lib/actions/approved-orders";
 import { cartClear, cartHeartbeat, cartSetDesktopCounts, type DesktopCount } from "@/lib/actions/order-cart";
 import type { ApprovedOrderDTO, CartLineDTO, CartRequestDTO, CartViewer } from "@/lib/order-cart-types";
 import { ORDER_CART_FLOW } from "@/lib/order-flags";
+import { KIOSK_ITEM_MENU } from "@/lib/kiosk-flags";
+import { KioskChangesStrip } from "@/components/product/kiosk-changes-strip";
 import {
   Search,
   Plus,
@@ -92,6 +94,7 @@ interface Product {
     isHalfBottle: boolean;
     isDessertWine: boolean;
     markedForRemoval: string | null;
+    kioskNote: string | null;
     parLevel: number;
     currentStock: number;
     lastCountedAt: string | null;
@@ -615,23 +618,28 @@ export function UnifiedProductsPage({
   const lastSendSeen = useRef<string | null>(null);
   const [newSend, setNewSend] = useState<{ store: string; by: string } | null>(null);
   useEffect(() => {
-    if (mode !== "ordering") return;
+    const kioskOnly = KIOSK_ITEM_MENU && mode === "products";
+    if (mode !== "ordering" && !kioskOnly) return;
     let stopped = false;
+    pulseKey.current = null;
     const check = async () => {
       if (document.visibilityState !== "visible") return;
       try {
         const p = await orderingPulse();
         if (stopped) return;
-        if (pulseKey.current !== null && p.key !== pulseKey.current) router.refresh();
+        // Products view: refresh only for kiosk item changes (par / area / shelf / note / mark).
+        const key = kioskOnly ? p.kioskKey : p.key;
+        if (pulseKey.current !== null && key !== pulseKey.current) router.refresh();
+        if (kioskOnly) { pulseKey.current = key; return; }
         if (p.lastSend) {
           if (lastSendSeen.current !== null && p.lastSend.id !== lastSendSeen.current) setNewSend({ store: p.lastSend.store, by: p.lastSend.by });
           lastSendSeen.current = p.lastSend.id;
         }
-        pulseKey.current = p.key;
+        pulseKey.current = key;
       } catch {}
     };
     check();
-    const t = setInterval(check, 10_000);
+    const t = setInterval(check, kioskOnly ? 15_000 : 10_000);
     document.addEventListener("visibilitychange", check);
     return () => { stopped = true; clearInterval(t); document.removeEventListener("visibilitychange", check); };
   }, [mode, router]);
@@ -2852,6 +2860,19 @@ export function UnifiedProductsPage({
         </div>
       )}
 
+        {KIOSK_ITEM_MENU && mode === "products" && highlightedRow && (() => {
+          const sel = products.find((p) => p.id === highlightedRow);
+          if (!sel) return null;
+          const invs = locationFilter === "ALL" ? sel.inventory : sel.inventory.filter((i) => i.locationId === locationFilter);
+          return (
+            <KioskChangesStrip
+              productId={sel.id}
+              productName={sel.name}
+              notes={invs.filter((i) => i.kioskNote).map((i) => ({ store: i.locationName.replace("Meyhouse ", ""), note: i.kioskNote as string }))}
+              refreshKey={sel.inventory.map((i) => [i.parLevel, i.storageArea, i.shelfLocation, i.storageArea2, i.shelfLocation2, i.kioskNote, i.markedForRemoval].join("|")).join(";")}
+            />
+          );
+        })()}
       </div>{/* end sticky top section */}
 
       {/* Scrollable table area — fills remaining height */}
@@ -3057,6 +3078,14 @@ export function UnifiedProductsPage({
                                 {anyInactive && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded" title={`Marked to Delete${storeBadgeSuffix((i) => i.markedForRemoval === "INACTIVE")}`}>→ ✕</span>}
                                 {pendingOut && <span className="text-[9px] bg-rose-200 text-rose-800 px-1 py-0.5 rounded font-semibold" title={`Out of stock — decide to remove or move to database${storeBadgeSuffix((i) => i.markedForRemoval === "PENDING" && i.currentStock <= 0)}`}>OUT ⚠</span>}
                                 {anyPending && !pendingOut && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded" title={`Phasing out — remove when stock runs out${storeBadgeSuffix((i) => i.markedForRemoval === "PENDING")}`}>⏳ phasing out</span>}
+                                {KIOSK_ITEM_MENU && relevantInvs.some((i) => i.kioskNote) && (
+                                  <span
+                                    className="text-[9px] bg-[#FFF3C4] text-[#6B5200] border border-[#E9CF6B] px-1 py-0.5 rounded max-w-[140px] truncate"
+                                    title={relevantInvs.filter((i) => i.kioskNote).map((i) => `${i.locationName.replace("Meyhouse ", "")}: ${i.kioskNote}`).join("\n")}
+                                  >
+                                    {relevantInvs.find((i) => i.kioskNote)?.kioskNote}
+                                  </span>
+                                )}
                                 {anyCraft && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded" title={`Craft Cocktail${storeBadgeSuffix((i) => i.isCraftCocktailIngredient)}`}>CC</span>}
                                 {anyWell && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded" title={`Well Spirit${storeBadgeSuffix((i) => i.isWellSpirit)}`}>Well</span>}
                                 {anyHalf && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded" title={`Half Bottle${storeBadgeSuffix((i) => i.isHalfBottle)}`}>½</span>}

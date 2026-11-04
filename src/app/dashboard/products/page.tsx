@@ -423,6 +423,7 @@ export default async function ProductsPage() {
         isHalfBottle: Boolean(inv.isHalfBottle),
         isDessertWine: Boolean(inv.isDessertWine),
         markedForRemoval: inv.markedForRemoval || null,
+        kioskNote: inv.kioskNote?.trim() || null,
         parLevel: inv.parLevel,
         currentStock: inv.currentStock,
         lastCountedAt: inv.lastCountedAt?.toISOString() || null,

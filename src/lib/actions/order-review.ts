@@ -311,9 +311,9 @@ export async function resolveStaffRequest(requestId: string, status: "ADDED" | "
 // newest ordering activity) and refreshes itself when the answer changes.
 // ---------------------------------------------------------------------------
 
-export async function orderingPulse(): Promise<{ key: string; lastSend: { store: string; by: string; id: string } | null }> {
+export async function orderingPulse(): Promise<{ key: string; kioskKey: string; lastSend: { store: string; by: string; id: string } | null }> {
   const session = await requireAuth();
-  const [latest, send, cartSig] = await Promise.all([
+  const [latest, send, cartSig, kiosk] = await Promise.all([
     prisma.orderActivityLog.findFirst({
       where: { organizationId: session.organizationId },
       orderBy: { at: "desc" },
@@ -331,6 +331,12 @@ export async function orderingPulse(): Promise<{ key: string; lastSend: { store:
       _sum: { qty: true },
       _max: { updatedAt: true },
     }),
+    // Kiosk item menu: newest par / area / shelf / note / mark change.
+    prisma.orderActivityLog.findFirst({
+      where: { organizationId: session.organizationId, source: "staff_count", entity: "PRODUCT" },
+      orderBy: { at: "desc" },
+      select: { id: true },
+    }),
   ]);
   let lastSend = null;
   if (send) {
@@ -338,7 +344,7 @@ export async function orderingPulse(): Promise<{ key: string; lastSend: { store:
     lastSend = { store: loc ? short(loc.name) : "", by: send.actorName || "Staff", id: send.id };
   }
   const cartKey = `${cartSig._count}|${cartSig._sum.qty ?? 0}|${cartSig._max.updatedAt?.getTime() ?? 0}`;
-  return { key: `${latest?.id ?? ""}|${cartKey}`, lastSend };
+  return { key: `${latest?.id ?? ""}|${cartKey}`, kioskKey: kiosk?.id ?? "", lastSend };
 }
 
 // ---------------------------------------------------------------------------

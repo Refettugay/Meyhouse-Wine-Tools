@@ -7,10 +7,16 @@
 // (survive lock/refresh) and cleared after a send.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { listStaff, signIn, createPin, signOut, loadCountFeed, sendCounts, removeItem } from "./actions";
-import type { CountFeed, CountItem, RemoveAction, StaffPerson } from "@/lib/staff-count/feed-types";
+import { listStaff, signIn, createPin, signOut, loadCountFeed, sendCounts, removeItem, updateItem } from "./actions";
+import type { CountFeed, CountItem, ItemEdit, RemoveAction, StaffPerson } from "@/lib/staff-count/feed-types";
 import { TYPE_CHIPS } from "@/lib/staff-count/types";
 import { orderQty, type OrderUnit } from "@/lib/ordering-math";
+import { KIOSK_ITEM_MENU } from "@/lib/kiosk-flags";
+
+// Coming off menu: counted, never reordered.
+const qtyFor = (i: CountItem, count: number, unit: OrderUnit | null) => (i.removing ? 0 : orderQty(i.par, count, unit, i.casePack));
+const RED_ROW = "bg-[#FDEDEC]";
+const NOTE_TAG = "max-w-full line-clamp-2 break-words w-fit mt-0.5 px-1.5 py-px rounded bg-[#FFF3C4] border border-[#E9CF6B] text-[10px] font-medium text-[#6B5200]";
 
 type Stage = "loading" | "pick" | "pin" | "createPin" | "count" | "confirm" | "sent" | "error";
 type Saved = { counts: Record<string, number>; picks: Record<string, OrderUnit>; request: string; savedAt: number };
@@ -87,6 +93,37 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
     })();
   }, [token, openCount]);
 
+  // Kiosk item menu: keep this screen in step with Admin and other devices
+  // (every 30s and when the screen comes back on). Typed counts are kept —
+  // they're stored by item, so an item that moved area keeps its count.
+  useEffect(() => {
+    if (!KIOSK_ITEM_MENU || stage !== "count") return;
+    let stopped = false;
+    const tick = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const r = await loadCountFeed(token);
+        if (stopped) return;
+        if (r.ok) setFeed(r.feed);
+        else if (r.signedOut) setStage("pick");
+      } catch {}
+    };
+    const t = setInterval(tick, 30_000);
+    document.addEventListener("visibilitychange", tick);
+    return () => { stopped = true; clearInterval(t); document.removeEventListener("visibilitychange", tick); };
+  }, [stage, token]);
+
+  // Side panel save (par / area + shelf / note) → server → swap in the saved item.
+  async function handleUpdate(item: CountItem, edit: ItemEdit): Promise<string | null> {
+    const r = await updateItem(token, item.id, edit);
+    if (!r.ok) {
+      if (r.signedOut) setStage("pick");
+      return r.error;
+    }
+    setFeed((f) => (f ? { ...f, items: f.items.map((i) => (i.id === item.id ? r.item : i)) } : f));
+    return null;
+  }
+
   // Press-and-hold menu → server, then update the list here (no reload).
   async function handleRemove(item: CountItem, action: RemoveAction): Promise<string | null> {
     const r = await removeItem(token, item.id, action);
@@ -101,7 +138,7 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
         ...f,
         items: f.items.map((i) => i.id !== item.id ? i
           : action === "database" ? { ...i, offMenu: true }
-          : { ...i, phasingOut: action === "mark" }),
+          : { ...i, phasingOut: action === "mark", removing: KIOSK_ITEM_MENU && action === "mark" }),
       };
     });
     if (action === "delete") {
@@ -176,7 +213,7 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
     .filter((i) => counts[i.id] !== undefined)
     .map((i) => {
       const unit = i.unit ?? picks[i.id] ?? null;
-      return { item: i, unit, qty: orderQty(i.par, counts[i.id], unit, i.casePack) };
+      return { item: i, unit, qty: qtyFor(i, counts[i.id], unit) };
     });
   const orderLines = toOrder.filter((l) => l.qty > 0);
 
@@ -281,6 +318,7 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
         })}
         setPick={(id, u) => setPicks((p) => ({ ...p, [id]: u }))}
         onRemove={handleRemove}
+        onUpdate={handleUpdate}
       />
       <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-[var(--line)] px-4 py-3 flex items-center gap-3">
         <span className="text-xs text-[var(--ink-muted)] flex-1">
@@ -408,7 +446,7 @@ function CreatePin({ name, busy, error, onBack, onSave }: { name: string; busy: 
 }
 
 function CountList({
-  feed, counts, picks, setCount, setPick, onRemove,
+  feed, counts, picks, setCount, setPick, onRemove, onUpdate,
 }: {
   feed: CountFeed;
   counts: Record<string, number>;
@@ -416,8 +454,12 @@ function CountList({
   setCount: (id: string, v: number | null) => void;
   setPick: (id: string, u: OrderUnit) => void;
   onRemove: (item: CountItem, action: RemoveAction) => Promise<string | null>;
+  onUpdate: (item: CountItem, edit: ItemEdit) => Promise<string | null>;
 }) {
-  const [menuFor, setMenuFor] = useState<CountItem | null>(null);
+  // Item id (not a copy) so the open menu always shows the latest saved values.
+  const [menuId, setMenuId] = useState<string | null>(null);
+  const menuFor = menuId ? feed.items.find((i) => i.id === menuId) ?? null : null;
+  const setMenuFor = (i: CountItem | null) => setMenuId(i ? i.id : null);
   const [q, setQ] = useState("");
   const [groupBy, setGroupBy] = useState<"type" | "area">("area");
   const [chip, setChip] = useState<string>("ALL");
@@ -428,7 +470,10 @@ function CountList({
 
   const chips = useMemo(() => {
     if (groupBy === "type") return TYPE_CHIPS.filter((t) => feed.items.some((i) => i.type === t)).map((t) => ({ key: t, label: t }));
-    const keys = [...feed.areas.map((a) => a.id), ...(feed.items.some((i) => !i.areaId) ? ["none"] : [])];
+    const keys = [
+      ...feed.areas.filter((a) => feed.items.some((i) => i.areaId === a.id)).map((a) => a.id),
+      ...(feed.items.some((i) => !i.areaId) ? ["none"] : []),
+    ];
     return keys.map((k) => ({ key: k, label: areaName(k) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupBy, feed]);
@@ -558,7 +603,9 @@ function CountList({
           )}
         </section>
       )}
-      {menuFor && <RemoveMenu item={menuFor} onClose={() => setMenuFor(null)} onRemove={onRemove} />}
+      {menuFor && (KIOSK_ITEM_MENU
+        ? <ItemPanel item={menuFor} areas={feed.areas} canMarkRemove={feed.me.canMarkRemove} onClose={() => setMenuFor(null)} onRemove={onRemove} onUpdate={onUpdate} />
+        : <RemoveMenu item={menuFor} onClose={() => setMenuFor(null)} onRemove={onRemove} />)}
     </div>
   );
 }
@@ -603,6 +650,227 @@ function RemoveMenu({ item, onClose, onRemove }: { item: CountItem; onClose: () 
             {busy ? "Working…" : "Cancel"}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Kiosk item menu (KIOSK_ITEM_MENU): side panel from the right, opened by
+// press-and-hold. Mark/undo for managers, supervisors and owners (the server
+// checks too); par, area + shelf and note for anyone; Database / Delete as
+// before. Tap outside or ✕ to close.
+type PanelView = "menu" | "par" | "loc" | "note";
+
+function ItemPanel({
+  item, areas, canMarkRemove, onClose, onRemove, onUpdate,
+}: {
+  item: CountItem;
+  areas: { id: string; name: string }[];
+  canMarkRemove: boolean;
+  onClose: () => void;
+  onRemove: (item: CountItem, action: RemoveAction) => Promise<string | null>;
+  onUpdate: (item: CountItem, edit: ItemEdit) => Promise<string | null>;
+}) {
+  const [view, setView] = useState<PanelView>("menu");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
+  // The finger that opened the panel lifts over the backdrop — ignore that.
+  const [openedAt] = useState(() => Date.now());
+  const closeFromBackdrop = () => { if (!busy && Date.now() - openedAt > 400) onClose(); };
+
+  const parUnit = item.keg ? "kegs" : "bottles";
+  const [par, setPar] = useState<string>(String(item.par));
+  const [area1, setArea1] = useState<string>(item.areaId ?? "");
+  const [shelf1, setShelf1] = useState<string>(item.shelf1 ?? "");
+  const [area2, setArea2] = useState<string>(item.area2Id ?? "");
+  const [shelf2, setShelf2] = useState<string>(item.shelf2 ?? "");
+  const [note, setNote] = useState<string>(item.note ?? "");
+
+  const open = (v: PanelView) => {
+    setError(null); setFlash(null);
+    // Start each editor from the latest saved values.
+    if (v === "par") setPar(String(item.par));
+    if (v === "loc") { setArea1(item.areaId ?? ""); setShelf1(item.shelf1 ?? ""); setArea2(item.area2Id ?? ""); setShelf2(item.shelf2 ?? ""); }
+    if (v === "note") setNote(item.note ?? "");
+    setView(v);
+  };
+
+  const save = async (edit: ItemEdit, done: string) => {
+    setBusy(true); setError(null);
+    const err = await onUpdate(item, edit);
+    setBusy(false);
+    if (err) { setError(err); return; }
+    setFlash(done); setView("menu");
+  };
+  const remove = async (action: RemoveAction) => {
+    if (action === "delete" && !confirm(`Permanently delete "${item.name}"? This cannot be undone.`)) return;
+    setBusy(true); setError(null);
+    const err = await onRemove(item, action);
+    setBusy(false);
+    if (err) { setError(err); return; }
+    if (action === "delete" || action === "database") onClose();
+    else setFlash(action === "mark" ? "Marked to remove" : "Remove mark undone");
+  };
+
+  const parNum = Number(par);
+  const parOk = par.trim() !== "" && Number.isFinite(parNum) && parNum >= 0 && parNum <= 9999;
+  const stepPar = (d: number) => setPar(String(Math.max(0, Math.round(((Number.isFinite(parNum) ? parNum : 0) + d) * 100) / 100)));
+
+  const row = "w-full text-left px-4 py-3 border-b border-[var(--line)] active:bg-[var(--brand-cream)] disabled:opacity-50";
+  const field = "w-full px-3 py-2 border border-[var(--line)] rounded-lg text-base bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]";
+  const areaLabel = (id: string | null, shelf: string | null) =>
+    id ? `${areas.find((a) => a.id === id)?.name ?? "—"}${shelf ? ` · Shelf ${shelf}` : ""}` : "—";
+
+  return (
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={item.name}>
+      <style>{"@keyframes kioskPanelIn{from{transform:translateX(100%)}to{transform:none}}"}</style>
+      <div className="absolute inset-0 bg-black/30" onClick={closeFromBackdrop} />
+      <div
+        className="absolute inset-y-0 right-0 w-[min(100%,380px)] bg-white shadow-xl flex flex-col"
+        style={{ animation: "kioskPanelIn .18s ease-out" }}
+      >
+        <div className="px-4 pt-[max(env(safe-area-inset-top),14px)] pb-3 border-b border-[var(--line)] flex items-start gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-base font-medium text-[var(--brand-brown)] leading-snug break-words">
+              {item.name}
+              {item.size && <span className="ml-1.5 text-[11px] font-normal text-[var(--ink-muted)]">{item.size}</span>}
+            </p>
+            {item.removing && <p className="text-[11px] font-semibold text-red-700">Coming off menu · don&rsquo;t reorder</p>}
+            {item.note && <p className="leading-none"><span className={NOTE_TAG}>{item.note}</span></p>}
+          </div>
+          <button onClick={onClose} disabled={busy} aria-label="Close" className="w-9 h-9 -mr-1 rounded-full text-lg text-[var(--ink-muted)] active:bg-[var(--line)]">✕</button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          {view === "menu" && (
+            <div>
+              {flash && <p className="mx-4 mt-3 px-3 py-2 rounded-lg bg-[#F1F5E8] border border-[var(--brand-olive)] text-xs text-[var(--brand-brown)]">✓ {flash}</p>}
+
+              {canMarkRemove ? (
+                <button disabled={busy} onClick={() => remove(item.removing ? "unmark" : "mark")} className={row}>
+                  <p className={`text-sm font-medium ${item.removing ? "text-[var(--brand-brown)]" : "text-red-700"}`}>{item.removing ? "Undo remove mark" : "Mark to remove"}</p>
+                  <p className="text-[11px] text-[var(--ink-muted)]">{item.removing ? "Back to normal — can be ordered again (this store)" : "Keep counting it, never reorder (this store)"}</p>
+                </button>
+              ) : (
+                <div className={`${row} opacity-60 cursor-not-allowed`} aria-disabled="true">
+                  <p className="text-sm font-medium text-[var(--ink-muted)]">🔒 {item.removing ? "Undo remove mark" : "Mark to remove"}</p>
+                  <p className="text-[11px] text-[var(--ink-muted)]">Managers and supervisors only</p>
+                </div>
+              )}
+
+              <button disabled={busy} onClick={() => open("par")} className={row}>
+                <p className="text-sm font-medium text-[var(--brand-brown)]">Change par</p>
+                <p className="text-[11px] text-[var(--ink-muted)]">Now {item.par} {parUnit} · this store</p>
+              </button>
+              <button disabled={busy} onClick={() => open("loc")} className={row}>
+                <p className="text-sm font-medium text-[var(--brand-brown)]">Change location &amp; shelf</p>
+                <p className="text-[11px] text-[var(--ink-muted)] truncate">1: {areaLabel(item.areaId, item.shelf1)}</p>
+                <p className="text-[11px] text-[var(--ink-muted)] truncate">2: {areaLabel(item.area2Id, item.shelf2)}</p>
+              </button>
+              <button disabled={busy} onClick={() => open("note")} className={row}>
+                <p className="text-sm font-medium text-[var(--brand-brown)]">{item.note ? "Edit note" : "Add a note"}</p>
+                <p className="text-[11px] text-[var(--ink-muted)] truncate">{item.note ?? "Shows as a yellow tag for everyone"}</p>
+              </button>
+
+              <p className="px-4 pt-5 pb-1 text-[10px] uppercase tracking-[0.14em] text-[var(--ink-muted)]">Remove from the list</p>
+              {!item.offMenu && (
+                <button disabled={busy} onClick={() => remove("database")} className={row}>
+                  <p className="text-sm font-medium text-[var(--brand-brown)]">Move to Product Database</p>
+                  <p className="text-[11px] text-[var(--ink-muted)]">Tasted but not on menu yet</p>
+                </button>
+              )}
+              <button disabled={busy} onClick={() => remove("delete")} className={row}>
+                <p className="text-sm font-medium text-red-600">Permanently Delete</p>
+                <p className="text-[11px] text-[var(--ink-muted)]">Removes from database — cannot be undone</p>
+              </button>
+            </div>
+          )}
+
+          {view === "par" && (
+            <div className="px-4 py-4 space-y-4">
+              <p className="text-sm font-medium text-[var(--brand-brown)]">Par for this store</p>
+              <div className="flex items-center justify-center gap-3">
+                <button onClick={() => stepPar(-1)} aria-label="Less" className="w-14 h-14 rounded-2xl border border-[var(--line)] bg-white text-2xl active:bg-[var(--line)]">−</button>
+                <input
+                  inputMode="decimal"
+                  value={par}
+                  onChange={(e) => setPar(e.target.value)}
+                  aria-label="Par"
+                  className="w-24 h-14 border border-[var(--line)] rounded-2xl text-center text-2xl font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
+                />
+                <button onClick={() => stepPar(1)} aria-label="More" className="w-14 h-14 rounded-2xl border border-[var(--line)] bg-white text-2xl active:bg-[var(--line)]">+</button>
+              </div>
+              <p className="text-center text-sm text-[var(--brand-brown)]"><span className="font-semibold">{parUnit}</span>{item.casePack ? <span className="text-[var(--ink-muted)]"> · {item.casePack} per case</span> : null}</p>
+              <p className="text-center text-[11px] text-[var(--ink-muted)]">Same unit you count in. Was {item.par}. 0 is allowed.</p>
+            </div>
+          )}
+
+          {view === "loc" && (
+            <div className="px-4 py-4 space-y-4">
+              {([
+                { n: 1, area: area1, setArea: setArea1, shelf: shelf1, setShelf: setShelf1 },
+                { n: 2, area: area2, setArea: setArea2, shelf: shelf2, setShelf: setShelf2 },
+              ] as const).map((s) => (
+                <div key={s.n} className="rounded-xl border border-[var(--line)] p-3 space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.12em] text-[var(--ink-muted)]">Location {s.n}</p>
+                  <div className="flex gap-2">
+                    <label className="flex-[2] min-w-0">
+                      <span className="block text-[11px] text-[var(--ink-muted)] mb-0.5">Area {s.n}</span>
+                      <select value={s.area} onChange={(e) => s.setArea(e.target.value)} className={field}>
+                        {s.n === 2 ? <option value="">—</option> : !s.area && <option value="">Pick an area</option>}
+                        {areas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                      </select>
+                    </label>
+                    <label className="flex-1 min-w-0">
+                      <span className="block text-[11px] text-[var(--ink-muted)] mb-0.5">Shelf {s.n}</span>
+                      <input value={s.shelf} onChange={(e) => s.setShelf(e.target.value.slice(0, 20))} placeholder="—" className={field} />
+                    </label>
+                  </div>
+                </div>
+              ))}
+              <p className="text-[11px] text-[var(--ink-muted)]">The item moves to its Area 1 tab right away. A count you typed stays.</p>
+            </div>
+          )}
+
+          {view === "note" && (
+            <div className="px-4 py-4 space-y-2">
+              <label className="block">
+                <span className="text-sm font-medium text-[var(--brand-brown)]">Note</span>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value.slice(0, 140))}
+                  rows={3}
+                  placeholder="e.g. back stock in the Liquor Room"
+                  className={`mt-1 ${field}`}
+                />
+              </label>
+              <p className="text-[11px] text-[var(--ink-muted)]">Shows as a yellow tag under the name for everyone, and in Admin. {140 - note.length} left.</p>
+              {item.note && (
+                <button disabled={busy} onClick={() => save({ note: "" }, "Note cleared")} className="text-xs text-red-700 underline">Clear note</button>
+              )}
+            </div>
+          )}
+
+          {error && <p className="px-4 py-2 text-sm text-red-700">{error}</p>}
+        </div>
+
+        {view !== "menu" && (
+          <div className="px-4 pt-2 pb-[max(env(safe-area-inset-bottom),12px)] border-t border-[var(--line)] flex gap-2">
+            <button disabled={busy} onClick={() => { setView("menu"); setError(null); }} className="flex-1 py-3 rounded-full border border-[var(--line)] bg-white text-sm font-medium">Back</button>
+            <button
+              disabled={busy || (view === "par" && !parOk) || (view === "loc" && !area1)}
+              onClick={() => {
+                if (view === "par") save({ par: parNum }, `Par set to ${Math.round(parNum * 100) / 100} ${parUnit}`);
+                else if (view === "loc") save({ area1Id: area1, shelf1, area2Id: area2 || null, shelf2 }, "Location & shelf saved");
+                else save({ note }, note.trim() ? "Note saved" : "Note cleared");
+              }}
+              className="flex-[2] py-3 rounded-full bg-[var(--brand-olive)] text-white text-sm font-medium disabled:opacity-40"
+            >
+              {busy ? "Saving…" : "Save"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -657,7 +925,7 @@ function CountRow({
   const counted = count !== undefined;
   const unit = item.unit ?? pick ?? null;
   const short = counted ? item.par - (count as number) : null;
-  const qty = counted ? orderQty(item.par, count as number, unit, item.casePack) : 0;
+  const qty = counted ? qtyFor(item, count as number, unit) : 0;
 
   const step = (d: number) => {
     if (!counted) { setCount(d < 0 ? 0 : 0.5); return; } // "−" on uncounted = 0 (out)
@@ -666,17 +934,24 @@ function CountRow({
   const subParts = [sub, item.vendor, item.casePack ? `${item.casePack}/cs` : null].filter(Boolean);
 
   return (
-    <div {...hold} className={`px-3 py-2 flex items-center gap-2 select-none [-webkit-touch-callout:none] ${counted ? "bg-[#FAF7F1]" : ""}`}>
+    <div {...hold} className={`px-3 py-2 flex items-center gap-2 select-none [-webkit-touch-callout:none] [-webkit-user-select:none] ${item.removing ? RED_ROW : counted ? "bg-[#FAF7F1]" : ""}`}>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-[var(--brand-brown)] leading-snug line-clamp-2 break-words">
           {item.name}
           {item.size && <span className="ml-1.5 text-[11px] font-normal text-[var(--ink-muted)]">{item.size}</span>}
         </p>
+        {item.removing && (
+          <p className="text-[11px] font-semibold text-red-700 leading-snug">Coming off menu · don&rsquo;t reorder</p>
+        )}
+        {item.note && <p className="leading-none"><span className={NOTE_TAG}>{item.note}</span></p>}
         <p className="text-[11px] text-[var(--ink-muted)] truncate">
-          {item.phasingOut && <span className="mr-1 text-amber-700 font-medium">Phasing out ·</span>}
+          {item.phasingOut && !KIOSK_ITEM_MENU && <span className="mr-1 text-amber-700 font-medium">Phasing out ·</span>}
           {subParts.join(" · ")}
         </p>
-        {short !== null && (
+        {short !== null && item.removing && (
+          <p className="text-[11px] truncate text-[var(--ink-muted)]">Counted · not reordered</p>
+        )}
+        {short !== null && !item.removing && (
           <p className="text-[11px] truncate">
             {short > 0
               ? <span className="text-[var(--brand-olive)] font-medium">Short {short} → {qty} {unitWord(unit, qty, item.keg)}</span>

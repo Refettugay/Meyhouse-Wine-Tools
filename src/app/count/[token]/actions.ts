@@ -12,7 +12,8 @@ import { getStaffSession, setStaffSession, clearStaffSession, type StaffSession 
 import { typeChipFor } from "@/lib/staff-count/types";
 import { formatBottleSize } from "@/lib/staff-count/size";
 import { effectiveUnit, orderQty, type OrderUnit } from "@/lib/ordering-math";
-import type { CountFeed, RemoveAction, SendCount, SendResult, StaffPerson } from "@/lib/staff-count/feed-types";
+import type { CountFeed, CountItem, ItemEdit, RemoveAction, SendCount, SendResult, StaffPerson } from "@/lib/staff-count/feed-types";
+import { KIOSK_ITEM_MENU } from "@/lib/kiosk-flags";
 import { hardDeleteIngredient } from "@/lib/product-removal";
 import { absorbHeld } from "@/lib/order-hold";
 import { ORDER_CART_FLOW } from "@/lib/order-flags";
@@ -28,13 +29,18 @@ function storeDay(d: Date): string {
   return d.toLocaleDateString("en-CA", { timeZone: STORE_TZ }); // YYYY-MM-DD
 }
 
-async function rosterFor(store: CountLinkStore): Promise<StaffPerson[]> {
+// Managers, supervisors and owners may mark / unmark items to remove from the
+// kiosk (profiles.role, read fresh on every request). Everyone else sees it locked.
+const MARK_ROLES = new Set(["owner", "manager", "supervisor"]);
+type RosterPerson = StaffPerson & { role: string };
+
+async function rosterFor(store: CountLinkStore): Promise<RosterPerson[]> {
   if (!store.scheduleLocationId) return [];
   // Only ACTIVE people with "Staff ordering (count page)" switched ON for this store
   // (Team page -> public.staff_ordering_access). No row = off. Inactive = no longer works
   // here, so always blocked. Tip Entry's access switch is about tips and plays no part.
-  const rows = await prisma.$queryRaw<{ id: string; full_name: string | null; has_pin: boolean }[]>`
-    select p.id::text as id, p.full_name, (pp.pin_hash is not null) as has_pin
+  const rows = await prisma.$queryRaw<{ id: string; full_name: string | null; has_pin: boolean; role: string | null }[]>`
+    select p.id::text as id, p.full_name, (pp.pin_hash is not null) as has_pin, p.role
     from public.staff_ordering_access soa
     join public.profile_locations pl on pl.user_id = soa.person_id and pl.location_id = soa.location_id
     join public.profiles p on p.id = soa.person_id
@@ -45,17 +51,17 @@ async function rosterFor(store: CountLinkStore): Promise<StaffPerson[]> {
     order by p.full_name`;
   return rows
     .filter((r) => (r.full_name || "").trim())
-    .map((r) => ({ id: r.id, name: (r.full_name || "").trim(), hasPin: r.has_pin }));
+    .map((r) => ({ id: r.id, name: (r.full_name || "").trim(), hasPin: r.has_pin, role: (r.role || "staff").toLowerCase() }));
 }
 
-async function signedIn(token: string): Promise<{ store: CountLinkStore; session: StaffSession } | null> {
+async function signedIn(token: string): Promise<{ store: CountLinkStore; session: StaffSession; canMarkRemove: boolean } | null> {
   const store = await resolveCountLink(token);
   if (!store) return null;
   const session = await getStaffSession(token, store.locationId);
   if (!session) return null;
   // Still allowed at this store? (switched off, unassigned or made inactive -> out right away)
-  const ok = (await rosterFor(store)).some((p) => p.id === session.personId);
-  return ok ? { store, session } : null;
+  const me = (await rosterFor(store)).find((p) => p.id === session.personId);
+  return me ? { store, session, canMarkRemove: MARK_ROLES.has(me.role) } : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -66,7 +72,8 @@ export async function listStaff(token: string): Promise<{ ok: true; storeName: s
   if (!pinConfigured()) return NOT_CONFIGURED;
   const store = await resolveCountLink(token);
   if (!store) return BAD_LINK;
-  const people = await rosterFor(store);
+  // Roles stay on the server — the sign-in screen gets names only.
+  const people = (await rosterFor(store)).map(({ id, name, hasPin }) => ({ id, name, hasPin }));
   const session = await getStaffSession(token, store.locationId);
   const me = session && people.some((p) => p.id === session.personId) ? session.name : null;
   return { ok: true, storeName: store.name.replace("Meyhouse ", ""), people, me };
@@ -140,19 +147,7 @@ export async function loadCountFeed(token: string): Promise<{ ok: true; feed: Co
   const [inv, areas, todays] = await Promise.all([
     prisma.inventoryItem.findMany({
       where: { locationId: store.locationId, ingredient: { isActive: true } },
-      select: {
-        id: true,
-        parLevel: true,
-        markedForRemoval: true,
-        storageArea: { select: { id: true, name: true } },
-        ingredient: {
-          select: {
-            name: true, ingredientCategory: true, orderUnit: true, casePackSize: true, vendor: true, menuStatus: true,
-            bottleSizeMl: true, bottleSizeUnit: true,
-            vendorRef: { select: { name: true } },
-          },
-        },
-      },
+      select: FEED_SELECT,
       orderBy: { ingredient: { name: "asc" } },
     }),
     prisma.storageArea.findMany({
@@ -176,36 +171,170 @@ export async function loadCountFeed(token: string): Promise<{ ok: true; feed: Co
     countedToday[k] = { byName: e.countedByName || "Someone", at: e.countedAt.toISOString(), byMe: e.countedById === session.personId };
   }
 
-  const items = inv.map((i) => {
-    const g = i.ingredient;
-    const cps = g.casePackSize ?? null;
-    return {
-      id: i.id,
-      name: g.name,
-      size: formatBottleSize(g.bottleSizeMl, g.bottleSizeUnit),
-      type: typeChipFor(g.ingredientCategory),
-      areaId: i.storageArea?.id ?? null,
-      areaName: i.storageArea?.name ?? null,
-      vendor: g.vendorRef?.name || g.vendor || null,
-      casePack: cps && cps > 1 ? cps : null,
-      par: i.parLevel,
-      unit: effectiveUnit(g.orderUnit, cps),
-      keg: cps === -3,
-      offMenu: g.menuStatus !== "ON_MENU",
-      phasingOut: i.markedForRemoval === "PENDING",
-    };
-  });
+  const items = inv.map(toCountItem);
 
   return {
     ok: true,
     feed: {
       storeName: store.name.replace("Meyhouse ", ""),
-      me: { name: session.name },
+      me: { name: session.name, canMarkRemove: auth.canMarkRemove },
       items,
-      areas: areas.filter((a) => items.some((it) => it.areaId === a.id)),
+      // Every area of the store: the kiosk shows tabs only for areas that have
+      // items, and offers all of them in "Location & shelf".
+      areas,
       countedToday,
     },
   };
+}
+
+const FEED_SELECT = {
+  ingredientId: true,
+  id: true,
+  parLevel: true,
+  markedForRemoval: true,
+  shelfLocation: true,
+  shelfLocation2: true,
+  kioskNote: true,
+  storageArea: { select: { id: true, name: true } },
+  storageArea2: { select: { id: true, name: true } },
+  ingredient: {
+    select: {
+      name: true, ingredientCategory: true, orderUnit: true, casePackSize: true, vendor: true, menuStatus: true,
+      bottleSizeMl: true, bottleSizeUnit: true,
+      vendorRef: { select: { name: true } },
+    },
+  },
+} satisfies Prisma.InventoryItemSelect;
+type FeedRow = Prisma.InventoryItemGetPayload<{ select: typeof FEED_SELECT }>;
+
+function toCountItem(i: FeedRow): CountItem {
+  const g = i.ingredient;
+  const cps = g.casePackSize ?? null;
+  return {
+    id: i.id,
+    name: g.name,
+    size: formatBottleSize(g.bottleSizeMl, g.bottleSizeUnit),
+    type: typeChipFor(g.ingredientCategory),
+    areaId: i.storageArea?.id ?? null,
+    areaName: i.storageArea?.name ?? null,
+    vendor: g.vendorRef?.name || g.vendor || null,
+    casePack: cps && cps > 1 ? cps : null,
+    par: i.parLevel,
+    unit: effectiveUnit(g.orderUnit, cps),
+    keg: cps === -3,
+    offMenu: g.menuStatus !== "ON_MENU",
+    phasingOut: i.markedForRemoval === "PENDING",
+    removing: KIOSK_ITEM_MENU && !!i.markedForRemoval,
+    area2Id: i.storageArea2?.id ?? null,
+    area2Name: i.storageArea2?.name ?? null,
+    shelf1: i.shelfLocation ?? null,
+    shelf2: i.shelfLocation2 ?? null,
+    note: i.kioskNote?.trim() ? i.kioskNote.trim() : null,
+  };
+}
+
+// What a removal mark reads like in the log.
+function markLabel(v: string | null | undefined): string {
+  if (v === "PENDING") return "Phasing out";
+  if (v === "DATABASE") return "Marked → Database";
+  if (v === "INACTIVE") return "Marked → Delete";
+  return "Not marked";
+}
+
+// ---------------------------------------------------------------------------
+// Side panel edits: par, Area 1 / Shelf 1, Area 2 / Shelf 2, note.
+// Any signed-in staff member. THIS store's row only. Only fields that really
+// changed are written (two people editing different fields don't clobber each
+// other; same field → last save wins). Every change logged old → new.
+// ---------------------------------------------------------------------------
+
+const SHELF_MAX = 20;
+const NOTE_MAX = 140;
+
+export async function updateItem(
+  token: string,
+  inventoryItemId: string,
+  edit: ItemEdit,
+): Promise<{ ok: true; item: CountItem } | { ok: false; error: string; signedOut?: boolean }> {
+  if (!pinConfigured()) return NOT_CONFIGURED;
+  if (!KIOSK_ITEM_MENU) return { ok: false, error: "Not available." };
+  const auth = await signedIn(token);
+  if (!auth) return (await resolveCountLink(token)) ? SIGNED_OUT : BAD_LINK;
+  const { store, session } = auth;
+  if (typeof inventoryItemId !== "string" || !edit || typeof edit !== "object") return { ok: false, error: "Nothing to save." };
+
+  const cur = await prisma.inventoryItem.findFirst({
+    where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId },
+    select: FEED_SELECT,
+  });
+  if (!cur) return { ok: false, error: "That item is no longer on this store's list." };
+
+  const data: Prisma.InventoryItemUncheckedUpdateInput = {};
+  const changes: { field: string; oldValue: string; newValue: string }[] = [];
+  const show = (v: string | null | undefined) => (v && v.trim() ? v.trim() : "—");
+
+  if (edit.par !== undefined) {
+    const n = Number(edit.par);
+    if (!Number.isFinite(n) || n < 0 || n > 9999) return { ok: false, error: "Par must be 0 or more." };
+    const par = Math.round(n * 100) / 100;
+    if (par !== cur.parLevel) {
+      data.parLevel = par;
+      changes.push({ field: "par", oldValue: String(cur.parLevel), newValue: String(par) });
+    }
+  }
+
+  const needAreas = edit.area1Id !== undefined || edit.area2Id !== undefined;
+  const areas = needAreas
+    ? await prisma.storageArea.findMany({ where: { locationId: store.locationId, organizationId: store.organizationId }, select: { id: true, name: true } })
+    : [];
+  const areaName = (id: string | null) => (id ? areas.find((a) => a.id === id)?.name ?? null : null);
+  for (const slot of [1, 2] as const) {
+    const v = slot === 1 ? edit.area1Id : edit.area2Id;
+    if (v === undefined) continue;
+    const id = v === null || v === "" ? null : String(v);
+    if (id && !areas.some((a) => a.id === id)) return { ok: false, error: "That area isn't at this store." };
+    if (slot === 1 && !id) return { ok: false, error: "Pick an area for Area 1." };
+    const before = slot === 1 ? cur.storageArea : cur.storageArea2;
+    if ((before?.id ?? null) === id) continue;
+    if (slot === 1) data.storageAreaId = id; else data.storageArea2Id = id;
+    changes.push({ field: `area${slot}`, oldValue: show(before?.name), newValue: show(areaName(id)) });
+  }
+
+  for (const slot of [1, 2] as const) {
+    const v = slot === 1 ? edit.shelf1 : edit.shelf2;
+    if (v === undefined) continue;
+    const t = String(v ?? "").trim().slice(0, SHELF_MAX);
+    const next = t || null;
+    const before = slot === 1 ? cur.shelfLocation : cur.shelfLocation2;
+    if ((before ?? null) === next) continue;
+    if (slot === 1) data.shelfLocation = next; else data.shelfLocation2 = next;
+    changes.push({ field: `shelf${slot}`, oldValue: show(before), newValue: show(next) });
+  }
+
+  if (edit.note !== undefined) {
+    const t = String(edit.note ?? "").replace(/\s+/g, " ").trim().slice(0, NOTE_MAX);
+    const next = t || null;
+    if ((cur.kioskNote?.trim() || null) !== next) {
+      data.kioskNote = next;
+      changes.push({ field: "note", oldValue: show(cur.kioskNote), newValue: show(next) });
+    }
+  }
+
+  if (changes.length === 0) return { ok: true, item: toCountItem(cur) };
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const row = await tx.inventoryItem.update({ where: { id: cur.id }, data, select: FEED_SELECT });
+    await tx.orderActivityLog.createMany({
+      data: changes.map((c) => ({
+        organizationId: store.organizationId, locationId: store.locationId, ingredientId: cur.ingredientId,
+        entity: "PRODUCT", action: "kiosk_edit", field: c.field, oldValue: c.oldValue, newValue: c.newValue, note: cur.ingredient.name,
+        actorId: session.personId, actorName: session.name, actorKind: "staff", source: "staff_count",
+      })),
+    });
+    return row;
+  });
+  revalidatePath("/dashboard/products");
+  return { ok: true, item: toCountItem(updated) };
 }
 
 // ---------------------------------------------------------------------------
@@ -220,9 +349,15 @@ export async function removeItem(token: string, inventoryItemId: string, action:
   if (!auth) return (await resolveCountLink(token)) ? SIGNED_OUT : BAD_LINK;
   const { store, session } = auth;
 
+  // Mark / undo mark: managers, supervisors and owners only — checked here on
+  // the server, not just greyed out on the screen.
+  if (KIOSK_ITEM_MENU && (action === "mark" || action === "unmark") && !auth.canMarkRemove) {
+    return { ok: false, error: "Managers and supervisors only." };
+  }
+
   const inv = await prisma.inventoryItem.findFirst({
     where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId },
-    select: { ingredientId: true, ingredient: { select: { name: true } } },
+    select: { ingredientId: true, markedForRemoval: true, ingredient: { select: { name: true } } },
   });
   if (!inv) return { ok: false, error: "That item is no longer on this store's list." };
 
@@ -236,7 +371,12 @@ export async function removeItem(token: string, inventoryItemId: string, action:
       where: { ingredientId: inv.ingredientId, locationId: store.locationId, organizationId: store.organizationId },
       data: { markedForRemoval: action === "mark" ? "PENDING" : null },
     });
-    await prisma.orderActivityLog.create({ data: { ...log, action: action === "mark" ? "mark_to_remove" : "cancel_phase_out", note: inv.ingredient.name } });
+    await prisma.orderActivityLog.create({
+      data: {
+        ...log, action: action === "mark" ? "mark_to_remove" : "cancel_phase_out", note: inv.ingredient.name,
+        field: "markedForRemoval", oldValue: markLabel(inv.markedForRemoval), newValue: markLabel(action === "mark" ? "PENDING" : null),
+      },
+    });
   } else if (action === "database") {
     await prisma.ingredient.update({
       where: { id: inv.ingredientId, organizationId: store.organizationId },
@@ -282,7 +422,7 @@ export async function sendCounts(token: string, counts: SendCount[], request: st
   const inv = await prisma.inventoryItem.findMany({
     where: { id: { in: [...clean.keys()] }, locationId: store.locationId, ingredient: { isActive: true } },
     select: {
-      id: true, parLevel: true, ingredientId: true,
+      id: true, parLevel: true, ingredientId: true, markedForRemoval: true,
       storageArea: { select: { id: true, name: true } },
       ingredient: { select: { name: true, orderUnit: true, casePackSize: true, vendor: true, vendorRef: { select: { name: true } } } },
     },
@@ -372,7 +512,8 @@ export async function sendCounts(token: string, counts: SendCount[], request: st
         const c = clean.get(i.id)!;
         const adminUnit = effectiveUnit(i.ingredient.orderUnit, i.ingredient.casePackSize);
         const unitUsed = adminUnit ?? c.unitPick;
-        const qty = orderQty(i.parLevel, c.count, unitUsed, i.ingredient.casePackSize);
+        // Coming off menu: counted, never reordered.
+        const qty = KIOSK_ITEM_MENU && i.markedForRemoval ? 0 : orderQty(i.parLevel, c.count, unitUsed, i.ingredient.casePackSize);
         const unitStr = unitUsed === "CASE" ? "case" : "bottle";
         const existing = order.items.find((l) => l.ingredientId === i.ingredientId && !l.transferFromLocationId);
         const lineData = {
@@ -435,7 +576,7 @@ export async function sendCounts(token: string, counts: SendCount[], request: st
 // repeat counts add up, never replace). Counts are still kept in
 // OrderCountEntry, notes in OrderStaffRequest, everything logged.
 type InvRow = {
-  id: string; parLevel: number; ingredientId: string;
+  id: string; parLevel: number; ingredientId: string; markedForRemoval: string | null;
   storageArea: { id: string; name: string } | null;
   ingredient: { name: string; orderUnit: string | null; casePackSize: number | null; vendor: string | null; vendorRef: { name: string } | null };
 };
@@ -479,6 +620,7 @@ async function sendCountsToCart(
         const c = clean.get(i.id)!;
         const adminUnit = effectiveUnit(i.ingredient.orderUnit, i.ingredient.casePackSize);
         const unitUsed = adminUnit ?? c.unitPick;
+        if (KIOSK_ITEM_MENU && i.markedForRemoval) continue; // coming off menu: counted, never reordered
         const qty = orderQty(i.parLevel, c.count, unitUsed, i.ingredient.casePackSize);
         if (qty <= 0) continue;
         const unitStr = unitUsed === "CASE" ? "case" : "bottle";
