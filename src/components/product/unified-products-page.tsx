@@ -19,6 +19,10 @@ import { orderingPulse } from "@/lib/actions/order-review";
 import type { ReviewOrder, TransferRow } from "@/lib/order-review-types";
 import { TransfersPanel } from "@/components/product/transfers-panel";
 import { BudgetWidget, type BudgetSummary } from "@/components/product/budget-widget";
+import { OrderCartDrawer } from "@/components/product/order-cart-drawer";
+import { cartClear, cartHeartbeat, cartSetDesktopCounts, type DesktopCount } from "@/lib/actions/order-cart";
+import type { CartLineDTO, CartRequestDTO, CartViewer } from "@/lib/order-cart-types";
+import { ORDER_CART_FLOW } from "@/lib/order-flags";
 import {
   Search,
   Plus,
@@ -404,6 +408,8 @@ export function UnifiedProductsPage({
   inProgressOrders,
   theoreticalUsage,
   budget,
+  cart: initialCart,
+  meId,
 }: {
   products: Product[];
   locations: Location[];
@@ -438,6 +444,9 @@ export function UnifiedProductsPage({
   }[];
   // Theoretical usage from POS sales, keyed `${ingredientId}_${locationId}`, in inventory count units.
   theoreticalUsage: Record<string, number>;
+  // Shared Order Cart (ORDER_CART_FLOW): lines + open staff notes for my stores.
+  cart: { lines: CartLineDTO[]; requests: CartRequestDTO[] };
+  meId: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -469,6 +478,34 @@ export function UnifiedProductsPage({
     setOrderStoreIdsRaw(ordered);
     try { localStorage.setItem("ordering.selectedStores", JSON.stringify(ordered)); } catch {}
   };
+  // ===== SHARED ORDER CART (ORDER_CART_FLOW) =====
+  // Server copy of the cart; refreshed by the live check (router.refresh) and
+  // by every cart action's reply.
+  const [cartData, setCartData] = useState(initialCart);
+  useEffect(() => { setCartData(initialCart); }, [initialCart]);
+  // Which of my stores the cart shows/approves. Remembered per device.
+  const [cartStoreIds, setCartStoreIdsRaw] = useState<string[]>(myOrderStoreIds);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("ordering.cartStores") || "null");
+      if (Array.isArray(saved)) {
+        const valid = saved.filter((id: string) => myOrderStoreIds.includes(id));
+        setCartStoreIdsRaw(valid.length > 0 ? valid : myOrderStoreIds);
+        return;
+      }
+    } catch {}
+    setCartStoreIdsRaw(myOrderStoreIds);
+  }, [myOrderStoreIds]);
+  const setCartStoreIds = (ids: string[]) => {
+    setCartStoreIdsRaw(ids);
+    try { localStorage.setItem("ordering.cartStores", JSON.stringify(ids)); } catch {}
+  };
+  const cartLineCount = useMemo(
+    () => cartData.lines.filter((l) => cartStoreIds.includes(l.locationId)).length,
+    [cartData.lines, cartStoreIds],
+  );
+  const [cartViewers, setCartViewers] = useState<CartViewer[]>([]);
+
   const [orderMenuFilter, setOrderMenuFilter] = useState<"onMenu" | "all">("onMenu");
   const [needsAttentionOnly, setNeedsAttentionOnly] = useState(false);
   const [unitSaving, setUnitSaving] = useState<string | null>(null);
@@ -478,6 +515,7 @@ export function UnifiedProductsPage({
   type OrderView = "build" | "review" | "emails";
   const [orderView, setOrderViewRaw] = useState<OrderView>(() => {
     const v = searchParams.get("view");
+    if (ORDER_CART_FLOW) return "build"; // old tabs hidden in the new flow
     return v === "review" || v === "emails" ? v : "build";
   });
   const setOrderView = (v: OrderView) => {
@@ -1110,6 +1148,9 @@ export function UnifiedProductsPage({
     if (!cartLoaded.current) {
       cartLoaded.current = true;
       let localCounts: Record<string, string> = {};
+      // New flow: counts come from my part of the shared cart (below), never
+      // from this device's storage — another device may have approved since.
+      if (ORDER_CART_FLOW) return;
       try {
         localCounts = JSON.parse(localStorage.getItem("meyhouse_orderCounts") || "{}");
         if (Object.keys(localCounts).length > 0) setOrderCountsRaw(localCounts);
@@ -1282,6 +1323,16 @@ export function UnifiedProductsPage({
     const [qtyStr, unitStr] = editValue.split(":");
     const qty = Math.max(0, parseInt(qtyStr || "0", 10) || 0);
     setEditingCell(null);
+    if (ORDER_CART_FLOW) {
+      // My desktop part of the shared cart line = exactly this amount.
+      const [productId, locationId] = cartKey.split("_");
+      const unit = unitStr === "cs" ? "case" : "bottle";
+      setCartOverrides({ ...cartOverrides, [cartKey]: { ...cartOverrides[cartKey], orderQty: qty, orderUnit: unit } });
+      const inv = products.find((p) => p.id === productId)?.inventory.find((i) => i.locationId === locationId);
+      const cv = inv ? orderCounts[inv.id] : undefined;
+      sendDesktop([{ locationId, ingredientId: productId, counted: cv !== undefined && cv !== "" ? parseFloat(cv) || 0 : null, qty, unit }]);
+      return;
+    }
     if (qty === 0) {
       // 0 = drop the line (same as the cart's ✕)
       const [productId, locationId] = cartKey.split("_");
@@ -1438,6 +1489,16 @@ export function UnifiedProductsPage({
   }
 
   function handleClearCart() {
+    if (ORDER_CART_FLOW) {
+      // Clear only the stores the cart shows; drop my counts for those stores.
+      const stores = new Set(cartStoreIds);
+      const invIds = new Set(products.flatMap((p) => p.inventory.filter((i) => stores.has(i.locationId)).map((i) => i.id)));
+      setOrderCounts((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !invIds.has(k))));
+      setCartOverrides(Object.fromEntries(Object.entries(cartOverrides).filter(([k]) => !stores.has(k.split("_")[1]))));
+      for (const id of invIds) desktopSent.current.delete(id);
+      cartClear(cartStoreIds).then((r) => { if (r?.cart) setCartData(r.cart); }).catch(() => {});
+      return;
+    }
     setOrderCounts({});
     setCartOverrides({});
     setSubmitResult(null);
@@ -1495,7 +1556,7 @@ export function UnifiedProductsPage({
   }, [buildLocationPayloads]);
 
   useEffect(() => {
-    if (mode !== "ordering") return;
+    if (mode !== "ordering" || ORDER_CART_FLOW) return;
     // Don't autosave the very first render (we may have just hydrated).
     if (skipFirstAutosave.current) {
       skipFirstAutosave.current = false;
@@ -1513,6 +1574,7 @@ export function UnifiedProductsPage({
   // Flush a pending save when the tab is hidden/closed so work isn't lost.
   useEffect(() => {
     const flush = () => {
+      if (ORDER_CART_FLOW) return;
       if (document.visibilityState === "hidden") {
         if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
         saveAllInProgress().catch(() => {});
@@ -1552,6 +1614,100 @@ export function UnifiedProductsPage({
     }
     setSubmitting(false);
   }
+
+  // ===== DESKTOP COUNTS → MY PART OF THE SHARED CART (ORDER_CART_FLOW) =====
+  // The server is the source of truth: on load (and whenever the cart changes
+  // on the server) my counts are rebuilt from my desktop parts in the cart.
+  // Typed counts are sent (debounced) as "set my part for this item".
+  const desktopSent = useRef<Map<string, string>>(new Map()); // invId → count last sent / seen on server
+  const desktopPending = useRef<Set<string>>(new Set()); // invIds typed but not yet saved
+  const desktopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const invKeyMap = useMemo(() => {
+    const byInv = new Map<string, { locationId: string; ingredientId: string; parLevel: number }>();
+    const byKey = new Map<string, string>();
+    for (const p of products) for (const inv of p.inventory) {
+      byInv.set(inv.id, { locationId: inv.locationId, ingredientId: p.id, parLevel: inv.parLevel });
+      byKey.set(`${p.id}_${inv.locationId}`, inv.id);
+    }
+    return { byInv, byKey };
+  }, [products]);
+
+  function sendDesktop(list: DesktopCount[]) {
+    if (list.length === 0) return;
+    cartSetDesktopCounts(list)
+      .then((r) => { if (r?.cart) setCartData(r.cart); })
+      .catch((e) => console.error("Cart save failed:", e));
+  }
+
+  // Server → my counts
+  useEffect(() => {
+    if (!ORDER_CART_FLOW) return;
+    const server = new Map<string, string>();
+    for (const l of cartData.lines) {
+      for (const src of l.sources) {
+        if (src.kind !== "desktop" || src.actorId !== meId || src.countedStock === null) continue;
+        const invId = invKeyMap.byKey.get(`${l.ingredientId}_${l.locationId}`);
+        if (invId) server.set(invId, String(src.countedStock));
+      }
+    }
+    const before = desktopSent.current;
+    setOrderCountsRaw((prev) => {
+      const next: Record<string, string> = { ...prev };
+      for (const [id, v] of server) if (!desktopPending.current.has(id)) next[id] = v;
+      // My part vanished on the server (approved, cleared, removed) → drop the
+      // count, unless it was at/above par (those never made a line).
+      for (const id of before.keys()) {
+        if (server.has(id) || desktopPending.current.has(id) || prev[id] !== before.get(id)) continue;
+        const left = parseFloat(prev[id] ?? "");
+        const par = invKeyMap.byInv.get(id)?.parLevel;
+        if (par === undefined || !(left >= par)) delete next[id];
+      }
+      return next;
+    });
+    const kept = [...before].filter(([id]) => desktopPending.current.has(id));
+    desktopSent.current = new Map([...kept, ...server]);
+  }, [cartData, meId, invKeyMap]);
+
+  // My counts → server (only what changed since the last send)
+  useEffect(() => {
+    if (!ORDER_CART_FLOW || mode !== "ordering") return;
+    const changed: string[] = [];
+    for (const [id, v] of Object.entries(orderCounts)) {
+      if (storeAccess[invKeyMap.byInv.get(id)?.locationId ?? ""] !== "ORDER") continue;
+      if (desktopSent.current.get(id) !== v) changed.push(id);
+    }
+    for (const id of desktopSent.current.keys()) if (!(id in orderCounts)) changed.push(id);
+    if (changed.length === 0) return;
+    for (const id of changed) desktopPending.current.add(id);
+    if (desktopTimer.current) clearTimeout(desktopTimer.current);
+    desktopTimer.current = setTimeout(() => {
+      const list: DesktopCount[] = [];
+      for (const id of [...desktopPending.current]) {
+        const k = invKeyMap.byInv.get(id);
+        if (!k) continue;
+        const v = orderCounts[id];
+        const counted = v === undefined || v === "" ? null : parseFloat(v) || 0;
+        list.push({ locationId: k.locationId, ingredientId: k.ingredientId, counted });
+        if (v === undefined) desktopSent.current.delete(id); else desktopSent.current.set(id, v);
+      }
+      desktopPending.current.clear();
+      sendDesktop(list);
+    }, 900);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderCounts, mode]);
+
+  // "<name> is also viewing <store>" — heartbeat while the Order tab is open.
+  useEffect(() => {
+    if (!ORDER_CART_FLOW || mode !== "ordering" || cartStoreIds.length === 0) return;
+    let stopped = false;
+    const beat = () => {
+      if (document.visibilityState !== "visible") return;
+      cartHeartbeat(cartStoreIds).then((v) => { if (!stopped) setCartViewers(v); }).catch(() => {});
+    };
+    beat();
+    const t = setInterval(beat, 20_000);
+    return () => { stopped = true; clearInterval(t); };
+  }, [mode, cartStoreIds]);
 
   // Get order history helper
   function getHistoryLine(p: typeof inventoryForStore[number]): {
@@ -2407,10 +2563,14 @@ export function UnifiedProductsPage({
       {mode === "ordering" && newSend && (
         <div className="mt-1 mb-2 flex items-center justify-between gap-3 rounded-xl border border-[var(--brand-olive)] bg-[#F6F8F1] px-4 py-2.5 text-sm">
           <span className="text-[var(--brand-brown)]">
-            <span className="font-semibold">New order{newSend.store ? ` from ${newSend.store}` : ""}</span> — sent by {newSend.by}
+            <span className="font-semibold">{ORDER_CART_FLOW ? "Kiosk count" : "New order"}{newSend.store ? ` from ${newSend.store}` : ""}</span> — sent by {newSend.by}{ORDER_CART_FLOW ? " · added to the Order Cart" : ""}
           </span>
           <span className="flex items-center gap-2 shrink-0">
-            {orderView !== "review" && (
+            {ORDER_CART_FLOW ? (
+              <button onClick={() => { setShowCart(true); setNewSend(null); }} className="px-3 py-1.5 rounded-full bg-[var(--brand-olive)] text-white text-xs font-medium">
+                Open cart
+              </button>
+            ) : orderView !== "review" && (
               <button onClick={() => { setOrderView("review"); setNewSend(null); }} className="px-3 py-1.5 rounded-full bg-[var(--brand-olive)] text-white text-xs font-medium">
                 Review now
               </button>
@@ -2424,11 +2584,14 @@ export function UnifiedProductsPage({
       {mode === "ordering" && (
         <div className={`bg-white border border-[var(--line)] rounded-xl mt-1 ${fullScreenView ? "p-2" : "p-3"}`}>
           <div className="flex items-center gap-1 mb-2 flex-wrap" role="tablist" aria-label="Order steps">
-            {([
-              ["build", "Count & build", null],
-              ["review", "Review & approve", waitingCount],
-              ["emails", "Ready to email", emailsToSend],
-            ] as const).map(([v, label, n]) => (
+            {(ORDER_CART_FLOW
+              ? ([["build", "Count & build", null]] as const)
+              : ([
+                  ["build", "Count & build", null],
+                  ["review", "Review & approve", waitingCount],
+                  ["emails", "Ready to email", emailsToSend],
+                ] as const)
+            ).map(([v, label, n]) => (
               <button
                 key={v}
                 role="tab"
@@ -2536,9 +2699,9 @@ export function UnifiedProductsPage({
               >
                 <ShoppingCart className="w-4 h-4" />
                 Order Cart
-                {cartItems.length > 0 && (
+                {(ORDER_CART_FLOW ? cartLineCount : cartItems.length) > 0 && (
                   <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
-                    {cartItems.length}
+                    {ORDER_CART_FLOW ? cartLineCount : cartItems.length}
                   </span>
                 )}
               </button>
@@ -4376,7 +4539,25 @@ export function UnifiedProductsPage({
             )}
           </div>
 
+          {ORDER_CART_FLOW && (
+            <OrderCartDrawer
+              open={showCart}
+              onClose={() => setShowCart(false)}
+              cart={cartData}
+              onCart={setCartData}
+              locations={locations}
+              orderStoreIds={myOrderStoreIds}
+              cartStoreIds={cartStoreIds}
+              onCartStoreIds={setCartStoreIds}
+              viewers={cartViewers}
+              products={products}
+              meId={meId}
+              onClearCart={handleClearCart}
+            />
+          )}
           {/* ===== ORDER CART — right-side slide-over drawer ===== */}
+          {/* Old browser-only cart: hidden while ORDER_CART_FLOW is on (kept for rollback). */}
+          {!ORDER_CART_FLOW && (<>
           {/* Dimmed backdrop — click to close */}
           {showCart && (
             <div
@@ -4579,6 +4760,7 @@ export function UnifiedProductsPage({
                 </div>
               )}
           </div>{/* end cart drawer */}
+          </>)}
 
           {/* Email Preview Modal — rendered outside the transformed drawer so its
               fixed positioning is relative to the viewport, not the drawer. */}

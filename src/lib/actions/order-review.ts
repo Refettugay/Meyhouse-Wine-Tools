@@ -313,7 +313,7 @@ export async function resolveStaffRequest(requestId: string, status: "ADDED" | "
 
 export async function orderingPulse(): Promise<{ key: string; lastSend: { store: string; by: string; id: string } | null }> {
   const session = await requireAuth();
-  const [latest, send] = await Promise.all([
+  const [latest, send, cartSig] = await Promise.all([
     prisma.orderActivityLog.findFirst({
       where: { organizationId: session.organizationId },
       orderBy: { at: "desc" },
@@ -324,13 +324,21 @@ export async function orderingPulse(): Promise<{ key: string; lastSend: { store:
       orderBy: { at: "desc" },
       select: { id: true, locationId: true, actorName: true },
     }),
+    // Shared Order Cart: any line added / edited / removed changes this.
+    prisma.orderCartLine.aggregate({
+      where: { organizationId: session.organizationId },
+      _count: true,
+      _sum: { qty: true },
+      _max: { updatedAt: true },
+    }),
   ]);
   let lastSend = null;
   if (send) {
     const loc = send.locationId ? await prisma.location.findUnique({ where: { id: send.locationId }, select: { name: true } }) : null;
     lastSend = { store: loc ? short(loc.name) : "", by: send.actorName || "Staff", id: send.id };
   }
-  return { key: latest?.id ?? "", lastSend };
+  const cartKey = `${cartSig._count}|${cartSig._sum.qty ?? 0}|${cartSig._max.updatedAt?.getTime() ?? 0}`;
+  return { key: `${latest?.id ?? ""}|${cartKey}`, lastSend };
 }
 
 // ---------------------------------------------------------------------------

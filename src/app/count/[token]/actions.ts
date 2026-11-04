@@ -15,6 +15,8 @@ import { effectiveUnit, orderQty, type OrderUnit } from "@/lib/ordering-math";
 import type { CountFeed, RemoveAction, SendCount, SendResult, StaffPerson } from "@/lib/staff-count/feed-types";
 import { hardDeleteIngredient } from "@/lib/product-removal";
 import { absorbHeld } from "@/lib/order-hold";
+import { ORDER_CART_FLOW } from "@/lib/order-flags";
+import { addToCartLine } from "@/lib/order-cart";
 import { revalidatePath } from "next/cache";
 
 const BAD_LINK = { ok: false as const, error: "This link isn't active. Ask your manager for the current link." };
@@ -290,6 +292,12 @@ export async function sendCounts(token: string, counts: SendCount[], request: st
   const actor = { actorId: session.personId, actorName: session.name, actorKind: "staff", source: "staff_count" } as const;
   let linesOrdered = 0;
 
+  if (ORDER_CART_FLOW) {
+    linesOrdered = await sendCountsToCart(store, session, inv, clean, note, now, actor);
+    await clearStaffSession(token);
+    return { ok: true, linesOrdered, itemsCounted: inv.length };
+  }
+
   await prisma.$transaction(
     async (tx) => {
       // One send per store at a time, so two phones sending together can't
@@ -420,4 +428,83 @@ export async function sendCounts(token: string, counts: SendCount[], request: st
   // Sent → signed out automatically (the next person signs in fresh).
   await clearStaffSession(token);
   return { ok: true, linesOrdered, itemsCounted: inv.length };
+}
+
+// New flow (ORDER_CART_FLOW): every line lands in the store's shared Order
+// Cart. Same item + store + unit already there → the quantities ADD (Refet:
+// repeat counts add up, never replace). Counts are still kept in
+// OrderCountEntry, notes in OrderStaffRequest, everything logged.
+type InvRow = {
+  id: string; parLevel: number; ingredientId: string;
+  storageArea: { id: string; name: string } | null;
+  ingredient: { name: string; orderUnit: string | null; casePackSize: number | null; vendor: string | null; vendorRef: { name: string } | null };
+};
+async function sendCountsToCart(
+  store: CountLinkStore,
+  session: StaffSession,
+  inv: InvRow[],
+  clean: Map<string, { count: number; unitPick: OrderUnit | null }>,
+  note: string,
+  now: Date,
+  actor: { actorId: string; actorName: string; actorKind: "staff"; source: "staff_count" },
+): Promise<number> {
+  let linesOrdered = 0;
+  await prisma.$transaction(
+    async (tx) => {
+      await tx.$executeRaw`select pg_advisory_xact_lock(hashtext(${"staff-count:" + store.locationId}))`;
+      const logs: Prisma.OrderActivityLogCreateManyInput[] = [];
+      const base = { organizationId: store.organizationId, locationId: store.locationId, ...actor };
+
+      if (inv.length > 0) {
+        await tx.orderCountEntry.updateMany({
+          where: { locationId: store.locationId, inventoryItemId: { in: inv.map((i) => i.id) }, supersededAt: null },
+          data: { supersededAt: now },
+        });
+        await tx.orderCountEntry.createMany({
+          data: inv.map((i) => {
+            const c = clean.get(i.id)!;
+            const unit = effectiveUnit(i.ingredient.orderUnit, i.ingredient.casePackSize);
+            return {
+              organizationId: store.organizationId, locationId: store.locationId, orderListId: null,
+              ingredientId: i.ingredientId, inventoryItemId: i.id,
+              storageAreaId: i.storageArea?.id ?? null, storageAreaName: i.storageArea?.name ?? null,
+              count: c.count, unitPick: unit === null ? c.unitPick : null,
+              countedById: session.personId, countedByName: session.name, countedAt: now,
+            };
+          }),
+        });
+      }
+
+      for (const i of inv) {
+        const c = clean.get(i.id)!;
+        const adminUnit = effectiveUnit(i.ingredient.orderUnit, i.ingredient.casePackSize);
+        const unitUsed = adminUnit ?? c.unitPick;
+        const qty = orderQty(i.parLevel, c.count, unitUsed, i.ingredient.casePackSize);
+        if (qty <= 0) continue;
+        const unitStr = unitUsed === "CASE" ? "case" : "bottle";
+        linesOrdered++;
+        await addToCartLine(
+          tx,
+          {
+            organizationId: store.organizationId, locationId: store.locationId, ingredientId: i.ingredientId,
+            unit: unitStr, qty, vendor: i.ingredient.vendorRef?.name || i.ingredient.vendor || null,
+          },
+          { kind: "kiosk", actorId: session.personId, actorName: session.name, countedStock: c.count, parSnapshot: i.parLevel, fromLocationId: store.locationId, at: now },
+        );
+        logs.push({ ...base, ingredientId: i.ingredientId, entity: "CART", action: "count", field: "qty", newValue: `+${qty} ${unitStr} (count ${c.count})` });
+      }
+
+      if (note) {
+        await tx.orderStaffRequest.create({
+          data: { organizationId: store.organizationId, locationId: store.locationId, orderListId: null, text: note, requestedById: session.personId, requestedByName: session.name },
+        });
+        logs.push({ ...base, entity: "REQUEST", action: "add", newValue: note });
+      }
+      logs.push({ ...base, entity: "ORDER", action: "staff_send", note: `${inv.length} counted, ${linesOrdered} added to the Order Cart${note ? ", 1 note" : ""}` });
+      await tx.orderActivityLog.createMany({ data: logs });
+    },
+    { timeout: 30_000, maxWait: 10_000 },
+  );
+  revalidatePath("/dashboard/products");
+  return linesOrdered;
 }

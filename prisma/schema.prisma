@@ -463,12 +463,15 @@ model OrderList {
   // Staff Ordering: who sent it from the staff count page
   submittedById   String?
   submittedByName String?
-  source          String?        // 'staff' | 'manager'
+  source          String?        // 'staff' | 'manager' | 'cart'
+  // Set when the order was made by "Approve" on the Order Cart (2026-11-03).
+  approvedOrderId String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   location     Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  approvedOrder ApprovedOrder? @relation(fields: [approvedOrderId], references: [id], onDelete: SetNull)
   items        OrderListItem[]
   countEntries  OrderCountEntry[]
   staffRequests OrderStaffRequest[]
@@ -512,8 +515,13 @@ model OrderListItem {
   transferredByName     String?
   unitCostCentsSnapshot Int?
   casePackSizeSnapshot  Int?
+  // Approved orders (2026-11-03): the "Ordered" tap that covered this line,
+  // and where it came from ("Kiosk · Palo Alto · 3:12pm · Sam").
+  orderedEventId        String?
+  sourceSummary         String?
 
   orderList  OrderList  @relation(fields: [orderListId], references: [id], onDelete: Cascade)
+  orderedEvent OrderOrderedEvent? @relation(fields: [orderedEventId], references: [id], onDelete: SetNull)
   ingredient Ingredient @relation(fields: [ingredientId], references: [id])
 
   @@schema("beverage")
@@ -914,5 +922,115 @@ model BudgetInvoice {
 
   @@index([organizationId, month], map: "budget_invoice_org_month")
   @@map("budget_invoice")
+  @@schema("beverage")
+}
+
+// ===== Order Cart → Approved orders → Order history (2026-11-03) =====
+// See docs/ordering-approved-orders-progress.md.
+
+// Shared Order Cart: one line per store + item + unit (kiosk + desktop add up).
+model OrderCartLine {
+  id             String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  organizationId String   @map("organization_id")
+  locationId     String   @map("location_id")
+  ingredientId   String   @map("ingredient_id")
+  unit           String // 'case' | 'bottle'
+  qty            Float
+  vendor         String?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
+
+  sources OrderCartSource[]
+
+  @@unique([locationId, ingredientId, unit])
+  @@map("order_cart_line")
+  @@schema("beverage")
+}
+
+// Where each part of a cart line came from. kind: kiosk | desktop | migrated | moved_in | add
+model OrderCartSource {
+  id             String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  lineId         String   @map("line_id")
+  kind           String
+  qty            Float
+  actorId        String?  @map("actor_id")
+  actorName      String?  @map("actor_name")
+  countedStock   Float?   @map("counted_stock")
+  parSnapshot    Float?   @map("par_snapshot")
+  fromLocationId String?  @map("from_location_id")
+  at             DateTime @default(now()) @db.Timestamp(6)
+
+  line OrderCartLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+
+  @@map("order_cart_source")
+  @@schema("beverage")
+}
+
+// "<name> is also viewing <store>"
+model OrderCartPresence {
+  userId     String   @map("user_id")
+  locationId String   @map("location_id")
+  userName   String?  @map("user_name")
+  seenAt     DateTime @default(now()) @map("seen_at") @db.Timestamp(6)
+
+  @@id([userId, locationId])
+  @@map("order_cart_presence")
+  @@schema("beverage")
+}
+
+// One ACTIVE approved list per approver; CLEARED rows are Order history (last 8 kept).
+model ApprovedOrder {
+  id              String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  organizationId  String    @map("organization_id")
+  approvedById    String    @map("approved_by_id")
+  approvedByName  String?   @map("approved_by_name")
+  approvedAt      DateTime  @default(now()) @map("approved_at") @db.Timestamp(6)
+  firstApprovedAt DateTime  @default(now()) @map("first_approved_at") @db.Timestamp(6)
+  status          String    @default("ACTIVE") // ACTIVE | CLEARED
+  clearedAt       DateTime? @map("cleared_at") @db.Timestamp(6)
+  clearedByName   String?   @map("cleared_by_name")
+
+  orderLists OrderList[]
+  events     OrderOrderedEvent[]
+
+  @@map("approved_order")
+  @@schema("beverage")
+}
+
+// One "Ordered" tap on a vendor card.
+model OrderOrderedEvent {
+  id              String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  approvedOrderId String   @map("approved_order_id")
+  vendorName      String   @map("vendor_name")
+  orderedAt       DateTime @default(now()) @map("ordered_at") @db.Timestamp(6)
+  orderedById     String?  @map("ordered_by_id")
+  orderedByName   String?  @map("ordered_by_name")
+
+  approvedOrder ApprovedOrder   @relation(fields: [approvedOrderId], references: [id], onDelete: Cascade)
+  lines         OrderListItem[]
+  history       OrderHistoryEntry[]
+
+  @@map("order_ordered_event")
+  @@schema("beverage")
+}
+
+// 8-week ordering history. qtyCases null = bottles with no pack size (flagged).
+model OrderHistoryEntry {
+  id              String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  organizationId  String   @map("organization_id")
+  locationId      String   @map("location_id")
+  ingredientId    String   @map("ingredient_id")
+  businessDate    DateTime @map("business_date") @db.Date
+  qty             Float
+  unit            String
+  qtyCases        Float?   @map("qty_cases")
+  orderedEventId  String?  @map("ordered_event_id")
+  orderListItemId String?  @map("order_list_item_id")
+  source          String   @default("ordered") // ordered | backfill
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  orderedEvent OrderOrderedEvent? @relation(fields: [orderedEventId], references: [id], onDelete: Cascade)
+
+  @@map("order_history_entry")
   @@schema("beverage")
 }

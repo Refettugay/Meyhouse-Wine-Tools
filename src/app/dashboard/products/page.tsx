@@ -7,6 +7,7 @@ import { getOrderingScope } from "@/lib/ordering-scope";
 import { canApproveOrders, canSeeBudget, canSeeTransfers } from "@/lib/permissions";
 import type { ReviewOrder, TransferRow } from "@/lib/order-review-types";
 import type { BudgetSummary } from "@/components/product/budget-widget";
+import { loadCartFor } from "@/lib/order-cart";
 
 export default async function ProductsPage() {
   const session = await requireAuth();
@@ -406,6 +407,9 @@ export default async function ProductsPage() {
     }),
   }));
 
+  // Shared Order Cart (2026-11-03): lines for the stores this person orders for.
+  const cart = await loadCartFor(orgId, locations.filter((l) => orderingScope.access[l.id] === "ORDER").map((l) => l.id));
+
   // Theoretical usage per (ingredient, location): how much POS sales say SHOULD
   // have been consumed since each item's last count. Keyed `${ingredientId}_${locationId}`
   // to match the purchasesMap convention and so the client can look it up per store.
@@ -487,6 +491,8 @@ export default async function ProductsPage() {
       inProgressOrders={inProgressOrders}
       theoreticalUsage={theoreticalUsage}
       budget={budget}
+      cart={cart}
+      meId={session.userId}
     />
   );
 }
