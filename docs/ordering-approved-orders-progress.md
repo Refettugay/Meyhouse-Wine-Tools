@@ -1,7 +1,9 @@
 # Ordering: kiosk → Order Cart → Approved orders → Order history
 
-Status (2026-11-03): **Phases 1–4 built, tested, merged to `main` and deployed with the new flow OFF.**
-Production behaves exactly as before until the switch is turned on (see "Turning it on").
+Status (2026-11-03): **LIVE — new flow ON in production** (default ON in code; see "Switch").
+Started clean: the old Review & approve / Ready to email / transfer rows were test data —
+kept in the DB, hidden when the flow is on. The move and backfill scripts were NOT run
+(and should not be).
 
 ## What the new flow does (when ON)
 Tabs: **Count & build · Approved orders · Order history** (Review & approve and Ready to email hidden).
@@ -48,9 +50,10 @@ Tabs: **Count & build · Approved orders · Order history** (Review & approve an
   before turning on (see below).
 
 ## Switch
-`src/lib/order-flags.ts`: `ORDER_CART_FLOW = process.env.NEXT_PUBLIC_ORDER_CART_FLOW === "on"`.
-Vercel project **meyhouse-wine-tools** → Settings → Environment Variables. Missing/anything
-else = OFF. A **Redeploy** is needed after changing it (value is baked in at build).
+`src/lib/order-flags.ts`: `ORDER_CART_FLOW = process.env.NEXT_PUBLIC_ORDER_CART_FLOW !== "off"`
+(ON unless the variable says `off`). Turn OFF: Vercel **meyhouse-wine-tools** → Settings →
+Environment Variables → `NEXT_PUBLIC_ORDER_CART_FLOW` = `off` (Production) → Redeploy; or set
+the line to `false` and push. (Claude's Vercel connection can't create production env vars.)
 
 ## Database
 Migration `20261103000000_order_cart_approved_orders` (applied 2026-11-03, additive; rollback
