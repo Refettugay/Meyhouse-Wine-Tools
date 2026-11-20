@@ -9,6 +9,7 @@ export type KioskChange = {
   what: string; // "Par", "Area 1", "Note", "Remove mark", …
   from: string | null;
   to: string | null;
+  admin?: boolean; // made in Admin (area/shelf picker), not on the kiosk
 };
 
 // Pacific time, e.g. "Nov 3, 4:12pm".

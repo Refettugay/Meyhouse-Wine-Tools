@@ -59,6 +59,7 @@ export function KioskChangeLine({ c, showItem = false }: { c: KioskChange; showI
       <span className="text-[var(--ink-muted)] tabular-nums">{pacificTime(c.at)}</span>
       <span className="text-[var(--ink-muted)]">· {c.store} ·</span>
       <span className="font-medium">{c.who}</span>
+      {c.admin && <span className="px-1 rounded bg-[#F3EADB] text-[#A87E3B] text-[10px] font-medium uppercase tracking-wide">Admin</span>}
       {showItem && <span>· {c.item}</span>}
       <span>· {c.what}{c.from !== null || c.to !== null ? ":" : ""}</span>
       {(c.from !== null || c.to !== null) && (

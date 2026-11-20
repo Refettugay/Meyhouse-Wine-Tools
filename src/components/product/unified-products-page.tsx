@@ -27,6 +27,9 @@ import type { ApprovedOrderDTO, CartLineDTO, CartRequestDTO, CartViewer } from "
 import { ORDER_CART_FLOW } from "@/lib/order-flags";
 import { KIOSK_ITEM_MENU } from "@/lib/kiosk-flags";
 import { KioskChangesStrip } from "@/components/product/kiosk-changes-strip";
+import { ADMIN_AREA_PICKER } from "@/lib/admin-area-picker-flag";
+import { AreaShelfPicker, type PickerOption, type PickerTick } from "@/components/product/area-shelf-picker";
+import { setProductLocations, type LocationSet } from "@/lib/actions/area-picker";
 import {
   Search,
   Plus,
@@ -711,6 +714,22 @@ export function UnifiedProductsPage({
     kind: "success" | "error";
     text: string;
   } | null>(null);
+
+  // ===== AREA / SHELF PICKER (ADMIN_AREA_PICKER) =====
+  // One panel for Area 1 / Shelf 1 / Area 2 / Shelf 2 — a single row (opened
+  // from any of the four cells) or every ticked row ("Set location for selected").
+  const [areaPicker, setAreaPicker] = useState<
+    | { kind: "one"; productId: string; title: string; anchor: HTMLElement; options: PickerOption[]; initial: PickerTick[] }
+    | { kind: "bulk"; productIds: string[]; title: string; anchor: HTMLElement; options: PickerOption[]; initial: PickerTick[] }
+    | null
+  >(null);
+  const [areaBulkMsg, setAreaBulkMsg] = useState<{ kind: "info" | "success" | "error"; text: string } | null>(null);
+  useEffect(() => {
+    if (!areaBulkMsg) return;
+    const t = setTimeout(() => setAreaBulkMsg(null), 5000);
+    return () => clearTimeout(t);
+  }, [areaBulkMsg]);
+  const closeAreaPicker = useCallback(() => setAreaPicker(null), []);
 
   // Clear selection whenever the user switches away from Products mode —
   // selection is meaningless outside the products table.
@@ -2024,6 +2043,77 @@ export function UnifiedProductsPage({
     setSelectedIds(new Set());
   }
 
+  // ----- Area / shelf picker -----
+  function storeAreaOptions(): PickerOption[] {
+    const areas = locations.find((l) => l.id === locationFilter)?.storageAreas || [];
+    return areas.map((a) => ({ key: a.id, name: a.name }));
+  }
+
+  function openAreaPicker(p: Product, cell: HTMLElement) {
+    if (locationFilter === "ALL") return;
+    const inv = p.inventory.find((i) => i.locationId === locationFilter);
+    if (!inv) {
+      setMarkerError(`${p.name} isn't at this store yet. Add it to the store first.`);
+      return;
+    }
+    setMarkerError("");
+    const options = storeAreaOptions();
+    const initial: PickerTick[] = [];
+    // Pre-tick what's there now. An area no longer in this store's list stays
+    // ticked as "(removed)" so it can be unticked — never silently dropped.
+    for (const slot of [1, 2] as const) {
+      const name = slot === 1 ? inv.storageArea : inv.storageArea2;
+      const shelf = (slot === 1 ? inv.shelfLocation : inv.shelfLocation2) || "";
+      if (!name) continue;
+      const match = options.find((o) => o.name === name);
+      if (match && !initial.some((t) => t.key === match.key)) {
+        initial.push({ key: match.key, shelf });
+      } else {
+        const key = `keep${slot}`;
+        options.push({ key, name, note: match ? "(2nd shelf)" : "(removed)" });
+        initial.push({ key, shelf });
+      }
+    }
+    setAreaPicker({ kind: "one", productId: p.id, title: p.name, anchor: cell, options, initial });
+  }
+
+  function openBulkAreaPicker(btn: HTMLElement) {
+    if (locationFilter === "ALL") {
+      setAreaBulkMsg({ kind: "info", text: "Pick a store in the Location filter first" });
+      return;
+    }
+    // Only ticked rows that are at this store (other stores' items are never touched).
+    const ids = products.filter((p) => selectedIds.has(p.id) && p.locationIds.includes(locationFilter)).map((p) => p.id);
+    if (selectedIds.size === 0) {
+      setAreaBulkMsg({ kind: "info", text: "Select at least one product first" });
+      return;
+    }
+    if (ids.length === 0) {
+      setAreaBulkMsg({ kind: "info", text: "None of the selected products are at this store" });
+      return;
+    }
+    setAreaBulkMsg(null);
+    setAreaPicker({
+      kind: "bulk", productIds: ids, anchor: btn, options: storeAreaOptions(), initial: [],
+      title: `${ids.length} ${ids.length === 1 ? "product" : "products"} selected`,
+    });
+  }
+
+  async function saveAreaPicker(value: LocationSet): Promise<string | null> {
+    const picker = areaPicker;
+    if (!picker || locationFilter === "ALL") return "Pick a store first.";
+    const productIds = picker.kind === "one" ? [picker.productId] : picker.productIds;
+    saveScroll();
+    const res = await setProductLocations({ locationId: locationFilter, productIds, value });
+    if (!res.ok) return res.error;
+    if (picker.kind === "bulk") {
+      setAreaBulkMsg({ kind: "success", text: `Updated ${res.updated} ${res.updated === 1 ? "product" : "products"}` });
+      clearSelection();
+    }
+    router.refresh();
+    return null;
+  }
+
   async function applyBulkAdd() {
     if (selectedIds.size === 0 || !bulkAddLocationId) return;
     const loc = locations.find((l) => l.id === bulkAddLocationId);
@@ -2878,6 +2968,44 @@ export function UnifiedProductsPage({
       {/* Scrollable table area — fills remaining height */}
       <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-auto px-4 lg:px-8 pb-4">
 
+      {/* Area / shelf picker: bulk button above the table + the panel itself */}
+      {ADMIN_AREA_PICKER && mode === "products" && (
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <button
+            type="button"
+            onClick={(e) => openBulkAreaPicker(e.currentTarget)}
+            className="min-h-[40px] px-3 rounded-lg border border-[#A87E3B] bg-[#FAF7F1] text-sm font-medium text-[#A87E3B] hover:bg-[#F3EADB] transition-colors"
+          >
+            Set location for selected ({selectedIds.size})
+          </button>
+          {areaBulkMsg && (
+            <span
+              role="status"
+              className={`text-xs px-2 py-1 rounded ${
+                areaBulkMsg.kind === "success"
+                  ? "bg-green-50 text-green-700 border border-green-200"
+                  : areaBulkMsg.kind === "error"
+                    ? "bg-red-50 text-red-700 border border-red-200"
+                    : "text-[var(--ink-muted)]"
+              }`}
+            >
+              {areaBulkMsg.text}
+            </span>
+          )}
+        </div>
+      )}
+      {ADMIN_AREA_PICKER && areaPicker && (
+        <AreaShelfPicker
+          key={areaPicker.kind === "one" ? `one:${areaPicker.productId}` : "bulk"}
+          title={areaPicker.title}
+          anchor={areaPicker.anchor}
+          options={areaPicker.options}
+          initial={areaPicker.initial}
+          onSave={saveAreaPicker}
+          onClose={closeAreaPicker}
+        />
+      )}
+
       {/* === MODE 1: PRODUCTS TABLE === */}
       {mode === "products" && (
         <div className="bg-white border border-[var(--line)] rounded-xl">
@@ -3424,7 +3552,7 @@ export function UnifiedProductsPage({
                           ) : (
                             <span
                               className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)] block truncate"
-                              onClick={() => startEdit(p.id, "location", storageArea || "")}
+                              onClick={(e) => (ADMIN_AREA_PICKER ? openAreaPicker(p, e.currentTarget.closest("td") ?? e.currentTarget) : startEdit(p.id, "location", storageArea || ""))}
                             >
                               {storageArea || "—"}
                             </span>
@@ -3450,7 +3578,7 @@ export function UnifiedProductsPage({
                           ) : (
                             <span
                               className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)] block"
-                              onClick={() => startEdit(p.id, "shelf", activeInv?.shelfLocation || "")}
+                              onClick={(e) => (ADMIN_AREA_PICKER ? openAreaPicker(p, e.currentTarget.closest("td") ?? e.currentTarget) : startEdit(p.id, "shelf", activeInv?.shelfLocation || ""))}
                             >
                               {activeInv?.shelfLocation || "—"}
                             </span>
@@ -3500,7 +3628,7 @@ export function UnifiedProductsPage({
                           ) : (
                             <span
                               className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)] block truncate"
-                              onClick={() => startEdit(p.id, "location2", activeInv?.storageArea2 || "")}
+                              onClick={(e) => (ADMIN_AREA_PICKER ? openAreaPicker(p, e.currentTarget.closest("td") ?? e.currentTarget) : startEdit(p.id, "location2", activeInv?.storageArea2 || ""))}
                             >
                               {activeInv?.storageArea2 || "—"}
                             </span>
@@ -3526,7 +3654,7 @@ export function UnifiedProductsPage({
                           ) : (
                             <span
                               className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)] block"
-                              onClick={() => startEdit(p.id, "shelf2", activeInv?.shelfLocation2 || "")}
+                              onClick={(e) => (ADMIN_AREA_PICKER ? openAreaPicker(p, e.currentTarget.closest("td") ?? e.currentTarget) : startEdit(p.id, "shelf2", activeInv?.shelfLocation2 || ""))}
                             >
                               {activeInv?.shelfLocation2 || "—"}
                             </span>

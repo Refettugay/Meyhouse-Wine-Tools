@@ -18,13 +18,14 @@ export async function loadKioskChanges(orgId: string, opts: { ingredientId?: str
   const rows = await prisma.orderActivityLog.findMany({
     where: {
       organizationId: orgId,
-      source: "staff_count",
+      // Kiosk edits + Admin area/shelf picker edits (source "admin").
+      source: { in: ["staff_count", "admin"] },
       entity: "PRODUCT",
       ...(opts.ingredientId ? { ingredientId: opts.ingredientId } : {}),
     },
     orderBy: { at: "desc" },
     take: Math.min(opts.take ?? 50, 300),
-    select: { id: true, at: true, locationId: true, actorName: true, note: true, ingredientId: true, action: true, field: true, oldValue: true, newValue: true },
+    select: { id: true, at: true, source: true, locationId: true, actorName: true, note: true, ingredientId: true, action: true, field: true, oldValue: true, newValue: true },
   });
   const locIds = [...new Set(rows.map((r) => r.locationId).filter((x): x is string => !!x))];
   const locs = locIds.length ? await prisma.location.findMany({ where: { id: { in: locIds } }, select: { id: true, name: true } }) : [];
@@ -39,5 +40,6 @@ export async function loadKioskChanges(orgId: string, opts: { ingredientId?: str
     what: (r.field && FIELD[r.field]) || ACTION[r.action] || r.action,
     from: r.oldValue,
     to: r.newValue,
+    admin: r.source === "admin",
   }));
 }

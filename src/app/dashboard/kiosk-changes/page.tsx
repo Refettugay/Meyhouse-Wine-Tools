@@ -16,7 +16,7 @@ export default async function KioskChangesPage() {
         <div className="flex items-baseline justify-between gap-3">
           <div>
             <h1 className="text-xl font-medium text-[var(--brand-brown)]">Recent kiosk changes</h1>
-            <p className="text-sm text-[var(--ink-muted)]">Changes staff made from the count kiosk (press and hold an item). Pacific time, newest first.</p>
+            <p className="text-sm text-[var(--ink-muted)]">Changes staff made from the count kiosk (press and hold an item), plus area / shelf changes made in Admin (tagged Admin). Pacific time, newest first.</p>
           </div>
           <Link href="/dashboard/products" className="text-sm text-[var(--brand-olive)] hover:underline shrink-0">← Products</Link>
         </div>
