@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect } from "react";
 import Link from "next/link";
+import { searchMatcher } from "@/lib/search-normalize";
 import { useRouter, useSearchParams } from "next/navigation";
 import { updateProduct, moveProductToDatabase, moveProductToMenu, hardDeleteProduct, toggleMarkForRemoval, toggleProductTag, bulkAddProductsToLocation, bulkRemoveProductsFromLocation } from "@/lib/actions/products";
 import { saveSingleCount, saveSinglePar, updateProductStorageArea, updateProductShelf, createStorageArea, saveInProgressOrder, submitInProgressOrders } from "@/lib/actions/inventory";
@@ -1319,14 +1320,14 @@ export function UnifiedProductsPage({
   // (search / vendor / category / on menu), the area chips and "Needs
   // attention" all apply here — before this, they only affected other tabs.
   const orderRowsAll = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const matchSearch = searchMatcher(search);
     const rows: (Product & { inv: Product["inventory"][number]; reasons: string[] })[] = [];
     for (const locId of orderStoreIds) {
       for (const p of products) {
         if (orderMenuFilter === "onMenu" && !p.onMenu) continue;
         const inv = p.inventory.find((i) => i.locationId === locId);
         if (!inv) continue;
-        if (q && !p.name.toLowerCase().includes(q)) continue;
+        if (!matchSearch(p.name)) continue;
         if (vendorFilter !== "ALL" && p.vendor !== vendorFilter) continue;
         if (categoryFilter !== "ALL" && p.ingredientCategory !== categoryFilter) continue;
         rows.push({ ...p, inv, reasons: attentionReasons(p, inv.parLevel) });
@@ -1907,6 +1908,7 @@ export function UnifiedProductsPage({
 
   // Filter + Sort
   const filtered = useMemo(() => {
+    const matchSearch = searchMatcher(search);
     return products
       .filter((p) => {
         // Status filter
@@ -1921,7 +1923,7 @@ export function UnifiedProductsPage({
           if (!invs.some((i) => i.markedForRemoval === "PENDING")) return false;
         }
         // Search
-        if (search && !p.name.toLowerCase().includes(search.toLowerCase()))
+        if (!matchSearch(p.name))
           return false;
         // Vendor
         if (vendorFilter !== "ALL" && p.vendor !== vendorFilter) return false;

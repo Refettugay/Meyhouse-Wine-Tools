@@ -12,6 +12,7 @@ import type { CountFeed, CountItem, FlagAction, ItemEdit, RemoveAction, StaffPer
 import { TYPE_CHIPS } from "@/lib/staff-count/types";
 import { orderQty, type OrderUnit } from "@/lib/ordering-math";
 import { KIOSK_ITEM_MENU, KIOSK_SWIPE_ACTIONS } from "@/lib/kiosk-flags";
+import { searchMatcher } from "@/lib/search-normalize";
 
 // Coming off menu: counted, never reordered.
 const qtyFor = (i: CountItem, count: number, unit: OrderUnit | null) => (i.removing ? 0 : orderQty(i.par, count, unit, i.casePack));
@@ -641,17 +642,17 @@ function CountList({
   // Flagged items for whatever tab / search is showing (off-menu ones too).
   const pinned = useMemo(() => {
     if (!KIOSK_SWIPE_ACTIONS) return [];
-    const term = q.trim().toLowerCase();
+    const match = searchMatcher(q);
     const keyOf = (i: CountItem) => (groupBy === "type" ? i.type : areaKey(i));
     return feed.items
-      .filter((i) => isPinned(i) && (!term || i.name.toLowerCase().includes(term)) && (chip === "ALL" || keyOf(i) === chip))
+      .filter((i) => isPinned(i) && match(i.name) && (chip === "ALL" || keyOf(i) === chip))
       .sort(routeSort);
   }, [feed, q, groupBy, chip, isPinned, routeSort]);
   const pinnedOpen = pinned.filter((i) => i.check).length;
 
   const sections = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    const items = feed.items.filter((i) => !i.offMenu && !isPinned(i) && (!term || i.name.toLowerCase().includes(term)));
+    const match = searchMatcher(q);
+    const items = feed.items.filter((i) => !i.offMenu && !isPinned(i) && match(i.name));
     const keyOf = (i: CountItem) => (groupBy === "type" ? i.type : areaKey(i));
     return chips
       .filter((c) => chip === "ALL" || c.key === chip)
@@ -661,10 +662,10 @@ function CountList({
 
   // Active items that aren't On Menu — same search/chip filter, shown last and collapsed.
   const offMenuItems = useMemo(() => {
-    const term = q.trim().toLowerCase();
+    const match = searchMatcher(q);
     const keyOf = (i: CountItem) => (groupBy === "type" ? i.type : areaKey(i));
     return feed.items.filter(
-      (i) => i.offMenu && !isPinned(i) && (!term || i.name.toLowerCase().includes(term)) && (chip === "ALL" || keyOf(i) === chip),
+      (i) => i.offMenu && !isPinned(i) && match(i.name) && (chip === "ALL" || keyOf(i) === chip),
     );
   }, [feed, q, groupBy, chip, isPinned]);
 

@@ -4,6 +4,7 @@
 // One card per selected store; emails are only copied / opened in the mail app
 // and marked as sent by hand — nothing is ever sent automatically.
 
+import { searchMatcher } from "@/lib/search-normalize";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Copy, Mail, Pause, Undo2, X } from "lucide-react";
@@ -454,7 +455,8 @@ function AddItem({
   const [pick, setPick] = useState<AddableProduct | null>(null);
   const [qty, setQty] = useState("1");
   const [unit, setUnit] = useState<"case" | "bottle">("bottle");
-  const matches = q.trim() ? products.filter((p) => p.name.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 8) : [];
+  const match = searchMatcher(q);
+  const matches = q.trim() ? products.filter((p) => match(p.name)).slice(0, 8) : [];
 
   if (!open) {
     return (
