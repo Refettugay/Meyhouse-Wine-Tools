@@ -25,7 +25,13 @@ export type CountItem = {
   shelf1: string | null;
   shelf2: string | null;
   note: string | null;      // yellow tag under the name (this store)
+  // Kiosk swipe actions (KIOSK_SWIPE_ACTIONS), shared by every device at this store:
+  check: ItemFlag | null;     // "Check other areas" flag (open)
+  eightySix: ItemFlag | null; // 86'd (open)
 };
+
+export type ItemFlag = { byName: string; at: string };
+export type FlagAction = "check" | "uncheck" | "eighty_six" | "un_eighty_six";
 
 // One save from the kiosk side panel. Only the fields sent are changed.
 export type ItemEdit = {
@@ -44,7 +50,7 @@ export type AreaCounted = { byName: string; at: string; byMe: boolean };
 
 export type CountFeed = {
   storeName: string;
-  me: { name: string; canMarkRemove: boolean }; // canMarkRemove = manager / supervisor / owner
+  me: { name: string; canMarkRemove: boolean; canMark86: boolean }; // canMarkRemove = manager / supervisor / owner; canMark86 = Admin → Kiosk permissions
   items: CountItem[];
   areas: { id: string; name: string }[];    // every area of this store (tabs show the ones with items)
   // storage area id ("none" = Unassigned) → who counted it today (store time)
@@ -54,5 +60,5 @@ export type CountFeed = {
 export type SendCount = { id: string; count: number; unitPick?: "CASE" | "BOTTLE" | null };
 
 export type SendResult =
-  | { ok: true; linesOrdered: number; itemsCounted: number }
+  | { ok: true; linesOrdered: number; itemsCounted: number; cleared86?: number }
   | { ok: false; error: string; signedOut?: boolean };

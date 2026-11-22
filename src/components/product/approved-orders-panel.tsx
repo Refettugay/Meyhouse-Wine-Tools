@@ -10,11 +10,11 @@ import { Check, Copy, RotateCcw, Eye, EyeOff } from "lucide-react";
 import { clearApproved, markVendorOrdered, restoreApproved, undoVendorOrdered } from "@/lib/actions/approved-orders";
 import {
   approvedLineText, groupApproved, shortStore, vendorCopyText,
-  type ApprovedLineDTO, type ApprovedOrderDTO, type CartLineDTO, type CartRequestDTO,
+  type ApprovedLineDTO, type ApprovedOrderDTO, type Cart86DTO, type CartLineDTO, type CartRequestDTO,
 } from "@/lib/order-cart-types";
 
 type Approved = { active: ApprovedOrderDTO | null; history: ApprovedOrderDTO[] };
-type Fresh = { approved?: Approved; cart?: { lines: CartLineDTO[]; requests: CartRequestDTO[] }; error?: string };
+type Fresh = { approved?: Approved; cart?: { lines: CartLineDTO[]; requests: CartRequestDTO[]; eightySix?: Cart86DTO[] }; error?: string };
 const STORE_TZ = "America/Los_Angeles";
 
 function when(iso: string) {

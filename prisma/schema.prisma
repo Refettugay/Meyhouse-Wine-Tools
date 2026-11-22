@@ -1035,3 +1035,37 @@ model OrderHistoryEntry {
   @@map("order_history_entry")
   @@schema("beverage")
 }
+
+// Kiosk swipe actions (2026-11-21): "Check other areas" (CHECK) and 86
+// (EIGHTY_SIX) per store item. Open = clearedAt null; at most one open row per
+// item + kind (partial unique index in the migration). Kept after clearing.
+model KioskItemFlag {
+  id              String    @id @default(cuid())
+  organizationId  String
+  locationId      String
+  inventoryItemId String
+  kind            String // CHECK | EIGHTY_SIX
+  setById         String?
+  setByName       String?
+  setAt           DateTime  @default(now()) @db.Timestamptz(6)
+  clearedAt       DateTime? @db.Timestamptz(6)
+  clearedById     String?
+  clearedByName   String?
+  clearReason     String? // manual | counted | count_sent | nightly_reset
+
+  @@index([locationId], map: "KioskItemFlag_loc_open_idx")
+  @@schema("beverage")
+}
+
+// Per-person "Can mark 86" (Admin → Settings → Kiosk permissions). No row =
+// default by role (owner / manager / supervisor on, everyone else off).
+model KioskPermission {
+  organizationId String
+  personId       String
+  canMark86      Boolean
+  updatedAt      DateTime @default(now()) @db.Timestamptz(6)
+  updatedByName  String?
+
+  @@id([organizationId, personId])
+  @@schema("beverage")
+}

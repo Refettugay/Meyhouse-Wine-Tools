@@ -1,7 +1,8 @@
 import { requireAuth } from "@/lib/session";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import Link from "next/link";
-import { Settings as SettingsIcon, ListPlus, ChevronRight, Beaker, Tag, MapPin, TrendingUp, Building2 } from "lucide-react";
+import { Settings as SettingsIcon, ListPlus, ChevronRight, Beaker, Tag, MapPin, TrendingUp, Building2, ShieldCheck } from "lucide-react";
+import { KIOSK_SWIPE_ACTIONS } from "@/lib/kiosk-flags";
 
 export default async function SettingsPage() {
   const session = await requireAuth();
@@ -122,6 +123,29 @@ export default async function SettingsPage() {
             <ChevronRight className="w-5 h-5 text-[var(--ink-muted)]" />
           </div>
         </Link>
+
+        {/* Kiosk permissions (KIOSK_SWIPE_ACTIONS) */}
+        {KIOSK_SWIPE_ACTIONS && (
+          <Link
+            href="/dashboard/settings/kiosk-permissions"
+            className="block bg-white border border-[var(--line)] rounded-xl p-4 hover:border-[var(--brand-olive)] transition-colors"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 text-red-700" />
+                </div>
+                <div>
+                  <h2 className="font-semibold">Kiosk permissions</h2>
+                  <p className="text-xs text-[var(--ink-muted)]">
+                    Who can mark items 86 on the staff ordering kiosk
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-[var(--ink-muted)]" />
+            </div>
+          </Link>
+        )}
 
         {/* Finance Hub Settings link */}
         <Link

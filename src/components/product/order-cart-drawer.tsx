@@ -8,9 +8,9 @@
 import { useMemo, useState } from "react";
 import { ShoppingCart, Users } from "lucide-react";
 import { cartMoveLine, cartRemoveLine, cartResolveRequest, cartSetQty, cartSetUnit } from "@/lib/actions/order-cart";
-import { shortStore, sourceTag, type CartLineDTO, type CartRequestDTO, type CartViewer } from "@/lib/order-cart-types";
+import { shortStore, sourceTag, storeTime, type Cart86DTO, type CartLineDTO, type CartRequestDTO, type CartViewer } from "@/lib/order-cart-types";
 
-type Cart = { lines: CartLineDTO[]; requests: CartRequestDTO[] };
+type Cart = { lines: CartLineDTO[]; requests: CartRequestDTO[]; eightySix?: Cart86DTO[] };
 type ProductInfo = {
   id: string;
   casePackSize: number | null;
@@ -59,6 +59,12 @@ export function OrderCartDrawer({
 
   const lines = useMemo(() => cart.lines.filter((l) => cartStoreIds.includes(l.locationId)), [cart.lines, cartStoreIds]);
   const requests = useMemo(() => cart.requests.filter((r) => cartStoreIds.includes(r.locationId)), [cart.requests, cartStoreIds]);
+  // Kiosk 86 marks for the stores shown (never added to the cart automatically).
+  const eightySix = useMemo(
+    () => (cart.eightySix ?? []).filter((f) => cartStoreIds.includes(f.locationId))
+      .sort((a, b) => storeOrder.indexOf(a.locationId) - storeOrder.indexOf(b.locationId) || a.name.localeCompare(b.name)),
+    [cart.eightySix, cartStoreIds, storeOrder],
+  );
 
   // vendor A→Z, then stores in the fixed store order, then item name
   const grouped = useMemo(() => {
@@ -167,6 +173,25 @@ export function OrderCartDrawer({
 
         <div className="flex-1 overflow-y-auto p-3">
           {error && <div className="mb-2 rounded-lg px-3 py-2 text-xs bg-red-50 border border-red-200 text-red-700">{error}</div>}
+
+          {eightySix.length > 0 && (
+            <div className="mb-3 rounded-lg border border-[#A32D2D] overflow-hidden">
+              <div className="px-2 py-1.5 bg-[#A32D2D] text-white text-xs font-semibold">86&rsquo;d at this store ({eightySix.length})</div>
+              <div className="divide-y divide-[var(--line)]">
+                {eightySix.map((f) => (
+                  <div key={f.inventoryItemId} className="px-2 py-1.5 text-xs flex items-baseline justify-between gap-2">
+                    <span className="text-[var(--brand-brown)] font-medium truncate">
+                      <span className="mr-1.5 inline-block px-1 rounded bg-[#A32D2D] text-white text-[10px] font-bold">86</span>
+                      {f.name}
+                    </span>
+                    <span className="text-[10px] text-[var(--ink-muted)] whitespace-nowrap">
+                      {storeName(f.locationId)} · {f.byName || "Staff"} · {new Date(f.at).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Los_Angeles" })} {storeTime(new Date(f.at))}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {requests.length > 0 && (
             <div className="mb-3 space-y-1">

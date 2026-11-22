@@ -14,7 +14,8 @@
 
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { shortStore, type ApprovedOrderDTO, type CartLineDTO, type CartRequestDTO } from "@/lib/order-cart-types";
+import { shortStore, type ApprovedOrderDTO, type Cart86DTO, type CartLineDTO, type CartRequestDTO } from "@/lib/order-cart-types";
+import { KIOSK_SWIPE_ACTIONS } from "@/lib/kiosk-flags";
 export { shortStore };
 
 type Tx = Prisma.TransactionClient;
@@ -114,9 +115,9 @@ export async function mergeCartLines(tx: Tx, fromId: string, intoId: string, fro
 
 
 // The cart for these stores (caller must already have checked access).
-export async function loadCartFor(organizationId: string, locationIds: string[]): Promise<{ lines: CartLineDTO[]; requests: CartRequestDTO[] }> {
-  if (locationIds.length === 0) return { lines: [], requests: [] };
-  const [lines, requests] = await Promise.all([
+export async function loadCartFor(organizationId: string, locationIds: string[]): Promise<{ lines: CartLineDTO[]; requests: CartRequestDTO[]; eightySix: Cart86DTO[] }> {
+  if (locationIds.length === 0) return { lines: [], requests: [], eightySix: [] };
+  const [lines, requests, e86] = await Promise.all([
     prisma.orderCartLine.findMany({
       where: { organizationId, locationId: { in: locationIds } },
       orderBy: { createdAt: "asc" },
@@ -127,9 +128,20 @@ export async function loadCartFor(organizationId: string, locationIds: string[])
       orderBy: { createdAt: "asc" },
       select: { id: true, locationId: true, text: true, requestedByName: true, createdAt: true },
     }),
+    KIOSK_SWIPE_ACTIONS
+      ? prisma.kioskItemFlag.findMany({
+          where: { organizationId, locationId: { in: locationIds }, kind: "EIGHTY_SIX", clearedAt: null },
+          orderBy: { setAt: "asc" },
+          select: { inventoryItemId: true, locationId: true, setByName: true, setAt: true },
+        })
+      : Promise.resolve([]),
   ]);
+  const e86Items = e86.length
+    ? await prisma.inventoryItem.findMany({ where: { id: { in: e86.map((f) => f.inventoryItemId) } }, select: { id: true, ingredientId: true } })
+    : [];
+  const e86Ingredient = new Map(e86Items.map((i) => [i.id, i.ingredientId]));
   const names = new Map(
-    (await prisma.ingredient.findMany({ where: { id: { in: [...new Set(lines.map((l) => l.ingredientId))] } }, select: { id: true, name: true } }))
+    (await prisma.ingredient.findMany({ where: { id: { in: [...new Set([...lines.map((l) => l.ingredientId), ...e86Items.map((i) => i.ingredientId)])] } }, select: { id: true, name: true } }))
       .map((i) => [i.id, i.name]),
   );
   return {
@@ -148,6 +160,12 @@ export async function loadCartFor(organizationId: string, locationIds: string[])
       })),
     })),
     requests: requests.map((r) => ({ id: r.id, locationId: r.locationId, text: r.text, byName: r.requestedByName, at: r.createdAt.toISOString() })),
+    eightySix: e86
+      .filter((f) => e86Ingredient.has(f.inventoryItemId))
+      .map((f) => {
+        const ingredientId = e86Ingredient.get(f.inventoryItemId)!;
+        return { inventoryItemId: f.inventoryItemId, locationId: f.locationId, ingredientId, name: names.get(ingredientId) ?? "Unknown item", byName: f.setByName, at: f.setAt.toISOString() };
+      }),
   };
 }
 

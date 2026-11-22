@@ -7,11 +7,11 @@
 // (survive lock/refresh) and cleared after a send.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { listStaff, signIn, createPin, signOut, loadCountFeed, sendCounts, removeItem, updateItem } from "./actions";
-import type { CountFeed, CountItem, ItemEdit, RemoveAction, StaffPerson } from "@/lib/staff-count/feed-types";
+import { listStaff, signIn, createPin, signOut, loadCountFeed, sendCounts, removeItem, updateItem, flagItem, countEntered } from "./actions";
+import type { CountFeed, CountItem, FlagAction, ItemEdit, RemoveAction, StaffPerson } from "@/lib/staff-count/feed-types";
 import { TYPE_CHIPS } from "@/lib/staff-count/types";
 import { orderQty, type OrderUnit } from "@/lib/ordering-math";
-import { KIOSK_ITEM_MENU } from "@/lib/kiosk-flags";
+import { KIOSK_ITEM_MENU, KIOSK_SWIPE_ACTIONS } from "@/lib/kiosk-flags";
 
 // Coming off menu: counted, never reordered.
 const qtyFor = (i: CountItem, count: number, unit: OrderUnit | null) => (i.removing ? 0 : orderQty(i.par, count, unit, i.casePack));
@@ -22,6 +22,27 @@ type Stage = "loading" | "pick" | "pin" | "createPin" | "count" | "confirm" | "s
 type Saved = { counts: Record<string, number>; picks: Record<string, OrderUnit>; request: string; savedAt: number };
 
 const GOLD_BORDER = "border-[#D4A017]";
+
+// Swipe actions (KIOSK_SWIPE_ACTIONS): amber "Check other areas", dark red 86.
+const CHECK_ROW = "bg-[#FAEEDA]";
+const CHECK_EDGE = "border-l-4 border-l-[#BA7517]";
+const CHECK_TEXT = "text-[#633806]";
+const GREY_ROW = "bg-[#ECECEC]";
+const RED86_BG = "bg-[#A32D2D]";
+const SWIPE_AT = 72;   // px a finger must travel to trigger the action
+const SWIPE_MAX = 112; // px the row slides at most
+const EDGE_PX = 20;    // a swipe starting this close to the left edge is ignored (iPhone Back)
+
+type TagMode = "area" | "all"; // "area" = inside an Area tab (show the OTHER area); "all" = show both
+
+function checkTag(i: CountItem, mode: TagMode): string {
+  const loc = (a: string | null, sh: string | null) => (a ? `${a}${sh ? ` · Shelf ${sh}` : ""}` : null);
+  const l1 = loc(i.areaName, i.shelf1);
+  const l2 = loc(i.area2Name, i.shelf2);
+  if (!l2) return "Check other areas"; // only one area
+  if (mode === "area") return `Check other areas · ${l2}`;
+  return `Check other areas · ${l1 ?? "Unassigned"} / ${l2}`;
+}
 const GOLD_TEXT = "text-[#8A6A00]";
 
 function fmtTime(iso: string) {
@@ -40,7 +61,8 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
   const [who, setWho] = useState<StaffPerson | null>(null);
   const [feed, setFeed] = useState<CountFeed | null>(null);
   const [busy, setBusy] = useState(false);
-  const [sentSummary, setSentSummary] = useState<{ lines: number; counted: number } | null>(null);
+  const [sentSummary, setSentSummary] = useState<{ lines: number; counted: number; cleared86: number } | null>(null);
+  const [flagWarn, setFlagWarn] = useState(false);
 
   // ----- device-saved counts (per link + person) -----
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -122,6 +144,54 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
     }
     setFeed((f) => (f ? { ...f, items: f.items.map((i) => (i.id === item.id ? r.item : i)) } : f));
     return null;
+  }
+
+  // Swipe / menu flags → shown at once, then saved; put back if the save fails.
+  const [toast, setToast] = useState<string | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3500);
+    return () => clearTimeout(t);
+  }, [toast]);
+  async function handleFlag(item: CountItem, action: FlagAction): Promise<string | null> {
+    const before = { check: item.check, eightySix: item.eightySix };
+    const now = { byName: feed?.me.name ?? "You", at: new Date().toISOString() };
+    const optimistic =
+      action === "check" ? { check: now } : action === "uncheck" ? { check: null }
+        : action === "eighty_six" ? { eightySix: now } : { eightySix: null };
+    const patch = (p: Partial<CountItem>) =>
+      setFeed((f) => (f ? { ...f, items: f.items.map((i) => (i.id === item.id ? { ...i, ...p } : i)) } : f));
+    patch(optimistic);
+    try {
+      const r = await flagItem(token, item.id, action);
+      if (!r.ok) {
+        patch(before);
+        if (r.signedOut) setStage("pick");
+        setToast(r.error);
+        return r.error;
+      }
+      patch({ check: r.check, eightySix: r.eightySix });
+      return null;
+    } catch {
+      patch(before);
+      const msg = "Couldn't save. Check the connection and try again.";
+      setToast(msg);
+      return msg;
+    }
+  }
+
+  // Entering a count (any number, 0 too) ends that item's "Check other areas" flag.
+  function setCountFor(id: string, v: number | null) {
+    setCounts((c) => {
+      const next = { ...c };
+      if (v === null) delete next[id]; else next[id] = v;
+      return next;
+    });
+    if (!KIOSK_SWIPE_ACTIONS || v === null) return;
+    const it = feed?.items.find((i) => i.id === id);
+    if (!it?.check) return;
+    setFeed((f) => (f ? { ...f, items: f.items.map((i) => (i.id === id ? { ...i, check: null } : i)) } : f));
+    countEntered(token, id).catch(() => {});
   }
 
   // Press-and-hold menu → server, then update the list here (no reload).
@@ -216,6 +286,9 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
       return { item: i, unit, qty: qtyFor(i, counts[i.id], unit) };
     });
   const orderLines = toOrder.filter((l) => l.qty > 0);
+  const openChecks = KIOSK_SWIPE_ACTIONS ? feed.items.filter((i) => i.check) : [];
+  // Same rule as the server (count 0 sent → 86 clears); shown so nobody is surprised.
+  const clears86 = KIOSK_SWIPE_ACTIONS ? toOrder.filter((l) => l.item.eightySix && counts[l.item.id] === 0) : [];
 
   if (stage === "confirm") {
     return (
@@ -243,6 +316,11 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
           <p className="text-xs text-[var(--ink-muted)]">
             {toOrder.length} counted · {orderLines.length} to order · {toOrder.length - orderLines.length} at or above par
           </p>
+          {clears86.length > 0 && (
+            <p className="text-xs text-[#A32D2D]">
+              86 clears when sent: {clears86.map((l) => l.item.name).join(", ")}
+            </p>
+          )}
           <label className="block">
             <span className="text-xs font-medium text-[var(--brand-brown)]">Something else? (optional)</span>
             <textarea
@@ -270,7 +348,7 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
                   setCounts({}); setPicks({}); setRequest("");
                   try { if (storageKey) localStorage.removeItem(storageKey); } catch {}
                   setError(null);
-                  setSentSummary({ lines: r.linesOrdered, counted: r.itemsCounted });
+                  setSentSummary({ lines: r.linesOrdered, counted: r.itemsCounted, cleared86: r.cleared86 ?? 0 });
                   setStage("sent");
                   return;
                 }
@@ -294,7 +372,7 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
           <div className="text-4xl">✓</div>
           <h2 className="text-lg font-medium text-[var(--brand-brown)]">Sent to your manager</h2>
           <p className="text-sm text-[var(--ink-muted)]">
-            {sentSummary ? `${sentSummary.counted} counted · ${sentSummary.lines} to order` : ""}
+            {sentSummary ? `${sentSummary.counted} counted · ${sentSummary.lines} to order${sentSummary.cleared86 ? ` · ${sentSummary.cleared86} 86 cleared` : ""}` : ""}
           </p>
           <p className="text-xs text-[var(--ink-muted)]">You&rsquo;ve been signed out.</p>
           <div className="flex flex-col gap-2 pt-4">
@@ -311,15 +389,43 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
         feed={feed}
         counts={counts}
         picks={picks}
-        setCount={(id, v) => setCounts((c) => {
-          const next = { ...c };
-          if (v === null) delete next[id]; else next[id] = v;
-          return next;
-        })}
+        setCount={setCountFor}
         setPick={(id, u) => setPicks((p) => ({ ...p, [id]: u }))}
         onRemove={handleRemove}
         onUpdate={handleUpdate}
+        onFlag={handleFlag}
       />
+      {toast && (
+        <div className="fixed bottom-20 inset-x-4 z-30 mx-auto max-w-md rounded-lg bg-[var(--brand-brown)] text-white text-xs px-3 py-2 text-center shadow-lg" role="status">
+          {toast}
+        </div>
+      )}
+      {flagWarn && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30" role="dialog" aria-modal="true" aria-label="Items still flagged">
+          <div className="w-full sm:max-w-sm bg-white rounded-t-2xl sm:rounded-2xl p-4 pb-[max(env(safe-area-inset-bottom),16px)] space-y-3">
+            <h2 className={`text-base font-medium ${CHECK_TEXT}`}>
+              {openChecks.length} {openChecks.length === 1 ? "item" : "items"} still flagged to check other areas. Send anyway?
+            </h2>
+            <ul className={`max-h-56 overflow-y-auto rounded-lg border border-[#BA7517] ${CHECK_ROW} divide-y divide-[#E8D3B0]`}>
+              {openChecks.map((i) => (
+                <li key={i.id} className={`px-3 py-2 text-sm ${CHECK_TEXT}`}>
+                  {i.name}
+                  <span className="block text-[11px] opacity-80">{checkTag(i, "all")}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex gap-2">
+              <button onClick={() => setFlagWarn(false)} className="flex-1 py-3 rounded-full border border-[var(--line)] bg-white text-sm font-medium">Go back</button>
+              <button
+                onClick={() => { setFlagWarn(false); setError(null); setStage("confirm"); }}
+                className="flex-1 py-3 rounded-full bg-[var(--brand-olive)] text-white text-sm font-medium"
+              >
+                Send anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-[var(--line)] px-4 py-3 flex items-center gap-3">
         <span className="text-xs text-[var(--ink-muted)] flex-1">
           <span className="font-semibold text-[var(--brand-brown)]">{toOrder.length}</span> counted ·{" "}
@@ -327,7 +433,10 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
         </span>
         <button
           disabled={toOrder.length === 0 && !request.trim()}
-          onClick={() => { setError(null); setStage("confirm"); }}
+          onClick={() => {
+            if (openChecks.length > 0) { setFlagWarn(true); return; }
+            setError(null); setStage("confirm");
+          }}
           className="px-5 py-3 rounded-full bg-[var(--brand-olive)] text-white text-sm font-medium disabled:opacity-40"
         >
           Send to manager
@@ -341,7 +450,7 @@ function Shell({ storeName, me, onSignOut, children }: { storeName: string; me?:
   return (
     // The app's <body> is h-full + overflow-hidden (admin screens scroll inside
     // their own panels), so this page must be its own scroll container.
-    <div className="h-full overflow-y-auto overscroll-contain bg-[var(--brand-cream)] pb-24">
+    <div className="h-full overflow-y-auto overflow-x-hidden overscroll-contain [overscroll-behavior-x:none] bg-[var(--brand-cream)] pb-24">
       <header className="sticky top-0 z-20 bg-[var(--brand-cream)] border-b border-[var(--line)] px-4 py-3 flex items-center justify-between">
         <div>
           <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-muted)]">Count</p>
@@ -446,7 +555,7 @@ function CreatePin({ name, busy, error, onBack, onSave }: { name: string; busy: 
 }
 
 function CountList({
-  feed, counts, picks, setCount, setPick, onRemove, onUpdate,
+  feed, counts, picks, setCount, setPick, onRemove, onUpdate, onFlag,
 }: {
   feed: CountFeed;
   counts: Record<string, number>;
@@ -455,6 +564,7 @@ function CountList({
   setPick: (id: string, u: OrderUnit) => void;
   onRemove: (item: CountItem, action: RemoveAction) => Promise<string | null>;
   onUpdate: (item: CountItem, edit: ItemEdit) => Promise<string | null>;
+  onFlag: (item: CountItem, action: FlagAction) => Promise<string | null>;
 }) {
   // Item id (not a copy) so the open menu always shows the latest saved values.
   const [menuId, setMenuId] = useState<string | null>(null);
@@ -464,6 +574,16 @@ function CountList({
   const [groupBy, setGroupBy] = useState<"type" | "area">("area");
   const [chip, setChip] = useState<string>("ALL");
   const [offMenuOpen, setOffMenuOpen] = useState(false);
+  // Flagged items pin to the top. One counted here stays in the pinned spot
+  // (no longer amber) until the view changes, so it doesn't jump away mid-count.
+  const [justChecked, setJustChecked] = useState<Set<string>>(() => new Set());
+  const [checklist, setChecklist] = useState<string[] | null>(null); // ids, when open
+  useEffect(() => { setJustChecked(new Set()); }, [q, groupBy, chip]);
+  const countAndTrack = (i: CountItem, v: number | null) => {
+    if (KIOSK_SWIPE_ACTIONS && v !== null && i.check) setJustChecked((s) => new Set(s).add(i.id));
+    setCount(i.id, v);
+  };
+  const tagMode: TagMode = groupBy === "area" && chip !== "ALL" && !q.trim() ? "area" : "all";
 
   const areaKey = (i: CountItem) => i.areaId ?? "none";
   const areaName = (k: string) => (k === "none" ? "Unassigned" : feed.areas.find((a) => a.id === k)?.name ?? "Unassigned");
@@ -478,24 +598,47 @@ function CountList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupBy, feed]);
 
+  const isPinned = useCallback((i: CountItem) => KIOSK_SWIPE_ACTIONS && (!!i.check || justChecked.has(i.id)), [justChecked]);
+
+  // Walking route: area (store order), then shelf (1, 2, 10…), then name.
+  const routeSort = useCallback((a: CountItem, b: CountItem) => {
+    const where = (i: CountItem) => (i.area2Id ? { id: i.area2Id, sh: i.shelf2 } : { id: i.areaId, sh: i.shelf1 });
+    const ord = (id: string | null) => { const k = feed.areas.findIndex((x) => x.id === id); return k < 0 ? 9999 : k; };
+    const wa = where(a), wb = where(b);
+    return ord(wa.id) - ord(wb.id)
+      || (wa.sh ?? "").localeCompare(wb.sh ?? "", undefined, { numeric: true })
+      || a.name.localeCompare(b.name);
+  }, [feed.areas]);
+
+  // Flagged items for whatever tab / search is showing (off-menu ones too).
+  const pinned = useMemo(() => {
+    if (!KIOSK_SWIPE_ACTIONS) return [];
+    const term = q.trim().toLowerCase();
+    const keyOf = (i: CountItem) => (groupBy === "type" ? i.type : areaKey(i));
+    return feed.items
+      .filter((i) => isPinned(i) && (!term || i.name.toLowerCase().includes(term)) && (chip === "ALL" || keyOf(i) === chip))
+      .sort(routeSort);
+  }, [feed, q, groupBy, chip, isPinned, routeSort]);
+  const pinnedOpen = pinned.filter((i) => i.check).length;
+
   const sections = useMemo(() => {
     const term = q.trim().toLowerCase();
-    const items = feed.items.filter((i) => !i.offMenu && (!term || i.name.toLowerCase().includes(term)));
+    const items = feed.items.filter((i) => !i.offMenu && !isPinned(i) && (!term || i.name.toLowerCase().includes(term)));
     const keyOf = (i: CountItem) => (groupBy === "type" ? i.type : areaKey(i));
     return chips
       .filter((c) => chip === "ALL" || c.key === chip)
       .map((c) => ({ key: c.key, label: c.label, items: items.filter((i) => keyOf(i) === c.key) }))
       .filter((s) => s.items.length > 0);
-  }, [feed, q, groupBy, chip, chips]);
+  }, [feed, q, groupBy, chip, chips, isPinned]);
 
   // Active items that aren't On Menu — same search/chip filter, shown last and collapsed.
   const offMenuItems = useMemo(() => {
     const term = q.trim().toLowerCase();
     const keyOf = (i: CountItem) => (groupBy === "type" ? i.type : areaKey(i));
     return feed.items.filter(
-      (i) => i.offMenu && (!term || i.name.toLowerCase().includes(term)) && (chip === "ALL" || keyOf(i) === chip),
+      (i) => i.offMenu && !isPinned(i) && (!term || i.name.toLowerCase().includes(term)) && (chip === "ALL" || keyOf(i) === chip),
     );
-  }, [feed, q, groupBy, chip]);
+  }, [feed, q, groupBy, chip, isPinned]);
 
   const countedByOther = (k: string) => {
     const c = feed.countedToday[k];
@@ -504,7 +647,7 @@ function CountList({
   const chipBanner = groupBy === "area" && chip !== "ALL" ? countedByOther(chip) : null;
 
   return (
-    <div>
+    <div className="[overscroll-behavior-x:none]">
       <div className="sticky top-[57px] z-10 bg-[var(--brand-cream)] px-4 pt-3 pb-2 space-y-2 border-b border-[var(--line)]">
         <div className="flex gap-2">
           <input
@@ -545,7 +688,36 @@ function CountList({
         )}
       </div>
 
-      {sections.length === 0 && offMenuItems.length === 0 && <p className="text-center text-sm text-[var(--ink-muted)] py-10">No items match.</p>}
+      {pinned.length > 0 && (
+        <section>
+          <button
+            onClick={() => setChecklist(pinned.filter((i) => i.check).map((i) => i.id))}
+            disabled={pinnedOpen === 0}
+            className={`w-full mt-2 px-4 py-2.5 flex items-center justify-between text-left ${CHECK_ROW} border-y border-[#BA7517] ${CHECK_TEXT}`}
+          >
+            <span className="text-sm font-semibold">Check other areas ({pinnedOpen})</span>
+            {pinnedOpen > 0 && <span className="text-xs font-medium">Checklist ›</span>}
+          </button>
+          <div className="bg-white border-b border-[var(--line)] divide-y divide-[var(--line)]">
+            {pinned.map((i) => (
+              <CountRow
+                key={i.id}
+                item={i}
+                sub={groupBy === "area" ? i.type : (i.areaName ?? "Unassigned")}
+                count={counts[i.id]}
+                pick={picks[i.id]}
+                setCount={(v) => countAndTrack(i, v)}
+                setPick={(u) => setPick(i.id, u)}
+                onHold={() => setMenuFor(i)}
+                tagMode={tagMode}
+                canMark86={feed.me.canMark86}
+                onFlag={(a) => onFlag(i, a)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+      {sections.length === 0 && offMenuItems.length === 0 && pinned.length === 0 && <p className="text-center text-sm text-[var(--ink-muted)] py-10">No items match.</p>}
       {sections.map((s) => {
         const other = groupBy === "area" ? countedByOther(s.key) : null;
         return (
@@ -564,9 +736,12 @@ function CountList({
                   sub={groupBy === "area" ? i.type : (i.areaName ?? "Unassigned")}
                   count={counts[i.id]}
                   pick={picks[i.id]}
-                  setCount={(v) => setCount(i.id, v)}
+                  setCount={(v) => countAndTrack(i, v)}
                   setPick={(u) => setPick(i.id, u)}
                   onHold={() => setMenuFor(i)}
+                  tagMode={tagMode}
+                  canMark86={feed.me.canMark86}
+                  onFlag={(a) => onFlag(i, a)}
                 />
               ))}
             </div>
@@ -594,23 +769,81 @@ function CountList({
                   sub={groupBy === "area" ? i.type : (i.areaName ?? "Unassigned")}
                   count={counts[i.id]}
                   pick={picks[i.id]}
-                  setCount={(v) => setCount(i.id, v)}
+                  setCount={(v) => countAndTrack(i, v)}
                   setPick={(u) => setPick(i.id, u)}
                   onHold={() => setMenuFor(i)}
+                  tagMode={tagMode}
+                  canMark86={feed.me.canMark86}
+                  onFlag={(a) => onFlag(i, a)}
                 />
               ))}
             </div>
           )}
         </section>
       )}
+      {checklist && (
+        <Checklist
+          items={checklist.map((id) => feed.items.find((i) => i.id === id)).filter((i): i is CountItem => !!i).sort(routeSort)}
+          counts={counts}
+          picks={picks}
+          setCount={countAndTrack}
+          setPick={setPick}
+          onClose={() => setChecklist(null)}
+        />
+      )}
       {menuFor && (KIOSK_ITEM_MENU
-        ? <ItemPanel item={menuFor} areas={feed.areas} canMarkRemove={feed.me.canMarkRemove} onClose={() => setMenuFor(null)} onRemove={onRemove} onUpdate={onUpdate} />
+        ? <ItemPanel item={menuFor} areas={feed.areas} canMarkRemove={feed.me.canMarkRemove} canMark86={feed.me.canMark86} onClose={() => setMenuFor(null)} onRemove={onRemove} onUpdate={onUpdate} onFlag={onFlag} />
         : <RemoveMenu item={menuFor} onClose={() => setMenuFor(null)} onRemove={onRemove} />)}
     </div>
   );
 }
 
 // Bottom sheet opened by press-and-hold — same wording as the admin Beverage tool.
+// "Check other areas" checklist: just the flagged items, in walking order, each
+// with its count box. An item counted here shows ✓ and its flag ends.
+function Checklist({
+  items, counts, picks, setCount, setPick, onClose,
+}: {
+  items: CountItem[];
+  counts: Record<string, number>;
+  picks: Record<string, OrderUnit>;
+  setCount: (i: CountItem, v: number | null) => void;
+  setPick: (id: string, u: OrderUnit) => void;
+  onClose: () => void;
+}) {
+  const open = items.filter((i) => i.check).length;
+  return (
+    <div className="fixed inset-0 z-50 bg-[var(--brand-cream)] flex flex-col [overscroll-behavior-x:none]" role="dialog" aria-modal="true" aria-label="Check other areas">
+      <div className={`px-4 pt-[max(env(safe-area-inset-top),14px)] pb-3 border-b border-[#BA7517] ${CHECK_ROW} flex items-center gap-2`}>
+        <div className="flex-1 min-w-0">
+          <p className={`text-base font-semibold ${CHECK_TEXT}`}>Check other areas ({open})</p>
+          <p className={`text-[11px] ${CHECK_TEXT} opacity-80`}>In walking order: area, then shelf</p>
+        </div>
+        <button onClick={onClose} aria-label="Close" className={`px-3 py-1.5 rounded-full border border-[#BA7517] bg-white text-xs font-medium ${CHECK_TEXT}`}>Done</button>
+      </div>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+        {items.length === 0 && <p className="text-center text-sm text-[var(--ink-muted)] py-10">Nothing left to check.</p>}
+        <div className="bg-white border-b border-[var(--line)] divide-y divide-[var(--line)]">
+          {items.map((i) => (
+            <CountRow
+              key={i.id}
+              item={i}
+              sub={[i.areaName ?? "Unassigned", i.shelf1 ? `Shelf ${i.shelf1}` : null].filter(Boolean).join(" · ")}
+              count={counts[i.id]}
+              pick={picks[i.id]}
+              setCount={(v) => setCount(i, v)}
+              setPick={(u) => setPick(i.id, u)}
+              onHold={() => {}}
+              tagMode="all"
+              canMark86={false}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RemoveMenu({ item, onClose, onRemove }: { item: CountItem; onClose: () => void; onRemove: (item: CountItem, action: RemoveAction) => Promise<string | null> }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -662,11 +895,13 @@ function RemoveMenu({ item, onClose, onRemove }: { item: CountItem; onClose: () 
 type PanelView = "menu" | "par" | "loc" | "note";
 
 function ItemPanel({
-  item, areas, canMarkRemove, onClose, onRemove, onUpdate,
+  item, areas, canMarkRemove, canMark86, onClose, onRemove, onUpdate, onFlag,
 }: {
   item: CountItem;
   areas: { id: string; name: string }[];
   canMarkRemove: boolean;
+  canMark86: boolean;
+  onFlag: (item: CountItem, action: FlagAction) => Promise<string | null>;
   onClose: () => void;
   onRemove: (item: CountItem, action: RemoveAction) => Promise<string | null>;
   onUpdate: (item: CountItem, edit: ItemEdit) => Promise<string | null>;
@@ -713,6 +948,14 @@ function ItemPanel({
     else setFlash(action === "mark" ? "Marked to remove" : "Remove mark undone");
   };
 
+  const flag = async (action: FlagAction, done: string) => {
+    setBusy(true); setError(null);
+    const err = await onFlag(item, action);
+    setBusy(false);
+    if (err) { setError(err); return; }
+    setFlash(done);
+  };
+
   const parNum = Number(par);
   const parOk = par.trim() !== "" && Number.isFinite(parNum) && parNum >= 0 && parNum <= 9999;
   const stepPar = (d: number) => setPar(String(Math.max(0, Math.round(((Number.isFinite(parNum) ? parNum : 0) + d) * 100) / 100)));
@@ -746,6 +989,30 @@ function ItemPanel({
           {view === "menu" && (
             <div>
               {flash && <p className="mx-4 mt-3 px-3 py-2 rounded-lg bg-[#F1F5E8] border border-[var(--brand-olive)] text-xs text-[var(--brand-brown)]">✓ {flash}</p>}
+
+              {KIOSK_SWIPE_ACTIONS && (
+                <>
+                  <button disabled={busy} onClick={() => flag(item.check ? "uncheck" : "check", item.check ? "Flag removed" : "Flagged: check other areas")} className={`${row} ${item.check ? "" : CHECK_ROW}`}>
+                    <p className={`text-sm font-medium ${CHECK_TEXT}`}>{item.check ? "Remove flag" : "Check other areas"}</p>
+                    <p className="text-[11px] text-[var(--ink-muted)]">
+                      {item.check ? `Flagged by ${item.check.byName} · ${fmtTime(item.check.at)}` : "Pin it to the top until a count is entered (swipe right)"}
+                    </p>
+                  </button>
+                  {canMark86 && (item.eightySix || !item.removing) ? (
+                    <button disabled={busy} onClick={() => flag(item.eightySix ? "un_eighty_six" : "eighty_six", item.eightySix ? "86 cleared" : "Marked 86")} className={row}>
+                      <p className="text-sm font-medium text-[#A32D2D]">{item.eightySix ? "Un-86" : "Mark 86"}</p>
+                      <p className="text-[11px] text-[var(--ink-muted)]">
+                        {item.eightySix ? `86 by ${item.eightySix.byName} · ${fmtTime(item.eightySix.at)}` : "Completely out. Shows in the Order Cart (swipe left)"}
+                      </p>
+                    </button>
+                  ) : (
+                    <div className={`${row} opacity-60 cursor-not-allowed`} aria-disabled="true">
+                      <p className="text-sm font-medium text-[var(--ink-muted)]">🔒 {item.eightySix ? "Un-86" : "Mark 86"}</p>
+                      <p className="text-[11px] text-[var(--ink-muted)]">{canMark86 ? "Coming off menu, so it can't be 86'd" : "Not allowed"}</p>
+                    </div>
+                  )}
+                </>
+              )}
 
               {canMarkRemove ? (
                 <button disabled={busy} onClick={() => remove(item.removing ? "unmark" : "mark")} className={row}>
@@ -908,8 +1175,69 @@ function useHold(onHold: () => void) {
   };
 }
 
+// Sideways swipe on a row (KIOSK_SWIPE_ACTIONS). Only a clearly horizontal
+// drag counts: a mostly-vertical one is left to the page scroll (touch-action
+// pan-y), a tap never moves far enough, and drags that start on a button / the
+// count box or within EDGE_PX of the left edge (iPhone Back) are ignored.
+function useSwipe(o: { canRight: boolean; canLeft: boolean; onRight: () => void; onLeft: () => void }) {
+  const st = useRef<{ x: number; y: number; id: number; mode: "?" | "h" | "v" } | null>(null);
+  const dxRef = useRef(0);
+  const [dx, setDx] = useState(0);
+  const onControl = (t: EventTarget) => !!(t as HTMLElement).closest("button, input");
+  const set = (v: number) => { dxRef.current = v; setDx(v); };
+  const end = (fire: boolean) => {
+    const s = st.current;
+    st.current = null;
+    const v = dxRef.current;
+    set(0);
+    if (!fire || !s || s.mode !== "h") return;
+    if (v >= SWIPE_AT) o.onRight();
+    else if (v <= -SWIPE_AT) o.onLeft();
+  };
+  return {
+    dx,
+    handlers: !KIOSK_SWIPE_ACTIONS ? {} : {
+      onPointerDown: (e: React.PointerEvent) => {
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        if (onControl(e.target) || e.clientX < EDGE_PX) { st.current = null; return; }
+        st.current = { x: e.clientX, y: e.clientY, id: e.pointerId, mode: "?" };
+      },
+      onPointerMove: (e: React.PointerEvent) => {
+        const s = st.current;
+        if (!s || s.id !== e.pointerId || s.mode === "v") return;
+        const ddx = e.clientX - s.x, ddy = e.clientY - s.y;
+        if (s.mode === "?") {
+          if (Math.abs(ddy) > 10 && Math.abs(ddy) >= Math.abs(ddx)) { s.mode = "v"; return; }
+          if (Math.abs(ddx) > 12 && Math.abs(ddx) > Math.abs(ddy) * 1.5) {
+            s.mode = "h";
+            try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch {}
+          } else return;
+        }
+        let v = ddx;
+        if (v > 0 && !o.canRight) v = 0;
+        if (v < 0 && !o.canLeft) v = 0;
+        set(Math.max(-SWIPE_MAX, Math.min(SWIPE_MAX, v)));
+      },
+      onPointerUp: () => end(true),
+      onPointerCancel: () => end(false),
+    },
+  };
+}
+
+// Run both sets of pointer handlers (press-and-hold + swipe) on one element.
+function mergeHandlers(a: Record<string, unknown>, b: Record<string, unknown>) {
+  const out: Record<string, unknown> = { ...a };
+  for (const [k, fb] of Object.entries(b)) {
+    const fa = a[k];
+    out[k] = typeof fa === "function"
+      ? (e: unknown) => { (fa as (e: unknown) => void)(e); (fb as (e: unknown) => void)(e); }
+      : fb;
+  }
+  return out;
+}
+
 function CountRow({
-  item, sub, count, pick, setCount, setPick, onHold,
+  item, sub, count, pick, setCount, setPick, onHold, tagMode = "all", canMark86 = false, onFlag,
 }: {
   item: CountItem;
   sub: string;
@@ -918,8 +1246,22 @@ function CountRow({
   setCount: (v: number | null) => void;
   setPick: (u: OrderUnit) => void;
   onHold: () => void;
+  tagMode?: TagMode;
+  canMark86?: boolean;
+  onFlag?: (a: FlagAction) => void;
 }) {
   const hold = useHold(onHold);
+  // Swipe right = Check other areas / Remove flag; swipe left = Mark 86 / Un-86
+  // (people with "Can mark 86" only; not for items coming off the menu).
+  const can86 = !!onFlag && canMark86 && (!!item.eightySix || !item.removing);
+  const swipe = useSwipe({
+    canRight: !!onFlag,
+    canLeft: can86,
+    onRight: () => { try { navigator.vibrate?.(10); } catch {} onFlag?.(item.check ? "uncheck" : "check"); },
+    onLeft: () => { try { navigator.vibrate?.(10); } catch {} onFlag?.(item.eightySix ? "un_eighty_six" : "eighty_six"); },
+  });
+  const handlers = mergeHandlers(hold as unknown as Record<string, unknown>, swipe.handlers as Record<string, unknown>);
+  const dx = swipe.dx;
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState("");
   const counted = count !== undefined;
@@ -933,13 +1275,42 @@ function CountRow({
   };
   const subParts = [sub, item.vendor, item.casePack ? `${item.casePack}/cs` : null].filter(Boolean);
 
+  const flagged = KIOSK_SWIPE_ACTIONS && !!item.check;
+  const out86 = KIOSK_SWIPE_ACTIONS && !!item.eightySix;
+  const bg = out86 ? GREY_ROW : item.removing ? RED_ROW : flagged ? CHECK_ROW : counted ? "bg-[#FAF7F1]" : "bg-white";
+
   return (
-    <div {...hold} className={`px-3 py-2 flex items-center gap-2 select-none [-webkit-touch-callout:none] [-webkit-user-select:none] ${item.removing ? RED_ROW : counted ? "bg-[#FAF7F1]" : ""}`}>
+    <div className="relative overflow-hidden">
+      {dx > 0 && (
+        <div className={`absolute inset-y-0 left-0 flex items-center px-3 ${CHECK_ROW} border-l-4 border-l-[#BA7517]`} style={{ width: Math.max(dx, 0) }} aria-hidden="true">
+          <span className={`text-[11px] font-semibold leading-tight ${CHECK_TEXT} ${dx >= SWIPE_AT ? "" : "opacity-60"}`}>{item.check ? "Remove flag" : "Check other areas"}</span>
+        </div>
+      )}
+      {dx < 0 && (
+        <div className={`absolute inset-y-0 right-0 flex items-center justify-end px-3 ${RED86_BG}`} style={{ width: Math.max(-dx, 0) }} aria-hidden="true">
+          <span className={`text-[11px] font-bold leading-tight text-white ${dx <= -SWIPE_AT ? "" : "opacity-70"}`}>{item.eightySix ? "Un-86" : "Mark 86"}</span>
+        </div>
+      )}
+    <div
+      {...handlers}
+      style={dx ? { transform: `translateX(${dx}px)` } : { transition: "transform .15s ease-out" }}
+      className={`relative px-3 py-2 flex items-center gap-2 select-none [-webkit-touch-callout:none] [-webkit-user-select:none] ${KIOSK_SWIPE_ACTIONS ? "[touch-action:pan-y]" : ""} ${bg} ${flagged ? CHECK_EDGE : ""}`}
+    >
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-[var(--brand-brown)] leading-snug line-clamp-2 break-words">
+        <p className={`text-sm font-medium leading-snug line-clamp-2 break-words ${out86 ? "text-[var(--ink-muted)]" : "text-[var(--brand-brown)]"}`}>
+          {out86 && <span className={`mr-1.5 inline px-1.5 py-px rounded ${RED86_BG} text-white text-[10px] font-bold align-[1px]`}>86</span>}
           {item.name}
           {item.size && <span className="ml-1.5 text-[11px] font-normal text-[var(--ink-muted)]">{item.size}</span>}
         </p>
+        {out86 && (
+          <p className="text-[10px] text-[#A32D2D] leading-snug">86 · {item.eightySix!.byName} · {fmtTime(item.eightySix!.at)}</p>
+        )}
+        {flagged && (
+          <p className={`text-[11px] font-semibold leading-snug ${CHECK_TEXT}`}>
+            {checkTag(item, tagMode)}
+            <span className="font-normal opacity-80"> · {item.check!.byName} · {fmtTime(item.check!.at)}</span>
+          </p>
+        )}
         {item.removing && (
           <p className="text-[11px] font-semibold text-red-700 leading-snug">Coming off menu · don&rsquo;t reorder</p>
         )}
@@ -1025,6 +1396,7 @@ function CountRow({
         )}
         <button onClick={() => step(0.5)} aria-label="Plus" className="w-9 sm:w-10 h-10 rounded-r-xl border border-[var(--line)] bg-white text-lg active:bg-[var(--line)]">+</button>
       </div>
+    </div>
     </div>
   );
 }

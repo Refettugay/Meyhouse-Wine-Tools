@@ -23,7 +23,7 @@ import { OrderCartDrawer } from "@/components/product/order-cart-drawer";
 import { ApprovedOrdersPanel, OrderHistoryPanel } from "@/components/product/approved-orders-panel";
 import { approveCart } from "@/lib/actions/approved-orders";
 import { cartClear, cartHeartbeat, cartSetDesktopCounts, type DesktopCount } from "@/lib/actions/order-cart";
-import type { ApprovedOrderDTO, CartLineDTO, CartRequestDTO, CartViewer } from "@/lib/order-cart-types";
+import type { ApprovedOrderDTO, Cart86DTO, CartLineDTO, CartRequestDTO, CartViewer } from "@/lib/order-cart-types";
 import { ORDER_CART_FLOW } from "@/lib/order-flags";
 import { KIOSK_ITEM_MENU } from "@/lib/kiosk-flags";
 import { KioskChangesStrip } from "@/components/product/kiosk-changes-strip";
@@ -454,7 +454,7 @@ export function UnifiedProductsPage({
   // Theoretical usage from POS sales, keyed `${ingredientId}_${locationId}`, in inventory count units.
   theoreticalUsage: Record<string, number>;
   // Shared Order Cart (ORDER_CART_FLOW): lines + open staff notes for my stores.
-  cart: { lines: CartLineDTO[]; requests: CartRequestDTO[] };
+  cart: { lines: CartLineDTO[]; requests: CartRequestDTO[]; eightySix?: Cart86DTO[] };
   // Approved orders tab (my ACTIVE list) + Order history (my last 8 cleared).
   approved: { active: ApprovedOrderDTO | null; history: ApprovedOrderDTO[] };
   meId: string;

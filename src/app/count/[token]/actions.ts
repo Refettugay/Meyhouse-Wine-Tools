@@ -12,8 +12,9 @@ import { getStaffSession, setStaffSession, clearStaffSession, type StaffSession 
 import { typeChipFor } from "@/lib/staff-count/types";
 import { formatBottleSize } from "@/lib/staff-count/size";
 import { effectiveUnit, orderQty, type OrderUnit } from "@/lib/ordering-math";
-import type { CountFeed, CountItem, ItemEdit, RemoveAction, SendCount, SendResult, StaffPerson } from "@/lib/staff-count/feed-types";
-import { KIOSK_ITEM_MENU } from "@/lib/kiosk-flags";
+import type { CountFeed, CountItem, FlagAction, ItemEdit, ItemFlag, RemoveAction, SendCount, SendResult, StaffPerson } from "@/lib/staff-count/feed-types";
+import { KIOSK_ITEM_MENU, KIOSK_SWIPE_ACTIONS } from "@/lib/kiosk-flags";
+import { canMark86, clear86OnSend, clearFlag, expireCheckFlags, openFlagsFor, setFlag } from "@/lib/kiosk-item-flags";
 import { hardDeleteIngredient } from "@/lib/product-removal";
 import { absorbHeld } from "@/lib/order-hold";
 import { ORDER_CART_FLOW } from "@/lib/order-flags";
@@ -54,14 +55,17 @@ async function rosterFor(store: CountLinkStore): Promise<RosterPerson[]> {
     .map((r) => ({ id: r.id, name: (r.full_name || "").trim(), hasPin: r.has_pin, role: (r.role || "staff").toLowerCase() }));
 }
 
-async function signedIn(token: string): Promise<{ store: CountLinkStore; session: StaffSession; canMarkRemove: boolean } | null> {
+async function signedIn(token: string): Promise<{ store: CountLinkStore; session: StaffSession; canMarkRemove: boolean; canMark86: boolean } | null> {
   const store = await resolveCountLink(token);
   if (!store) return null;
   const session = await getStaffSession(token, store.locationId);
   if (!session) return null;
   // Still allowed at this store? (switched off, unassigned or made inactive -> out right away)
   const me = (await rosterFor(store)).find((p) => p.id === session.personId);
-  return me ? { store, session, canMarkRemove: MARK_ROLES.has(me.role) } : null;
+  if (!me) return null;
+  // "Can mark 86" (Admin -> Settings -> Kiosk permissions), read fresh on every request.
+  const may86 = KIOSK_SWIPE_ACTIONS ? await canMark86(store.organizationId, me.id, me.role) : false;
+  return { store, session, canMarkRemove: MARK_ROLES.has(me.role), canMark86: may86 };
 }
 
 // ---------------------------------------------------------------------------
@@ -144,7 +148,10 @@ export async function loadCountFeed(token: string): Promise<{ ok: true; feed: Co
   if (!auth) return (await resolveCountLink(token)) ? SIGNED_OUT : BAD_LINK;
   const { store, session } = auth;
 
-  const [inv, areas, todays] = await Promise.all([
+  // "Check other areas" flags left open past 4:00 AM Pacific clear now (logged at 4:00 AM).
+  if (KIOSK_SWIPE_ACTIONS) await expireCheckFlags(store);
+
+  const [inv, areas, todays, flags] = await Promise.all([
     prisma.inventoryItem.findMany({
       where: { locationId: store.locationId, ingredient: { isActive: true } },
       select: FEED_SELECT,
@@ -160,6 +167,7 @@ export async function loadCountFeed(token: string): Promise<{ ok: true; feed: Co
       orderBy: { countedAt: "desc" },
       select: { storageAreaId: true, countedById: true, countedByName: true, countedAt: true },
     }),
+    KIOSK_SWIPE_ACTIONS ? openFlagsFor(store.locationId) : Promise.resolve(new Map<string, ItemFlags>()),
   ]);
 
   const today = storeDay(new Date());
@@ -171,13 +179,13 @@ export async function loadCountFeed(token: string): Promise<{ ok: true; feed: Co
     countedToday[k] = { byName: e.countedByName || "Someone", at: e.countedAt.toISOString(), byMe: e.countedById === session.personId };
   }
 
-  const items = inv.map(toCountItem);
+  const items = inv.map((i) => toCountItem(i, flags.get(i.id)));
 
   return {
     ok: true,
     feed: {
       storeName: store.name.replace("Meyhouse ", ""),
-      me: { name: session.name, canMarkRemove: auth.canMarkRemove },
+      me: { name: session.name, canMarkRemove: auth.canMarkRemove, canMark86: auth.canMark86 },
       items,
       // Every area of the store: the kiosk shows tabs only for areas that have
       // items, and offers all of them in "Location & shelf".
@@ -207,7 +215,9 @@ const FEED_SELECT = {
 } satisfies Prisma.InventoryItemSelect;
 type FeedRow = Prisma.InventoryItemGetPayload<{ select: typeof FEED_SELECT }>;
 
-function toCountItem(i: FeedRow): CountItem {
+type ItemFlags = { check: ItemFlag | null; eightySix: ItemFlag | null };
+
+function toCountItem(i: FeedRow, flags?: ItemFlags): CountItem {
   const g = i.ingredient;
   const cps = g.casePackSize ?? null;
   return {
@@ -230,6 +240,8 @@ function toCountItem(i: FeedRow): CountItem {
     shelf1: i.shelfLocation ?? null,
     shelf2: i.shelfLocation2 ?? null,
     note: i.kioskNote?.trim() ? i.kioskNote.trim() : null,
+    check: flags?.check ?? null,
+    eightySix: flags?.eightySix ?? null,
   };
 }
 
@@ -320,7 +332,8 @@ export async function updateItem(
     }
   }
 
-  if (changes.length === 0) return { ok: true, item: toCountItem(cur) };
+  const curFlags = KIOSK_SWIPE_ACTIONS ? (await openFlagsFor(store.locationId)).get(cur.id) : undefined;
+  if (changes.length === 0) return { ok: true, item: toCountItem(cur, curFlags) };
 
   const updated = await prisma.$transaction(async (tx) => {
     const row = await tx.inventoryItem.update({ where: { id: cur.id }, data, select: FEED_SELECT });
@@ -334,7 +347,7 @@ export async function updateItem(
     return row;
   });
   revalidatePath("/dashboard/products");
-  return { ok: true, item: toCountItem(updated) };
+  return { ok: true, item: toCountItem(updated, curFlags) };
 }
 
 // ---------------------------------------------------------------------------
@@ -396,6 +409,68 @@ export async function removeItem(token: string, inventoryItemId: string, action:
 }
 
 // ---------------------------------------------------------------------------
+// Swipe actions: "Check other areas" and 86 (KIOSK_SWIPE_ACTIONS)
+// ---------------------------------------------------------------------------
+// Shared by every device at THIS store. Check: anyone signed in. 86 / Un-86:
+// only people with "Can mark 86" -- checked here on the server, not just hidden
+// on the screen. An item marked to be removed can't be 86'd.
+
+export async function flagItem(
+  token: string,
+  inventoryItemId: string,
+  action: FlagAction,
+): Promise<{ ok: true; check: ItemFlag | null; eightySix: ItemFlag | null } | { ok: false; error: string; signedOut?: boolean }> {
+  if (!pinConfigured()) return NOT_CONFIGURED;
+  if (!KIOSK_SWIPE_ACTIONS) return { ok: false, error: "Not available." };
+  const auth = await signedIn(token);
+  if (!auth) return (await resolveCountLink(token)) ? SIGNED_OUT : BAD_LINK;
+  const { store, session } = auth;
+  if (!["check", "uncheck", "eighty_six", "un_eighty_six"].includes(action)) return { ok: false, error: "Unknown action." };
+  if ((action === "eighty_six" || action === "un_eighty_six") && !auth.canMark86) return { ok: false, error: "Not allowed. Ask a manager." };
+
+  const inv = typeof inventoryItemId === "string"
+    ? await prisma.inventoryItem.findFirst({
+        where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId },
+        select: { id: true, ingredientId: true, markedForRemoval: true, ingredient: { select: { name: true } } },
+      })
+    : null;
+  if (!inv) return { ok: false, error: "That item is no longer on this store's list." };
+  if (action === "eighty_six" && inv.markedForRemoval) return { ok: false, error: "This item is coming off the menu, so it can't be 86'd." };
+
+  const actor = { personId: session.personId, name: session.name };
+  const kind = action === "check" || action === "uncheck" ? "CHECK" : "EIGHTY_SIX";
+  if (action === "check" || action === "eighty_six") await setFlag(store, actor, inv.id, inv.ingredientId, inv.ingredient.name, kind);
+  else await clearFlag(prisma, store, actor, inv.id, inv.ingredientId, inv.ingredient.name, kind, "manual");
+
+  revalidatePath("/dashboard/products");
+  const f = (await openFlagsFor(store.locationId)).get(inv.id);
+  return { ok: true, check: f?.check ?? null, eightySix: f?.eightySix ?? null };
+}
+
+// A count was entered for an item (any device): its "Check other areas" flag is
+// done. The count itself stays on the device until Send Manager, as before.
+export async function countEntered(token: string, inventoryItemId: string): Promise<{ ok: true } | { ok: false; error: string; signedOut?: boolean }> {
+  if (!pinConfigured()) return NOT_CONFIGURED;
+  if (!KIOSK_SWIPE_ACTIONS) return { ok: true };
+  const auth = await signedIn(token);
+  if (!auth) return (await resolveCountLink(token)) ? SIGNED_OUT : BAD_LINK;
+  const { store, session } = auth;
+  if (typeof inventoryItemId !== "string") return { ok: true };
+  const open = await prisma.kioskItemFlag.findFirst({
+    where: { inventoryItemId, locationId: store.locationId, kind: "CHECK", clearedAt: null },
+    select: { id: true },
+  });
+  if (!open) return { ok: true };
+  const inv = await prisma.inventoryItem.findFirst({
+    where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId },
+    select: { ingredientId: true, ingredient: { select: { name: true } } },
+  });
+  if (!inv) return { ok: true };
+  await clearFlag(prisma, store, { personId: session.personId, name: session.name }, inventoryItemId, inv.ingredientId, inv.ingredient.name, "CHECK", "counted", false);
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
 // Send to manager
 // ---------------------------------------------------------------------------
 // Goes into the store's ONE open cart (latest SUBMITTED order; created if none).
@@ -431,11 +506,18 @@ export async function sendCounts(token: string, counts: SendCount[], request: st
   const now = new Date();
   const actor = { actorId: session.personId, actorName: session.name, actorKind: "staff", source: "staff_count" } as const;
   let linesOrdered = 0;
+  let cleared86 = 0;
+  // 86 rule (kiosk-item-flags.ts -> should86ClearOnSend): runs INSIDE the send's
+  // transaction, so if the send fails nothing is cleared.
+  const sent86 = inv.map((i) => ({ inventoryItemId: i.id, ingredientId: i.ingredientId, name: i.ingredient.name, count: clean.get(i.id)!.count }));
+  const after = async (tx: Prisma.TransactionClient) => {
+    if (KIOSK_SWIPE_ACTIONS) cleared86 = await clear86OnSend(tx, store, { personId: session.personId, name: session.name }, sent86);
+  };
 
   if (ORDER_CART_FLOW) {
-    linesOrdered = await sendCountsToCart(store, session, inv, clean, note, now, actor);
+    linesOrdered = await sendCountsToCart(store, session, inv, clean, note, now, actor, after);
     await clearStaffSession(token);
-    return { ok: true, linesOrdered, itemsCounted: inv.length };
+    return { ok: true, linesOrdered, itemsCounted: inv.length, cleared86 };
   }
 
   await prisma.$transaction(
@@ -562,13 +644,14 @@ export async function sendCounts(token: string, counts: SendCount[], request: st
       logs.push({ organizationId: store.organizationId, locationId: store.locationId, orderListId: orderId, entity: "ORDER", action: "staff_send",
         note: `${inv.length} counted, ${linesOrdered} to order${note ? ", 1 request" : ""}`, ...actor });
       await tx.orderActivityLog.createMany({ data: logs });
+      await after(tx);
     },
     { timeout: 30_000, maxWait: 10_000 },
   );
 
   // Sent → signed out automatically (the next person signs in fresh).
   await clearStaffSession(token);
-  return { ok: true, linesOrdered, itemsCounted: inv.length };
+  return { ok: true, linesOrdered, itemsCounted: inv.length, cleared86 };
 }
 
 // New flow (ORDER_CART_FLOW): every line lands in the store's shared Order
@@ -588,6 +671,7 @@ async function sendCountsToCart(
   note: string,
   now: Date,
   actor: { actorId: string; actorName: string; actorKind: "staff"; source: "staff_count" },
+  after: (tx: Prisma.TransactionClient) => Promise<void>,
 ): Promise<number> {
   let linesOrdered = 0;
   await prisma.$transaction(
@@ -644,6 +728,7 @@ async function sendCountsToCart(
       }
       logs.push({ ...base, entity: "ORDER", action: "staff_send", note: `${inv.length} counted, ${linesOrdered} added to the Order Cart${note ? ", 1 note" : ""}` });
       await tx.orderActivityLog.createMany({ data: logs });
+      await after(tx);
     },
     { timeout: 30_000, maxWait: 10_000 },
   );

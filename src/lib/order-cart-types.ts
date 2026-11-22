@@ -27,6 +27,9 @@ export type CartRequestDTO = { id: string; locationId: string; text: string; byN
 
 export type CartViewer = { name: string; locationId: string };
 
+// Kiosk 86 marks (KIOSK_SWIPE_ACTIONS): shown at the top of the cart, never added automatically.
+export type Cart86DTO = { inventoryItemId: string; locationId: string; ingredientId: string; name: string; byName: string | null; at: string };
+
 const STORE_TZ = "America/Los_Angeles";
 
 export function shortStore(name: string) {

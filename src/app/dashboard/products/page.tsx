@@ -436,7 +436,7 @@ export default async function ProductsPage() {
   // Shared Order Cart (2026-11-03): lines for the stores this person orders for.
   const cart = ORDER_CART_FLOW
     ? await loadCartFor(orgId, locations.filter((l) => orderingScope.access[l.id] === "ORDER").map((l) => l.id))
-    : { lines: [], requests: [] };
+    : { lines: [], requests: [], eightySix: [] };
   // Approved orders + Order history (this person's own lists).
   const approved = ORDER_CART_FLOW ? await loadApprovedFor(orgId, session.userId) : { active: null, history: [] };
 
