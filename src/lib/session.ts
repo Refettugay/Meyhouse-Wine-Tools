@@ -161,6 +161,10 @@ export async function requireAuth() {
     role: beverageAccess
       ? mapScheduleRoleToBeverageRole(beverageAccess.role)
       : mapScheduleRoleToBeverageRole(profile.role),
+    // The raw Schedule role ('owner' | 'admin' | 'manager' | 'supervisor' | …).
+    // `role` above folds supervisor into MANAGER; this keeps them apart for the
+    // few gates that need a General Manager specifically (Permanent Delete).
+    scheduleRole: (beverageAccess?.role ?? profile.role ?? "").toLowerCase(),
     permissions,
   };
 }

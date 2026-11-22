@@ -10,7 +10,7 @@ import { generateApprovedOrderEmails, sendOrderEmails, markOrdersOrdered } from 
 import { addBottleSize } from "@/lib/actions/settings";
 import { setProductOrderUnit } from "@/lib/actions/ordering";
 import type { SubCategory } from "@/lib/category-types";
-import { Mail, ArrowLeftRight } from "lucide-react";
+import { Mail, ArrowLeftRight, Database } from "lucide-react";
 import { useResizableColumns } from "@/hooks/use-resizable-columns";
 import { MenuPricingReadOnly } from "@/components/product/menu-pricing-readonly";
 import { AddVendorDrawer } from "@/components/vendor/add-vendor-drawer";
@@ -31,6 +31,8 @@ import { KioskChangesStrip } from "@/components/product/kiosk-changes-strip";
 import { ADMIN_AREA_PICKER } from "@/lib/admin-area-picker-flag";
 import { AreaShelfPicker, type PickerOption, type PickerTick } from "@/components/product/area-shelf-picker";
 import { setProductLocations, type LocationSet } from "@/lib/actions/area-picker";
+import { MasterDatabaseTab } from "@/components/product/master-database-tab";
+import { RemoveFromStoresDialog, type RemoveTarget } from "@/components/product/remove-from-stores-dialog";
 import {
   Search,
   Plus,
@@ -84,6 +86,10 @@ interface Product {
   costUpdateMethod: string;
   locationIds: string[];
   locationCount: number;
+  // Master Database (2026-11-22)
+  archivedAt?: string | null;
+  createdAt?: string;
+  storeLinks?: { locationId: string; locationName: string; removedAt: string | null; removedByName: string | null; markedForRemoval: string | null }[];
   inventory: {
     id: string;
     locationId: string;
@@ -118,7 +124,7 @@ interface Vendor {
   name: string;
 }
 
-type Mode = "products" | "inventory" | "ordering" | "pricing" | "transfers";
+type Mode = "products" | "inventory" | "ordering" | "pricing" | "transfers" | "master";
 type SortField = "name" | "size" | "case" | "vendor" | "category" | "area" | "shelf" | "area2" | "shelf2" | "cost" | "pour" | "pourCost" | "suggested";
 type SortDir = "asc" | "desc";
 
@@ -420,6 +426,8 @@ export function UnifiedProductsPage({
   cart: initialCart,
   approved: initialApproved,
   meId,
+  masterDb = false,
+  canPermanentDelete = false,
 }: {
   products: Product[];
   locations: Location[];
@@ -459,6 +467,9 @@ export function UnifiedProductsPage({
   // Approved orders tab (my ACTIVE list) + Order history (my last 8 cleared).
   approved: { active: ApprovedOrderDTO | null; history: ApprovedOrderDTO[] };
   meId: string;
+  // Master Database tab + "Remove from…" pop-up (NEXT_PUBLIC_MASTER_DATABASE).
+  masterDb?: boolean;
+  canPermanentDelete?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -613,7 +624,14 @@ export function UnifiedProductsPage({
 
   // Mode from URL
   const urlMode = searchParams.get("mode") as Mode | null;
-  const [mode, setMode] = useState<Mode>(urlMode === "transfers" && !transfers ? "products" : urlMode || "products");
+  const [mode, setMode] = useState<Mode>((urlMode === "transfers" && !transfers) || (urlMode === "master" && !masterDb) ? "products" : urlMode || "products");
+  // "Remove from…" pop-up (Master Database).
+  const [removeTarget, setRemoveTarget] = useState<{ target: RemoveTarget; preselect: string | null } | null>(null);
+  const [removeFlash, setRemoveFlash] = useState<string | null>(null);
+  const openRemoveFor = (p: Product, preselect: string | null) => setRemoveTarget({
+    preselect,
+    target: { id: p.id, name: p.name, stores: p.inventory.map((i) => ({ locationId: i.locationId, name: i.locationName, leaving: !!i.markedForRemoval })) },
+  });
 
   // Live Order tab: every 10s (and when the window comes back into view) ask
   // the server "anything new?"; if so, reload the data in place — no page
@@ -1911,13 +1929,21 @@ export function UnifiedProductsPage({
     const matchSearch = searchMatcher(search);
     return products
       .filter((p) => {
+        // Master Database: the Inventory tab shows only products a store uses
+        // (in the picked store, or any store). Everything else lives in the
+        // Master Database tab.
+        if (masterDb) {
+          const scoped = locationFilter === "ALL" ? p.inventory : p.inventory.filter((i) => i.locationId === locationFilter);
+          if (scoped.length === 0) return false;
+          if (statusFilter === "pending" && !scoped.some((i) => i.markedForRemoval)) return false;
+        }
         // Status filter
-        if (statusFilter === "onMenu" && p.menuStatus !== "ON_MENU") return false;
-        if (statusFilter === "database" && p.menuStatus !== "DATABASE") return false;
-        if (statusFilter === "inactive" && p.menuStatus !== "INACTIVE") return false;
+        if (!masterDb && statusFilter === "onMenu" && p.menuStatus !== "ON_MENU") return false;
+        if (!masterDb && statusFilter === "database" && p.menuStatus !== "DATABASE") return false;
+        if (!masterDb && statusFilter === "inactive" && p.menuStatus !== "INACTIVE") return false;
         // Phasing Out review list: on-menu items flagged "Mark to Remove" in the
         // currently-scoped store(s). Out-of-stock ones are the ones awaiting a decision.
-        if (statusFilter === "pending") {
+        if (!masterDb && statusFilter === "pending") {
           if (p.menuStatus !== "ON_MENU") return false;
           const invs = locationFilter === "ALL" ? p.inventory : p.inventory.filter((i) => i.locationId === locationFilter);
           if (!invs.some((i) => i.markedForRemoval === "PENDING")) return false;
@@ -2008,6 +2034,7 @@ export function UnifiedProductsPage({
     statusFilter,
     sortField,
     sortDir,
+    masterDb,
   ]);
 
   // ===== BULK SELECTION HELPERS (Products mode) =====
@@ -2499,6 +2526,17 @@ export function UnifiedProductsPage({
 
           return (
             <div className="flex items-center gap-2">
+              {masterDb ? (
+                /* Master Database: one Remove button that asks which restaurants + when */
+                <button
+                  onClick={() => { if (selected) openRemoveFor(selected, isStorePicked ? locationFilter : null); else setMarkerError("Click a product row first."); }}
+                  className={`${btnBase} ${selected ? "bg-red-50 border-red-200 text-red-700 hover:bg-red-100" : disabledBtn}`}
+                  title={selected ? `Remove "${selected.name}" from…` : "Click a product row first"}
+                >
+                  <XCircle className="w-4 h-4" />
+                  <span>Remove…</span>
+                </button>
+              ) : (<>
               {/* Database — yellow (works in All Locations too) */}
               <button
                 onClick={() => handleRemovalClick("DATABASE")}
@@ -2521,6 +2559,7 @@ export function UnifiedProductsPage({
                 <XCircle className="w-4 h-4" />
                 <span>Delete</span>
               </button>
+              </>)}
               {/* Craft Cocktail — teal */}
               <button
                 onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "craft", !selectedInv?.isCraftCocktailIngredient))}
@@ -2579,7 +2618,7 @@ export function UnifiedProductsPage({
           Active cell is solid Sophra olive; inactive cells are transparent so
           the warm cream container reads as a single rounded "track" beneath. */}
       <div
-        className={`grid ${transfers ? "grid-cols-5" : "grid-cols-4"} gap-1 rounded-[10px] ${fullScreenView ? "p-0.5 mb-2" : "p-1 mb-4"}`}
+        className={`grid ${["grid-cols-4", "grid-cols-5", "grid-cols-6"][(transfers ? 1 : 0) + (masterDb ? 1 : 0)]} gap-1 rounded-[10px] ${fullScreenView ? "p-0.5 mb-2" : "p-1 mb-4"}`}
         style={{ background: "#EDE5D0" }}
       >
         {[
@@ -2588,6 +2627,7 @@ export function UnifiedProductsPage({
           { key: "products" as Mode, label: "Inventory", icon: Package },
           { key: "pricing" as Mode, label: "Pricing", icon: DollarSign },
           ...(transfers ? [{ key: "transfers" as Mode, label: "Transfers", icon: ArrowLeftRight }] : []),
+          ...(masterDb ? [{ key: "master" as Mode, label: "Master Database", icon: Database }] : []),
         ].map((tab) => {
           const isActive = mode === tab.key;
           return (
@@ -2618,8 +2658,28 @@ export function UnifiedProductsPage({
         })}
       </div>
 
+      {removeTarget && (
+        <RemoveFromStoresDialog
+          product={removeTarget.target}
+          preselect={removeTarget.preselect}
+          onClose={() => setRemoveTarget(null)}
+          onDone={(msg) => { setRemoveTarget(null); setRemoveFlash(msg); router.refresh(); }}
+        />
+      )}
+      {removeFlash && mode !== "master" && (
+        <div className="mb-3 flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--brand-cream)] text-sm text-[var(--brand-brown)]">
+          <span>{removeFlash}</span>
+          <button onClick={() => setRemoveFlash(null)} className="text-xs text-[var(--ink-muted)]">Dismiss</button>
+        </div>
+      )}
+
+      {/* Master Database tab (its own search + filters) */}
+      {mode === "master" && masterDb && (
+        <MasterDatabaseTab products={products} locations={locations} canPermanentDelete={canPermanentDelete} />
+      )}
+
       {/* Filters (Products / Inventory / Pricing — the Order tab has its own filter box) */}
-      {mode !== "ordering" && mode !== "transfers" && (
+      {mode !== "ordering" && mode !== "transfers" && mode !== "master" && (
       <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 ${fullScreenView ? "mb-2 [&_select]:py-1 [&_input]:py-1" : "mb-4"}`}>
         <div className="relative col-span-2 sm:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
@@ -2636,11 +2696,16 @@ export function UnifiedProductsPage({
           onChange={(e) => setStatusFilterPersisted(e.target.value)}
           className="px-3 py-2 bg-white border border-[var(--line)] rounded-lg text-[var(--brand-brown)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
         >
+          {masterDb ? (<>
+          <option value="onMenu">In use</option>
+          <option value="pending">Marked to remove</option>
+          </>) : (<>
           <option value="onMenu">On Menu</option>
           <option value="pending">Phasing Out (review)</option>
           <option value="database">Product Database</option>
           <option value="inactive">Inactive (cleanup)</option>
           <option value="all">All Products</option>
+          </>)}
         </select>
         <select
           value={vendorFilter}
@@ -3856,7 +3921,15 @@ export function UnifiedProductsPage({
                             >
                               <Edit className="w-3.5 h-3.5" />
                             </Link>
-                            {p.menuStatus === "ON_MENU" ? (
+                            {masterDb ? (
+                              <button
+                                onClick={() => openRemoveFor(p, locationFilter !== "ALL" ? locationFilter : null)}
+                                className="p-1 text-[var(--ink-muted)] hover:text-red-600 transition-colors"
+                                title="Remove from…"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            ) : p.menuStatus === "ON_MENU" ? (
                               <div className="relative">
                                 <button
                                   onClick={() => setRemoveMenuOpen(removeMenuOpen === p.id ? null : p.id)}

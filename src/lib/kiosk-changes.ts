@@ -12,6 +12,9 @@ const FIELD: Record<string, string> = {
 const ACTION: Record<string, string> = {
   mark_to_remove: "Remove mark", cancel_phase_out: "Remove mark",
   move_to_database: "Moved to Product Database", hard_delete: "Permanently deleted",
+  // Master Database (2026-11-22)
+  remove_from_store: "Removed from store", add_to_store: "Added to store",
+  archive: "Archived", unarchive: "Unarchived",
 };
 
 export async function loadKioskChanges(orgId: string, opts: { ingredientId?: string; take?: number } = {}): Promise<KioskChange[]> {

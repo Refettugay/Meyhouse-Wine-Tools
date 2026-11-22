@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createProduct, updateProduct } from "@/lib/actions/products";
+import { SimilarProductsHint } from "@/components/product/similar-products-hint";
+import { MASTER_DB_ADMIN } from "@/lib/master-db-flag";
 import { createVendor } from "@/lib/actions/vendors";
 import {
   addBottleSize as addBottleSizeAction,
@@ -386,6 +388,7 @@ export function ProductFormV2({
                   className="w-full px-3 py-2 bg-[var(--brand-cream)] border border-[var(--line)] rounded-lg text-[var(--brand-brown)] placeholder-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-olive)]"
                   autoFocus
                 />
+                {MASTER_DB_ADMIN && !existingProduct && <SimilarProductsHint name={name} />}
               </div>
 
               {/* Vendor + Category row */}

@@ -44,7 +44,8 @@ export type ItemEdit = {
 };
 
 // Press-and-hold row menu — same three choices as the admin Beverage tool.
-export type RemoveAction = "mark" | "unmark" | "database" | "delete";
+// "remove_now" = take it off THIS store now (Master Database; never other stores).
+export type RemoveAction = "mark" | "unmark" | "database" | "delete" | "remove_now";
 
 export type AreaCounted = { byName: string; at: string; byMe: boolean };
 

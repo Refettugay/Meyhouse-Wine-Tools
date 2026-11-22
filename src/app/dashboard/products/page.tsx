@@ -10,12 +10,13 @@ import type { BudgetSummary } from "@/components/product/budget-widget";
 import { loadApprovedFor, loadCartFor } from "@/lib/order-cart";
 import { ORDER_CART_FLOW } from "@/lib/order-flags";
 import { loadHistoryMap, type HistoryPoint } from "@/lib/order-history";
+import { MASTER_DB_ADMIN, canPermanentDelete } from "@/lib/master-db-flag";
 
 export default async function ProductsPage() {
   const session = await requireAuth();
   const orgId = session.organizationId;
 
-  const [products, locations, vendors, org] = await Promise.all([
+  const [allProducts, locations, vendors, org] = await Promise.all([
     prisma.ingredient.findMany({
       where: { organizationId: orgId, isActive: true },
       orderBy: { name: "asc" },
@@ -46,6 +47,11 @@ export default async function ProductsPage() {
       },
     }),
   ]);
+
+  // Master Database: a store uses a product while its row has removedAt = null.
+  // Every list below works on the stores in use; `storeLinks` keeps them all
+  // (removed ones too) for the Master Database tab.
+  const products = allProducts.map((p) => ({ ...p, storeLinks: p.inventoryItems, inventoryItems: p.inventoryItems.filter((i) => !i.removedAt) }));
 
   // Ordering: which stores this person orders for / only views, and each
   // store's waiting order ("Sent by Sam · Today 4:12 pm · 7 items").
@@ -404,6 +410,15 @@ export default async function ProductsPage() {
     menuPrice: null as number | null,
     costTargetPct: null as number | null,
     costUpdateMethod: p.costUpdateMethod,
+    archivedAt: p.archivedAt?.toISOString() ?? null,
+    createdAt: p.createdAt.toISOString(),
+    storeLinks: p.storeLinks.map((l) => ({
+      locationId: l.locationId,
+      locationName: l.location.name,
+      removedAt: l.removedAt?.toISOString() ?? null,
+      removedByName: l.removedByName ?? null,
+      markedForRemoval: l.markedForRemoval ?? null,
+    })),
     locationIds: p.inventoryItems.map((i) => i.locationId),
     locationCount: p.inventoryItems.length,
     // Inventory details per location (for Inventory mode)
@@ -517,6 +532,8 @@ export default async function ProductsPage() {
       reviewManageStoreIds={reviewManageStoreIds}
       linkStoreIds={linkStoreIds}
       role={session.role}
+      masterDb={MASTER_DB_ADMIN}
+      canPermanentDelete={canPermanentDelete(session)}
       transfers={showTransfers ? transfers : null}
       inProgressOrders={inProgressOrders}
       theoreticalUsage={theoreticalUsage}

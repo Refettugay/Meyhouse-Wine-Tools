@@ -17,7 +17,7 @@ export default async function OrderPage({
     where: { id: locationId, organizationId: orgId },
     include: {
       inventoryItems: {
-        where: { ingredient: { isActive: true, onMenu: true } },
+        where: { removedAt: null, ingredient: { isActive: true, onMenu: true } },
         include: {
           ingredient: { include: { vendorRef: true } },
           storageArea: true,

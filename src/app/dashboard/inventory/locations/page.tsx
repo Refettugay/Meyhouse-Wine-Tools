@@ -15,7 +15,7 @@ export default async function LocationsPage() {
         orderBy: { sortOrder: "asc" },
       },
       _count: {
-        select: { inventoryItems: true },
+        select: { inventoryItems: { where: { removedAt: null } } },
       },
     },
   });

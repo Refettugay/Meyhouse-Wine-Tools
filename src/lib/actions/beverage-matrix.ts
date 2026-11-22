@@ -296,7 +296,7 @@ export async function getBeverageMatrix(
       // Items in DATABASE (archived) should not appear in the pricing matrix.
       menuStatus: "ON_MENU",
       ...(locationId && {
-        inventoryItems: { some: { locationId } },
+        inventoryItems: { some: { locationId, removedAt: null } },
       }),
     },
     include: {
@@ -304,7 +304,7 @@ export async function getBeverageMatrix(
       pricings: { orderBy: [{ sortOrder: "asc" }, { pourMl: "asc" }] },
       inventoryItems: {
         select: { isBTG: true, locationId: true },
-        ...(locationId && { where: { locationId } }),
+        where: { removedAt: null, ...(locationId ? { locationId } : {}) },
       },
     },
     orderBy: [{ name: "asc" }],

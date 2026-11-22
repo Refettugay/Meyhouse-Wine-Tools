@@ -311,6 +311,11 @@ model Ingredient {
   isCraftCocktailIngredient Boolean @default(false)  // Used in craft cocktails
   isWellSpirit      Boolean @default(false)  // Well/house spirit
   isActive          Boolean @default(true)
+  // Master Database: archived = kept for history, hidden from the default
+  // Master list and from every store. deletedAt = "Permanent Delete" of a
+  // product that has history (isActive=false, kept so old orders/counts stay).
+  archivedAt        DateTime?
+  deletedAt         DateTime?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -410,6 +415,11 @@ model InventoryItem {
   isDessertWine  Boolean @default(false)
   markedForRemoval String?  // null, "PENDING" (phasing out), "INACTIVE" or "DATABASE"
   kioskNote      String?  // short note shown as a yellow tag on the kiosk + Admin (per store)
+  // Master Database (2026-11-22): set when the product is taken off THIS store.
+  // The row (and its counts / order history) is kept; every store list skips it.
+  // Adding the product back to the store clears it.
+  removedAt      DateTime?
+  removedByName  String?
   parLevel       Float   @default(0)
   currentStock   Float   @default(0)
   unit           String  @default("bottle")

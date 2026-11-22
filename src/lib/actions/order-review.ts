@@ -14,6 +14,7 @@
 // The line shows "FOR <from store> · TRANSFER"; goods later move to → from.
 
 import { prisma } from "@/lib/db";
+import { ACTIVE_LINK } from "@/lib/store-links";
 import { requireAuth } from "@/lib/session";
 import { canManageStoreOrders } from "@/lib/ordering-scope";
 import { revalidatePath } from "next/cache";
@@ -245,7 +246,7 @@ export async function reviewAddItem(locationId: string, ingredientId: string, qt
   if (!Number.isFinite(n) || n <= 0 || n > 9999) return { error: "Quantity must be more than 0." };
   if (unit !== "case" && unit !== "bottle") return { error: "Invalid unit" };
   const inv = await prisma.inventoryItem.findFirst({
-    where: { locationId, ingredientId, organizationId: session.organizationId },
+    where: { locationId, ingredientId, organizationId: session.organizationId, ...ACTIVE_LINK },
     select: {
       parLevel: true,
       storageArea: { select: { name: true } },

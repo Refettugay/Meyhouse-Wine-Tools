@@ -5,6 +5,7 @@
 // same way kiosk changes are logged (marked as an Admin change).
 
 import { prisma } from "@/lib/db";
+import { ACTIVE_LINK } from "@/lib/store-links";
 import { requireAuth } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@/generated/prisma/client";
@@ -47,7 +48,7 @@ export async function setProductLocations(input: {
 
   // Only this store's rows for these products, in this org.
   const rows = await prisma.inventoryItem.findMany({
-    where: { organizationId: orgId, locationId, ingredientId: { in: productIds } },
+    where: { organizationId: orgId, locationId, ingredientId: { in: productIds }, ...ACTIVE_LINK },
     select: {
       id: true, ingredientId: true, storageAreaId: true, storageArea2Id: true, shelfLocation: true, shelfLocation2: true,
       storageArea: { select: { name: true } }, storageArea2: { select: { name: true } },

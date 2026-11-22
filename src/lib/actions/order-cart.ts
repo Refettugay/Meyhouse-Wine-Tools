@@ -6,6 +6,7 @@
 // ever touches a store the person can't order for.
 
 import { prisma } from "@/lib/db";
+import { ACTIVE_LINK } from "@/lib/store-links";
 import { requireAuth } from "@/lib/session";
 import { canOrderForStore } from "@/lib/ordering-scope";
 import { revalidatePath } from "next/cache";
@@ -199,7 +200,7 @@ export async function cartSetDesktopCounts(counts: DesktopCount[]) {
   if (list.length === 0) return done(session);
 
   const inv = await prisma.inventoryItem.findMany({
-    where: { organizationId: session.organizationId, OR: list.map((c) => ({ locationId: c.locationId, ingredientId: c.ingredientId })) },
+    where: { organizationId: session.organizationId, ...ACTIVE_LINK, OR: list.map((c) => ({ locationId: c.locationId, ingredientId: c.ingredientId })) },
     select: {
       locationId: true, ingredientId: true, parLevel: true,
       ingredient: { select: { orderUnit: true, casePackSize: true, vendor: true, vendorRef: { select: { name: true } } } },

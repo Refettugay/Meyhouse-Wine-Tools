@@ -11,6 +11,7 @@
 // also written to OrderActivityLog (entity = FLAG).
 
 import { prisma } from "@/lib/db";
+import { ACTIVE_LINK } from "@/lib/store-links";
 import type { Prisma } from "@/generated/prisma/client";
 import type { ItemFlag } from "@/lib/staff-count/feed-types";
 
@@ -91,7 +92,7 @@ function logRow(store: Store, d: { ingredientId?: string | null; action: string;
 
 async function itemInfo(db: Tx | typeof prisma, store: Store, inventoryItemIds: string[]) {
   const rows = await db.inventoryItem.findMany({
-    where: { id: { in: inventoryItemIds }, locationId: store.locationId, organizationId: store.organizationId },
+    where: { id: { in: inventoryItemIds }, locationId: store.locationId, organizationId: store.organizationId, ...ACTIVE_LINK },
     select: { id: true, ingredientId: true, markedForRemoval: true, ingredient: { select: { name: true } } },
   });
   return new Map(rows.map((r) => [r.id, r]));

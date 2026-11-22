@@ -19,6 +19,7 @@ export default async function EditDatabaseProductPage({
         where: { id, organizationId: orgId },
         include: {
           inventoryItems: {
+            where: { removedAt: null },
             select: { locationId: true, parLevel: true },
           },
         },

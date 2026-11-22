@@ -1,11 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { getOrganizationId } from "@/lib/session";
+import { getOrganizationId, requireAuth } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { resolveProductType } from "@/lib/category-types";
 import { getCategoriesConfig } from "@/lib/actions/settings";
 import { hardDeleteIngredient } from "@/lib/product-removal";
+import { ACTIVE_LINK, addProductToStores, removeProductFromStores } from "@/lib/store-links";
 
 export async function createProduct(data: {
   name: string;
@@ -32,7 +33,10 @@ export async function createProduct(data: {
   const existing = await prisma.ingredient.findUnique({
     where: { organizationId_name: { organizationId: orgId, name: data.name.trim() } },
   });
-  if (existing) return { error: "A product with this name already exists" };
+  if (existing) {
+    if (existing.deletedAt) return { error: `"${data.name.trim()}" was permanently deleted earlier. Use a slightly different name.` };
+    return { error: "A product with this name already exists — find it in Master Database and add it to your store." };
+  }
 
   // Fetch vendor name for the legacy `vendor` string field
   let vendorName: string | null = null;
@@ -167,34 +171,23 @@ export async function updateProduct(
     },
   });
 
-  // Sync inventory items with selected locations
+  // Sync stores with the ticked locations. Unticking a store takes the product
+  // off it (row + history kept, Master Database); ticking brings it back.
   const existingItems = await prisma.inventoryItem.findMany({
-    where: { ingredientId: id, organizationId: orgId },
+    where: { ingredientId: id, organizationId: orgId, ...ACTIVE_LINK },
+    select: { locationId: true },
   });
-
   const existingLocationIds = new Set(existingItems.map((i) => i.locationId));
   const newLocationIds = new Set(data.locationIds);
-
-  const toAdd = data.locationIds.filter((lid) => !existingLocationIds.has(lid));
-  if (toAdd.length > 0) {
-    await prisma.inventoryItem.createMany({
-      data: toAdd.map((locationId) => ({
-        organizationId: orgId,
-        locationId,
-        ingredientId: id,
-        parLevel: data.parLevel || 0,
-        currentStock: 0,
-        unit: "bottle",
-      })),
-    });
-  }
-
-  const toRemove = existingItems.filter((i) => !newLocationIds.has(i.locationId));
-  if (toRemove.length > 0) {
-    await prisma.inventoryItem.deleteMany({
-      where: { id: { in: toRemove.map((i) => i.id) } },
-    });
-  }
+  await addProductToStores({
+    orgId, productId: id, parLevel: data.parLevel || 0,
+    locationIds: data.locationIds.filter((lid) => !existingLocationIds.has(lid)),
+  });
+  const session = await requireAuth();
+  await removeProductFromStores({
+    orgId, productId: id, when: "now", byName: session.userName,
+    locationIds: [...existingLocationIds].filter((lid) => !newLocationIds.has(lid)),
+  });
 
   revalidatePath("/dashboard/products");
   revalidatePath("/dashboard/database");
@@ -239,7 +232,7 @@ export async function toggleMarkForRemoval(
 ) {
   const orgId = await getOrganizationId();
   await prisma.inventoryItem.updateMany({
-    where: { ingredientId, locationId, organizationId: orgId },
+    where: { ingredientId, locationId, organizationId: orgId, ...ACTIVE_LINK },
     data: { markedForRemoval: target },
   });
   revalidatePath("/dashboard/products");
@@ -340,33 +333,18 @@ export async function bulkAddProductsToLocation({
   const ownedIds = ownedProducts.map((p) => p.id);
   if (ownedIds.length === 0) return { error: "No matching products found" };
 
-  // Find which already have an inventoryItem at this location — skip those.
-  const existing = await prisma.inventoryItem.findMany({
-    where: { locationId, ingredientId: { in: ownedIds } },
-    select: { ingredientId: true },
-  });
-  const existingSet = new Set(existing.map((e) => e.ingredientId));
-  const toCreate = ownedIds.filter((id) => !existingSet.has(id));
-  if (toCreate.length === 0) {
-    return { success: true, count: 0 };
-  }
-
-  const par = parLevel && parLevel >= 0 ? parLevel : 0;
-  await prisma.inventoryItem.createMany({
-    data: toCreate.map((ingredientId) => ({
-      organizationId: orgId,
-      locationId,
-      ingredientId,
-      parLevel: par,
-      currentStock: 0,
-      unit: "bottle",
-    })),
-    skipDuplicates: true,
-  });
+  // Adds new rows and brings back ones taken off this store earlier.
+  const count = await (async () => {
+    let n = 0;
+    for (const productId of ownedIds) {
+      n += await addProductToStores({ orgId, productId, locationIds: [locationId], parLevel });
+    }
+    return n;
+  })();
 
   revalidatePath("/dashboard/products");
   revalidatePath("/dashboard/inventory");
-  return { success: true, count: toCreate.length };
+  return { success: true, count };
 }
 
 // Bulk: remove many products from a single location.
@@ -398,33 +376,17 @@ export async function bulkRemoveProductsFromLocation({
   const ownedIds = ownedProducts.map((p) => p.id);
   if (ownedIds.length === 0) return { error: "No matching products found" };
 
-  // Find the inventory items to remove so we can also clear their StockCounts
-  // (StockCount FK is onDelete: Cascade, but mirror hardDeleteProduct's explicit
-  // cleanup for consistency and safety).
-  const invItems = await prisma.inventoryItem.findMany({
-    where: {
-      locationId,
-      ingredientId: { in: ownedIds },
-      organizationId: orgId,
-    },
-    select: { id: true },
-  });
-  if (invItems.length === 0) {
-    return { success: true, count: 0 };
+  // Take them off this store (rows, counts and order history are kept —
+  // Master Database). Adding them back later picks up where they left off.
+  const session = await requireAuth();
+  let removed = 0;
+  for (const productId of ownedIds) {
+    removed += await removeProductFromStores({ orgId, productId, locationIds: [locationId], when: "now", byName: session.userName });
   }
-  const invIds = invItems.map((i) => i.id);
-
-  await prisma.stockCount.deleteMany({
-    where: { inventoryItemId: { in: invIds } },
-  });
-
-  const result = await prisma.inventoryItem.deleteMany({
-    where: { id: { in: invIds } },
-  });
 
   revalidatePath("/dashboard/products");
   revalidatePath("/dashboard/inventory");
-  return { success: true, count: result.count };
+  return { success: true, count: removed };
 }
 
 export async function updateProductNotes(id: string, notes: string) {

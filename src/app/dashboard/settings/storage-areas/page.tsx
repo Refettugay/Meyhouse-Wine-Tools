@@ -15,11 +15,13 @@ export default async function StorageAreasPage() {
         orderBy: { name: "asc" },
         include: {
           inventoryItems: {
+            where: { removedAt: null },
             include: {
               ingredient: { select: { bottleCostCents: true } },
             },
           },
           inventoryItems2: {
+            where: { removedAt: null },
             include: {
               ingredient: { select: { bottleCostCents: true } },
             },

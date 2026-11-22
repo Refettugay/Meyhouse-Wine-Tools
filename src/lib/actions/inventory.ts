@@ -1,6 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { ACTIVE_LINK, addProductToStores, removeIfCountedOut } from "@/lib/store-links";
+import { MASTER_DB_KIOSK } from "@/lib/master-db-flag";
 import { getOrganizationId, requireAuth } from "@/lib/session";
 import { canApproveOrders } from "@/lib/permissions";
 import { canOrderForStore } from "@/lib/ordering-scope";
@@ -155,8 +157,15 @@ export async function addInventoryItem(data: {
       },
     },
   });
-  if (existing) {
+  if (existing && !existing.removedAt) {
     return { error: "This ingredient already exists at this location" };
+  }
+  if (existing) {
+    // Taken off this store earlier (Master Database) → bring it back.
+    await addProductToStores({ orgId, productId: data.ingredientId, locationIds: [data.locationId] });
+    await prisma.inventoryItem.update({ where: { id: existing.id }, data: { parLevel: data.parLevel, unit: data.unit } });
+    revalidatePath("/dashboard/inventory");
+    return { success: true };
   }
 
   await prisma.inventoryItem.create({
@@ -198,8 +207,11 @@ export async function updateInventoryItem(
 
 export async function deleteInventoryItem(id: string) {
   const orgId = await getOrganizationId();
-  await prisma.inventoryItem.delete({
+  // Master Database: take it off this store, keep the row and its history.
+  const session = await requireAuth();
+  await prisma.inventoryItem.update({
     where: { id, organizationId: orgId },
+    data: { removedAt: new Date(), removedByName: session.userName, markedForRemoval: null },
   });
   revalidatePath("/dashboard/inventory");
 }
@@ -225,6 +237,12 @@ export async function saveSingleCount(inventoryItemId: string, count: number) {
       countedAt: now,
     },
   });
+
+  // Marked "remove when it runs out" + counted 0 → leaves this store now.
+  if (MASTER_DB_KIOSK && count === 0) {
+    const session = await requireAuth();
+    await removeIfCountedOut({ inventoryItemIds: [inventoryItemId], byName: session.userName });
+  }
 
   revalidatePath("/dashboard/products");
   revalidatePath("/dashboard/inventory");
@@ -422,6 +440,11 @@ export async function submitStockCounts(
     });
   }
 
+  if (MASTER_DB_KIOSK) {
+    const session = await requireAuth();
+    await removeIfCountedOut({ inventoryItemIds: counts.filter((c) => c.count === 0).map((c) => c.inventoryItemId), byName: session.userName });
+  }
+
   revalidatePath("/dashboard/inventory");
   return { success: true };
 }
@@ -447,7 +470,7 @@ export async function saveCountAndOrder(data: {
   // Fetch all inventory items involved, with their ingredient + storage area info
   const inventoryIds = data.counts.map((c) => c.inventoryItemId);
   const inventoryItems = await prisma.inventoryItem.findMany({
-    where: { id: { in: inventoryIds }, organizationId: orgId },
+    where: { id: { in: inventoryIds }, organizationId: orgId, ...ACTIVE_LINK },
     include: {
       ingredient: { include: { vendorRef: true } },
       storageArea: true,

@@ -16,6 +16,8 @@ import type { CountFeed, CountItem, FlagAction, ItemEdit, ItemFlag, RemoveAction
 import { KIOSK_ITEM_MENU, KIOSK_SWIPE_ACTIONS } from "@/lib/kiosk-flags";
 import { canMark86, clear86OnSend, clearFlag, expireCheckFlags, openFlagsFor, setFlag } from "@/lib/kiosk-item-flags";
 import { hardDeleteIngredient } from "@/lib/product-removal";
+import { ACTIVE_LINK, removeIfCountedOut } from "@/lib/store-links";
+import { MASTER_DB_KIOSK } from "@/lib/master-db-flag";
 import { absorbHeld } from "@/lib/order-hold";
 import { ORDER_CART_FLOW } from "@/lib/order-flags";
 import { addToCartLine } from "@/lib/order-cart";
@@ -153,7 +155,7 @@ export async function loadCountFeed(token: string): Promise<{ ok: true; feed: Co
 
   const [inv, areas, todays, flags] = await Promise.all([
     prisma.inventoryItem.findMany({
-      where: { locationId: store.locationId, ingredient: { isActive: true } },
+      where: { locationId: store.locationId, ingredient: { isActive: true }, ...ACTIVE_LINK },
       select: FEED_SELECT,
       orderBy: { ingredient: { name: "asc" } },
     }),
@@ -276,7 +278,7 @@ export async function updateItem(
   if (typeof inventoryItemId !== "string" || !edit || typeof edit !== "object") return { ok: false, error: "Nothing to save." };
 
   const cur = await prisma.inventoryItem.findFirst({
-    where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId },
+    where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId, ...ACTIVE_LINK },
     select: FEED_SELECT,
   });
   if (!cur) return { ok: false, error: "That item is no longer on this store's list." };
@@ -367,9 +369,18 @@ export async function removeItem(token: string, inventoryItemId: string, action:
   if (KIOSK_ITEM_MENU && (action === "mark" || action === "unmark") && !auth.canMarkRemove) {
     return { ok: false, error: "Managers and supervisors only." };
   }
+  // Master Database: the Kiosk only ever touches its own store. No "Move to
+  // Database" or "Permanently Delete" here — those live in Admin → Master Database.
+  if (MASTER_DB_KIOSK && (action === "database" || action === "delete")) {
+    return { ok: false, error: "Not on the kiosk any more — use Admin → Master Database." };
+  }
+  if (action === "remove_now") {
+    if (!MASTER_DB_KIOSK) return { ok: false, error: "Unknown action." };
+    if (!auth.canMarkRemove) return { ok: false, error: "Managers and supervisors only." };
+  }
 
   const inv = await prisma.inventoryItem.findFirst({
-    where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId },
+    where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId, ...ACTIVE_LINK },
     select: { ingredientId: true, markedForRemoval: true, ingredient: { select: { name: true } } },
   });
   if (!inv) return { ok: false, error: "That item is no longer on this store's list." };
@@ -379,9 +390,15 @@ export async function removeItem(token: string, inventoryItemId: string, action:
     actorId: session.personId, actorName: session.name, actorKind: "staff", source: "staff_count",
   };
 
-  if (action === "mark" || action === "unmark") {
+  if (action === "remove_now") {
     await prisma.inventoryItem.updateMany({
-      where: { ingredientId: inv.ingredientId, locationId: store.locationId, organizationId: store.organizationId },
+      where: { ingredientId: inv.ingredientId, locationId: store.locationId, organizationId: store.organizationId, ...ACTIVE_LINK },
+      data: { removedAt: new Date(), removedByName: session.name, markedForRemoval: null },
+    });
+    await prisma.orderActivityLog.create({ data: { ...log, action: "remove_from_store", note: `${inv.ingredient.name} — removed from ${store.name}` } });
+  } else if (action === "mark" || action === "unmark") {
+    await prisma.inventoryItem.updateMany({
+      where: { ingredientId: inv.ingredientId, locationId: store.locationId, organizationId: store.organizationId, ...ACTIVE_LINK },
       data: { markedForRemoval: action === "mark" ? "PENDING" : null },
     });
     await prisma.orderActivityLog.create({
@@ -430,7 +447,7 @@ export async function flagItem(
 
   const inv = typeof inventoryItemId === "string"
     ? await prisma.inventoryItem.findFirst({
-        where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId },
+        where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId, ...ACTIVE_LINK },
         select: { id: true, ingredientId: true, markedForRemoval: true, ingredient: { select: { name: true } } },
       })
     : null;
@@ -462,7 +479,7 @@ export async function countEntered(token: string, inventoryItemId: string): Prom
   });
   if (!open) return { ok: true };
   const inv = await prisma.inventoryItem.findFirst({
-    where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId },
+    where: { id: inventoryItemId, locationId: store.locationId, organizationId: store.organizationId, ...ACTIVE_LINK },
     select: { ingredientId: true, ingredient: { select: { name: true } } },
   });
   if (!inv) return { ok: true };
@@ -495,7 +512,7 @@ export async function sendCounts(token: string, counts: SendCount[], request: st
   if (clean.size === 0 && !note) return { ok: false, error: "Count at least one item (or write what you need)." };
 
   const inv = await prisma.inventoryItem.findMany({
-    where: { id: { in: [...clean.keys()] }, locationId: store.locationId, ingredient: { isActive: true } },
+    where: { id: { in: [...clean.keys()] }, locationId: store.locationId, ingredient: { isActive: true }, ...ACTIVE_LINK },
     select: {
       id: true, parLevel: true, ingredientId: true, markedForRemoval: true,
       storageArea: { select: { id: true, name: true } },
@@ -517,6 +534,7 @@ export async function sendCounts(token: string, counts: SendCount[], request: st
   if (ORDER_CART_FLOW) {
     linesOrdered = await sendCountsToCart(store, session, inv, clean, note, now, actor, after);
     await clearStaffSession(token);
+    if (MASTER_DB_KIOSK) await removeIfCountedOut({ inventoryItemIds: inv.filter((i) => clean.get(i.id)!.count === 0).map((i) => i.id), byName: session.name });
     return { ok: true, linesOrdered, itemsCounted: inv.length, cleared86 };
   }
 
@@ -651,6 +669,7 @@ export async function sendCounts(token: string, counts: SendCount[], request: st
 
   // Sent → signed out automatically (the next person signs in fresh).
   await clearStaffSession(token);
+  if (MASTER_DB_KIOSK) await removeIfCountedOut({ inventoryItemIds: inv.filter((i) => clean.get(i.id)!.count === 0).map((i) => i.id), byName: session.name });
   return { ok: true, linesOrdered, itemsCounted: inv.length, cleared86 };
 }
 

@@ -12,6 +12,7 @@ import type { CountFeed, CountItem, FlagAction, ItemEdit, RemoveAction, StaffPer
 import { TYPE_CHIPS } from "@/lib/staff-count/types";
 import { orderQty, type OrderUnit } from "@/lib/ordering-math";
 import { KIOSK_ITEM_MENU, KIOSK_SWIPE_ACTIONS } from "@/lib/kiosk-flags";
+import { MASTER_DB_KIOSK } from "@/lib/master-db-flag";
 import { searchMatcher } from "@/lib/search-normalize";
 
 // Coming off menu: counted, never reordered.
@@ -204,7 +205,7 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
     }
     setFeed((f) => {
       if (!f) return f;
-      if (action === "delete") return { ...f, items: f.items.filter((i) => i.id !== item.id) };
+      if (action === "delete" || action === "remove_now") return { ...f, items: f.items.filter((i) => i.id !== item.id) };
       return {
         ...f,
         items: f.items.map((i) => i.id !== item.id ? i
@@ -212,7 +213,7 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
           : { ...i, phasingOut: action === "mark", removing: KIOSK_ITEM_MENU && action === "mark" }),
       };
     });
-    if (action === "delete") {
+    if (action === "delete" || action === "remove_now") {
       setCounts((c) => { const n = { ...c }; delete n[item.id]; return n; });
       setPicks((p) => { const n = { ...p }; delete n[item.id]; return n; });
     }
@@ -894,8 +895,14 @@ function RemoveMenu({ item, onClose, onRemove }: { item: CountItem; onClose: () 
         </p>
         <button disabled={busy} onClick={() => run(item.phasingOut ? "unmark" : "mark")} className={`${opt} border-b border-[var(--line)]`}>
           <p className="text-sm font-medium text-amber-700">{item.phasingOut ? "Cancel Phase-Out" : "Mark to Remove"}</p>
-          <p className="text-[11px] text-[var(--ink-muted)]">{item.phasingOut ? "Stop phasing out (this store)" : "Keep until stock runs out (this store), then decide"}</p>
+          <p className="text-[11px] text-[var(--ink-muted)]">{item.phasingOut ? "Stop phasing out (this store)" : MASTER_DB_KIOSK ? "Keep until a count of 0, then it leaves this store" : "Keep until stock runs out (this store), then decide"}</p>
         </button>
+        {MASTER_DB_KIOSK ? (
+          <button disabled={busy} onClick={() => run("remove_now")} className={opt}>
+            <p className="text-sm font-medium text-red-600">Remove from this store now</p>
+            <p className="text-[11px] text-[var(--ink-muted)]">Only this store · stays in Master Database</p>
+          </button>
+        ) : (<>
         {!item.offMenu && (
           <button disabled={busy} onClick={() => run("database")} className={`${opt} border-b border-[var(--line)]`}>
             <p className="text-sm font-medium text-[var(--brand-brown)]">Move to Product Database</p>
@@ -906,6 +913,7 @@ function RemoveMenu({ item, onClose, onRemove }: { item: CountItem; onClose: () 
           <p className="text-sm font-medium text-red-600">Permanently Delete</p>
           <p className="text-[11px] text-[var(--ink-muted)]">Removes from database — cannot be undone</p>
         </button>
+        </>)}
         {error && <p className="px-4 pb-2 text-sm text-red-700">{error}</p>}
         <div className="px-4 pt-1">
           <button disabled={busy} onClick={onClose} className="w-full py-3 rounded-full border border-[var(--line)] bg-white text-sm font-medium">
@@ -973,7 +981,7 @@ function ItemPanel({
     const err = await onRemove(item, action);
     setBusy(false);
     if (err) { setError(err); return; }
-    if (action === "delete" || action === "database") onClose();
+    if (action === "delete" || action === "database" || action === "remove_now") onClose();
     else setFlash(action === "mark" ? "Marked to remove" : "Remove mark undone");
   };
 
@@ -1070,6 +1078,19 @@ function ItemPanel({
               </button>
 
               <p className="px-4 pt-5 pb-1 text-[10px] uppercase tracking-[0.14em] text-[var(--ink-muted)]">Remove from the list</p>
+              {MASTER_DB_KIOSK ? (
+                canMarkRemove ? (
+                  <button disabled={busy} onClick={() => { if (confirm(`Remove "${item.name}" from this store now? It stays in Master Database.`)) remove("remove_now"); }} className={row}>
+                    <p className="text-sm font-medium text-red-600">Remove from this store now</p>
+                    <p className="text-[11px] text-[var(--ink-muted)]">Only this store · stays in Master Database</p>
+                  </button>
+                ) : (
+                  <div className={`${row} opacity-60 cursor-not-allowed`} aria-disabled="true">
+                    <p className="text-sm font-medium text-[var(--ink-muted)]">🔒 Remove from this store</p>
+                    <p className="text-[11px] text-[var(--ink-muted)]">Managers and supervisors only</p>
+                  </div>
+                )
+              ) : (<>
               {!item.offMenu && (
                 <button disabled={busy} onClick={() => remove("database")} className={row}>
                   <p className="text-sm font-medium text-[var(--brand-brown)]">Move to Product Database</p>
@@ -1080,6 +1101,7 @@ function ItemPanel({
                 <p className="text-sm font-medium text-red-600">Permanently Delete</p>
                 <p className="text-[11px] text-[var(--ink-muted)]">Removes from database — cannot be undone</p>
               </button>
+              </>)}
             </div>
           )}
 
