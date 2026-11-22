@@ -14,9 +14,11 @@
 //             "Move to Database" / "Permanently delete" on the Kiosk, and an item
 //             marked to remove leaves the store when a count of 0 is entered.
 //
-// To change it: Vercel → meyhouse-wine-tools → Settings → Environment Variables
-// → NEXT_PUBLIC_MASTER_DATABASE → Redeploy.
-const MODE = (process.env.NEXT_PUBLIC_MASTER_DATABASE ?? "off").toLowerCase();
+// To change it: set NEXT_PUBLIC_MASTER_DATABASE on Vercel (meyhouse-wine-tools →
+// Settings → Environment Variables → Redeploy) — or change DEFAULT_MODE below
+// and push. 2026-11-22: default "admin" (Refet trying it in Admin first).
+const DEFAULT_MODE = "admin";
+const MODE = (process.env.NEXT_PUBLIC_MASTER_DATABASE ?? DEFAULT_MODE).toLowerCase();
 
 export const MASTER_DB_ADMIN = MODE === "admin" || MODE === "on";
 export const MASTER_DB_KIOSK = MODE === "on";
