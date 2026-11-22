@@ -1,6 +1,6 @@
 # Master Database
 
-**Built:** 2026-11-22 · **Switch:** `NEXT_PUBLIC_MASTER_DATABASE` (`off` · `admin` = current default in code · `on`)
+**Built:** 2026-11-22 · **Switch:** `NEXT_PUBLIC_MASTER_DATABASE` (`off` · `admin` · `on` = current default in code)
 
 ## The idea
 Every product ever entered lives in the **Master Database**. A restaurant *uses* a
