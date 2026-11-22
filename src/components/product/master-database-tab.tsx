@@ -86,7 +86,11 @@ export function MasterDatabaseTab({
 
   const openRemove = (r: (typeof rows)[number], preselect: string | null) => setRemoving({
     preselect,
-    target: { id: r.p.id, name: r.p.name, stores: r.using.map((l) => ({ locationId: l.locationId, name: l.locationName, leaving: !!l.markedForRemoval })) },
+    target: {
+      id: r.p.id, name: r.p.name,
+      stores: locations.flatMap((l) => { const u = r.using.find((x) => x.locationId === l.id); return u ? [{ locationId: l.id, name: l.name, leaving: !!u.markedForRemoval }] : []; }),
+      notUsedAt: locations.filter((l) => !r.using.some((x) => x.locationId === l.id)).map((l) => ({ locationId: l.id, name: l.name })),
+    },
   });
 
   const chip = (k: Filter, label: string) => (

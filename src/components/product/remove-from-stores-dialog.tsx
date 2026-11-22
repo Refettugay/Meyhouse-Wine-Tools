@@ -9,8 +9,10 @@ import { removeFromStores } from "@/lib/actions/master-database";
 export type RemoveTarget = {
   id: string;
   name: string;
-  // Stores currently using it.
+  // Stores currently using it (store order).
   stores: { locationId: string; name: string; leaving: boolean }[];
+  // Stores NOT using it — shown greyed so every restaurant is listed.
+  notUsedAt?: { locationId: string; name: string }[];
 };
 
 export function RemoveFromStoresDialog({
@@ -85,12 +87,18 @@ export function RemoveFromStoresDialog({
                   {short(s.name)}{s.leaving && <span className="text-[10px] text-amber-700">(already leaving)</span>}
                 </label>
               ))}
+              {(product.notUsedAt ?? []).map((s) => (
+                <label key={s.locationId} className="flex items-center gap-2 text-sm text-[var(--ink-muted)] opacity-60">
+                  <input type="checkbox" disabled checked={false} readOnly />
+                  {short(s.name)} <span className="text-[10px]">— not used here</span>
+                </label>
+              ))}
             </div>
           )}
           {product.stores.length > 1 && (
             <label className={`${radio} ${scope === "all" ? on : off}`}>
               <input type="radio" checked={scope === "all"} onChange={() => setScope("all")} />
-              All restaurants ({product.stores.length})
+              All restaurants that use it ({product.stores.length})
             </label>
           )}
         </div>
@@ -107,6 +115,9 @@ export function RemoveFromStoresDialog({
           </label>
         </div>
 
+        {scope !== "pick" && (product.notUsedAt ?? []).length > 0 && (
+          <p className="text-[11px] text-[var(--ink-muted)]">Not used at {product.notUsedAt!.map((s) => short(s.name)).join(", ")}.</p>
+        )}
         <p className="text-[11px] text-[var(--ink-muted)]">Other restaurants are not touched. It stays in the Master Database — you can add it back any time.</p>
         {error && <p className="text-sm text-red-700">{error}</p>}
         <div className="flex gap-2">

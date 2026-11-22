@@ -630,7 +630,12 @@ export function UnifiedProductsPage({
   const [removeFlash, setRemoveFlash] = useState<string | null>(null);
   const openRemoveFor = (p: Product, preselect: string | null) => setRemoveTarget({
     preselect,
-    target: { id: p.id, name: p.name, stores: p.inventory.map((i) => ({ locationId: i.locationId, name: i.locationName, leaving: !!i.markedForRemoval })) },
+    target: {
+      id: p.id, name: p.name,
+      // Every restaurant in store order: the ones using it can be picked, the rest show greyed.
+      stores: locations.flatMap((l) => { const i = p.inventory.find((x) => x.locationId === l.id); return i ? [{ locationId: l.id, name: l.name, leaving: !!i.markedForRemoval }] : []; }),
+      notUsedAt: locations.filter((l) => !p.inventory.some((x) => x.locationId === l.id)).map((l) => ({ locationId: l.id, name: l.name })),
+    },
   });
 
   // Live Order tab: every 10s (and when the window comes back into view) ask
