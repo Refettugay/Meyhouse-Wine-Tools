@@ -245,12 +245,18 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
           busy={busy}
           onBack={() => { setStage("pick"); setError(null); }}
           onComplete={async (pin) => {
+            // "Checking" stays up until the list has loaded, not just the PIN check.
             setBusy(true);
-            const r = await signIn(token, who.id, pin);
-            setBusy(false);
-            if (r.ok) { setError(null); await openCount(); return; }
-            if (r.needsPin) { setStage("createPin"); setError(null); return; }
-            setError(r.error);
+            try {
+              const r = await signIn(token, who.id, pin);
+              if (r.ok) { setError(null); await openCount(); return; }
+              if (r.needsPin) { setStage("createPin"); setError(null); return; }
+              setError(r.error);
+            } catch {
+              setError("Couldn't check your PIN. Check the connection and try again.");
+            } finally {
+              setBusy(false);
+            }
           }}
         />
       </Shell>
@@ -267,10 +273,15 @@ export function StaffCountApp({ token, storeName }: { token: string; storeName: 
           onBack={() => { setStage("pick"); setError(null); }}
           onSave={async (pin) => {
             setBusy(true);
-            const r = await createPin(token, who.id, pin);
-            setBusy(false);
-            if (r.ok) { setError(null); await openCount(); return; }
-            setError(r.error);
+            try {
+              const r = await createPin(token, who.id, pin);
+              if (r.ok) { setError(null); await openCount(); return; }
+              setError(r.error);
+            } catch {
+              setError("Couldn't save your PIN. Check the connection and try again.");
+            } finally {
+              setBusy(false);
+            }
           }}
         />
       </Shell>
@@ -504,15 +515,18 @@ function PinPad({ title, error, busy, onBack, onComplete }: { title: string; err
   const press = (d: string) => {
     if (busy) return;
     const next = (pin + d).slice(0, 4);
-    if (next.length === 4) { setPin(""); onComplete(next); return; } // dots clear while checking
+    if (next.length === 4) { setPin(""); onComplete(next); return; }
     setPin(next);
   };
+  // While a PIN is being checked the dots stay full (with the "Checking" pop-up);
+  // when the check ends they're empty for the next try.
+  const shown = busy ? 4 : pin.length;
   return (
     <div className="px-6 py-6 flex flex-col items-center gap-4">
       <h2 className="text-base font-medium text-[var(--brand-brown)] text-center">{title}</h2>
       <div className="flex gap-3" aria-label="PIN">
         {[0, 1, 2, 3].map((i) => (
-          <span key={i} className={`w-4 h-4 rounded-full border-2 border-[var(--brand-olive)] ${pin.length > i ? "bg-[var(--brand-olive)]" : ""}`} />
+          <span key={i} className={`w-4 h-4 rounded-full border-2 border-[var(--brand-olive)] ${shown > i ? "bg-[var(--brand-olive)]" : ""}`} />
         ))}
       </div>
       {error && <p className="text-sm text-red-700 text-center">{error}</p>}
@@ -524,7 +538,21 @@ function PinPad({ title, error, busy, onBack, onComplete }: { title: string; err
         <button onClick={() => press("0")} className="h-16 rounded-2xl bg-white border border-[var(--line)] text-xl font-medium active:bg-[var(--line)]">0</button>
         <button onClick={() => setPin((p) => p.slice(0, -1))} className="h-16 rounded-2xl text-sm text-[var(--ink-muted)]">⌫</button>
       </div>
-      {busy && <p className="text-xs text-[var(--ink-muted)]">Checking…</p>}
+      {busy && <CheckingPopup />}
+    </div>
+  );
+}
+
+// Shown over the keypad while a PIN is being checked, so nobody thinks it
+// didn't take and types it again.
+function CheckingPopup() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25" role="status" aria-live="polite">
+      <div className="mx-6 w-full max-w-[260px] rounded-2xl bg-white shadow-xl px-6 py-6 flex flex-col items-center gap-3">
+        <span className="w-9 h-9 rounded-full border-4 border-[var(--line)] border-t-[var(--brand-olive)] animate-spin" aria-hidden="true" />
+        <p className="text-base font-medium text-[var(--brand-brown)]">Checking your PIN…</p>
+        <p className="text-xs text-[var(--ink-muted)]">One moment, no need to type it again.</p>
+      </div>
     </div>
   );
 }
