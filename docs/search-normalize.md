@@ -32,3 +32,12 @@ hub, vendors…) still use plain matching; switch them to `searchMatcher` if nee
 
 ## Tests
 `npm run test:search` (node test runner via tsx) — `src/lib/search-normalize.test.ts`
+
+## Typos (2026-11-22)
+`searchMatcher(query, { pool })` — pass every item's fields as `pool`. If nothing
+matches as typed, small typos are forgiven: words of 5–8 letters may have 1
+wrong letter, 9+ letters 2 (missing, extra, wrong or swapped). ≤4 letters must
+be exact. So "Peyrasol" finds Peyrassol, but "blanco" still shows only Blanco
+(not every Sauvignon Blanc). The new-product duplicate check uses
+`{ typos: "always" }`. Used by: Kiosk, Admin Inventory/Order, Order Review
+"+ Add item", Master Database tab, new-product duplicate check.

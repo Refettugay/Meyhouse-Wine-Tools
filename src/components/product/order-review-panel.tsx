@@ -455,7 +455,7 @@ function AddItem({
   const [pick, setPick] = useState<AddableProduct | null>(null);
   const [qty, setQty] = useState("1");
   const [unit, setUnit] = useState<"case" | "bottle">("bottle");
-  const match = searchMatcher(q);
+  const match = searchMatcher(q, { pool: products.map((p) => [p.name]) });
   const matches = q.trim() ? products.filter((p) => match(p.name)).slice(0, 8) : [];
 
   if (!open) {

@@ -643,7 +643,7 @@ function CountList({
   // Flagged items for whatever tab / search is showing (off-menu ones too).
   const pinned = useMemo(() => {
     if (!KIOSK_SWIPE_ACTIONS) return [];
-    const match = searchMatcher(q);
+    const match = searchMatcher(q, { pool: feed.items.map((i) => [i.name]) });
     const keyOf = (i: CountItem) => (groupBy === "type" ? i.type : areaKey(i));
     return feed.items
       .filter((i) => isPinned(i) && match(i.name) && (chip === "ALL" || keyOf(i) === chip))
@@ -652,7 +652,7 @@ function CountList({
   const pinnedOpen = pinned.filter((i) => i.check).length;
 
   const sections = useMemo(() => {
-    const match = searchMatcher(q);
+    const match = searchMatcher(q, { pool: feed.items.map((i) => [i.name]) });
     const items = feed.items.filter((i) => !i.offMenu && !isPinned(i) && match(i.name));
     const keyOf = (i: CountItem) => (groupBy === "type" ? i.type : areaKey(i));
     return chips
@@ -663,7 +663,7 @@ function CountList({
 
   // Active items that aren't On Menu — same search/chip filter, shown last and collapsed.
   const offMenuItems = useMemo(() => {
-    const match = searchMatcher(q);
+    const match = searchMatcher(q, { pool: feed.items.map((i) => [i.name]) });
     const keyOf = (i: CountItem) => (groupBy === "type" ? i.type : areaKey(i));
     return feed.items.filter(
       (i) => i.offMenu && !isPinned(i) && match(i.name) && (chip === "ALL" || keyOf(i) === chip),

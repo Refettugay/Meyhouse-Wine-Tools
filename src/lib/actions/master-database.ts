@@ -166,7 +166,7 @@ export async function findSimilarProducts(name: string): Promise<SimilarProduct[
     },
   });
   // Every typed word appears in the name, or the name's words all appear in what was typed.
-  const typed = searchMatcher(name);
+  const typed = searchMatcher(name, { typos: "always" });
   const out: SimilarProduct[] = [];
   for (const p of all) {
     const n = normalizeForSearch(p.name);

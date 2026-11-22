@@ -1343,7 +1343,7 @@ export function UnifiedProductsPage({
   // (search / vendor / category / on menu), the area chips and "Needs
   // attention" all apply here — before this, they only affected other tabs.
   const orderRowsAll = useMemo(() => {
-    const matchSearch = searchMatcher(search);
+    const matchSearch = searchMatcher(search, { pool: products.map((p) => [p.name]) });
     const rows: (Product & { inv: Product["inventory"][number]; reasons: string[] })[] = [];
     for (const locId of orderStoreIds) {
       for (const p of products) {
@@ -1931,7 +1931,7 @@ export function UnifiedProductsPage({
 
   // Filter + Sort
   const filtered = useMemo(() => {
-    const matchSearch = searchMatcher(search);
+    const matchSearch = searchMatcher(search, { pool: products.map((p) => [p.name]) });
     return products
       .filter((p) => {
         // Master Database: the Inventory tab shows only products a store uses

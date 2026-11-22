@@ -64,7 +64,7 @@ export function MasterDatabaseTab({
   }, [rows, openedAt]);
 
   const shown = useMemo(() => {
-    const match = searchMatcher(q);
+    const match = searchMatcher(q, { pool: rows.map((r) => [r.p.name, r.p.vendor, r.p.ingredientCategory]) });
     const now = openedAt;
     return rows.filter((r) => {
       if (filter === "archived" ? !r.archived : filter !== "removedWeek" && r.archived) return false;
