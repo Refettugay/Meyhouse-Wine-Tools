@@ -36,3 +36,8 @@ create table if not exists beverage."KioskPermission" (
   "updatedByName"  text,
   primary key ("organizationId", "personId")
 );
+
+-- Match the other beverage tables: RLS on, no policies (only the app's server
+-- connection reads/writes them). Rollback: disable row level security on both.
+alter table beverage."KioskItemFlag" enable row level security;
+alter table beverage."KioskPermission" enable row level security;

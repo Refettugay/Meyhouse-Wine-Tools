@@ -50,6 +50,7 @@ Staff Ordering kiosk (Count screen, `/count/<token>`), beverage.runsophra.com.
 ## Migration
 
 `prisma/migrations/20261121000000_kiosk_swipe_flags`: two **new** tables, `beverage."KioskItemFlag"` and `beverage."KioskPermission"`. No existing table or column is changed, so no backup is needed.
+- **Applied to live on 2026-11-21** (via Supabase MCP, as `kiosk_swipe_flags` + `kiosk_swipe_flags_rls`). Row-level security is on with no policies, the same as the other beverage tables.
 - Rollback (turn the flag off first): `drop table if exists beverage."KioskItemFlag"; drop table if exists beverage."KioskPermission";`
 
 ## Flag
