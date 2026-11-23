@@ -4676,8 +4676,13 @@ export function UnifiedProductsPage({
                               {isEd("unit") ? (
                                 <select
                                   value={item.orderUnit === "CASE" || item.orderUnit === "BOTTLE" ? item.orderUnit : ""}
-                                  onChange={(e) => changeProductOrderUnit(item.id, (e.target.value || null) as "CASE" | "BOTTLE" | null)}
-                                  onBlur={() => setEditingCell(null)}
+                                  onChange={(e) => {
+                                    const u = (e.target.value || null) as "CASE" | "BOTTLE" | null;
+                                    changeProductOrderUnit(item.id, u);
+                                    // CS needs a case size to order by the case — ask for it right here.
+                                    if (u === "CASE" && !((item.casePackSize ?? 0) > 1)) startEdit(rowKey, "caseSize", "");
+                                  }}
+                                  onBlur={() => setEditingCell((c) => (c?.productId === rowKey && c.field === "unit" ? null : c))}
                                   className="px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                                   autoFocus
                                 >
@@ -4685,14 +4690,59 @@ export function UnifiedProductsPage({
                                   <option value="BOTTLE">BTL (bottle)</option>
                                   <option value="">Not set</option>
                                 </select>
+                              ) : isEd("caseSize") ? (
+                                <span className="inline-flex items-center gap-1" title="How many bottles in a case?">
+                                  <span className="text-[#8A6A00] font-medium">CS of</span>
+                                  {[6, 12, 24].map((n) => (
+                                    <button
+                                      key={n}
+                                      type="button"
+                                      onMouseDown={(e) => e.preventDefault()}
+                                      onClick={() => saveEdit(item.id, "casePack", String(n))}
+                                      className="px-1.5 py-0.5 rounded border border-[var(--line)] bg-white hover:border-[var(--brand-olive)] hover:text-[var(--brand-olive)]"
+                                    >
+                                      {n}
+                                    </button>
+                                  ))}
+                                  <input
+                                    type="number"
+                                    min="2"
+                                    step="1"
+                                    placeholder="#"
+                                    autoFocus
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        const n = parseInt(editValue);
+                                        if (n > 1) saveEdit(item.id, "casePack", String(n)); else setEditingCell(null);
+                                      }
+                                      if (e.key === "Escape") setEditingCell(null);
+                                    }}
+                                    onBlur={() => {
+                                      const n = parseInt(editValue);
+                                      if (n > 1) saveEdit(item.id, "casePack", String(n)); else setEditingCell(null);
+                                    }}
+                                    className="w-10 px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] text-center focus:outline-none"
+                                  />
+                                  <button
+                                    type="button"
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={() => startEdit(rowKey, "unit", "")}
+                                    title="Change CS/BTL instead"
+                                    className="text-[var(--ink-muted)] hover:text-[var(--brand-olive)] underline"
+                                  >
+                                    unit
+                                  </button>
+                                </span>
                               ) : (
                                 <button
                                   type="button"
-                                  onClick={() => startEdit(rowKey, "unit", "")}
+                                  onClick={() => startEdit(rowKey, item.orderUnit === "CASE" && unit === null ? "caseSize" : "unit", "")}
                                   title={
                                     unit === null
                                       ? item.orderUnit === "CASE"
-                                        ? "Set to CS but the product has no case size — click to change"
+                                        ? "Set to CS but the product has no case size — click to set how many per case"
                                         : "No unit set — click to set CS or BTL"
                                       : "Click to change CS/BTL for this product (all stores)"
                                   }
@@ -4706,7 +4756,7 @@ export function UnifiedProductsPage({
                                       ? `CS · ${item.casePackSize}`
                                       : unit === "BOTTLE"
                                         ? item.casePackSize === CASE_KEG ? "Keg" : "BTL"
-                                        : "Not set"}
+                                        : item.orderUnit === "CASE" ? "CS · size?" : "Not set"}
                                 </button>
                               )}
                             </td>
