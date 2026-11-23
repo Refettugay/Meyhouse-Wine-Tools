@@ -1238,15 +1238,26 @@ export function UnifiedProductsPage({
     const count = parseFloat(value);
     if (isNaN(count) || count < 0) return;
     saveScroll();
-    await saveSingleCount(inventoryItemId, count);
-    setSavedItems((prev) => new Set(prev).add(inventoryItemId));
+    try {
+      await saveInventoryOptimistic(inventoryItemId, { currentStock: count }, () => saveSingleCount(inventoryItemId, count));
+      setSavedItems((prev) => new Set(prev).add(inventoryItemId));
+    } catch (e) { console.error("saveSingleCount failed:", e); setMarkerError("Failed to save count"); }
   }
 
   async function handleParSave(inventoryItemId: string, value: string) {
     const par = parseFloat(value);
     if (isNaN(par) || par < 0) return;
     saveScroll();
-    await saveSinglePar(inventoryItemId, par);
+    try { await saveInventoryOptimistic(inventoryItemId, { parLevel: par }, () => saveSinglePar(inventoryItemId, par)); }
+    catch (e) { console.error("saveSinglePar failed:", e); setMarkerError("Failed to save par"); }
+  }
+
+  // Same as saveOptimistic, for one store's row (par, count…) of a product.
+  function saveInventoryOptimistic(inventoryItemId: string, patch: Partial<Product["inventory"][number]>, save: () => Promise<unknown>) {
+    const product = products.find((p) => p.inventory.some((i) => i.id === inventoryItemId));
+    if (!product) return save();
+    const inventory = product.inventory.map((i) => (i.id === inventoryItemId ? { ...i, ...patch } : i));
+    return saveOptimistic(product.id, { inventory }, save);
   }
 
   // ===== ORDERING MODE STATE =====
@@ -3653,19 +3664,15 @@ export function UnifiedProductsPage({
                                   if (name?.trim()) {
                                     const res = await createStorageArea(locationFilter, name.trim());
                                     if (!res.error) {
-                                      saveScroll();
-                                      setEditingCell(null);
-                                      await updateProductStorageArea(p.id, name.trim(), locationFilter, 1);
+                                      saveEdit(p.id, "location", name.trim());
                                     }
                                   } else {
                                     setEditingCell(null);
                                   }
                                   return;
                                 }
-                                saveScroll();
-                                setEditValue(val);
-                                setEditingCell(null);
-                                await updateProductStorageArea(p.id, val, locationFilter, 1);
+                                // Shows at once; saves in the background.
+                                saveEdit(p.id, "location", val);
                               }}
                               onBlur={() => setEditingCell(null)}
                               className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
@@ -3729,19 +3736,15 @@ export function UnifiedProductsPage({
                                   if (name?.trim()) {
                                     const res = await createStorageArea(locationFilter, name.trim());
                                     if (!res.error) {
-                                      saveScroll();
-                                      setEditingCell(null);
-                                      await updateProductStorageArea(p.id, name.trim(), locationFilter, 2);
+                                      saveEdit(p.id, "location2", name.trim());
                                     }
                                   } else {
                                     setEditingCell(null);
                                   }
                                   return;
                                 }
-                                saveScroll();
-                                setEditValue(val);
-                                setEditingCell(null);
-                                await updateProductStorageArea(p.id, val, locationFilter, 2);
+                                // Shows at once; saves in the background.
+                                saveEdit(p.id, "location2", val);
                               }}
                               onBlur={() => setEditingCell(null)}
                               className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
@@ -4619,23 +4622,25 @@ export function UnifiedProductsPage({
                                   value={editValue}
                                   onChange={(e) => {
                                     saveScroll();
+                                    const newSize = e.target.value ? Number(e.target.value) : undefined;
                                     setEditValue(e.target.value);
                                     setEditingCell(null);
                                     const product = products.find((pr) => pr.id === item.id);
                                     if (product) {
-                                      updateProduct(item.id, {
+                                      // Shows at once; saves in the background.
+                                      saveOptimistic(item.id, { bottleSizeMl: newSize ?? null, bottleSizeUnit: "ml" }, () => updateProduct(item.id, {
                                         name: product.name,
                                         type: product.type,
                                         vendorId: product.vendorId || undefined,
                                         ingredientCategory: product.ingredientCategory || undefined,
-                                        bottleSizeMl: e.target.value ? Number(e.target.value) : undefined,
+                                        bottleSizeMl: newSize,
                                         bottleSizeUnit: "ml",
                                         yieldCount: product.yieldCount ?? null,
                                         yieldUnit: product.yieldUnit ?? null,
                                         casePackSize: product.casePackSize || undefined,
                                         bottleCostCents: product.bottleCostCents || undefined,
                                         locationIds: product.locationIds,
-                                      });
+                                      })).catch(() => setMarkerError("Failed to save size"));
                                     }
                                   }}
                                   onBlur={() => setEditingCell(null)}
