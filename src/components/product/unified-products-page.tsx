@@ -1970,7 +1970,7 @@ export function UnifiedProductsPage({
   }
 
   // Filter + Sort
-  const filtered = useMemo(() => {
+  const filteredFresh = useMemo(() => {
     const matchSearch = searchMatcher(search, { pool: products.map((p) => [p.name]) });
     return products
       .filter((p) => {
@@ -2081,6 +2081,22 @@ export function UnifiedProductsPage({
     sortDir,
     masterDb,
   ]);
+
+  // Rows stay where they are after an edit. The list only re-sorts when you
+  // change the sort, search or a filter — so setting a case size while sorted
+  // by Case doesn't throw the row somewhere else in the list.
+  const rowOrder = useRef<{ key: string; pos: Map<string, number> } | null>(null);
+  const filtered = useMemo(() => {
+    const key = JSON.stringify([search, vendorFilter, categoryFilter, locationFilter, statusFilter, sortField, sortDir, masterDb]);
+    const prev = rowOrder.current;
+    let rows = filteredFresh;
+    if (prev && prev.key === key) {
+      const at = (id: string) => prev.pos.get(id) ?? Number.MAX_SAFE_INTEGER; // new rows go to the end
+      rows = [...filteredFresh].sort((a, b) => at(a.id) - at(b.id));
+    }
+    rowOrder.current = { key, pos: new Map(rows.map((p, i) => [p.id, i])) };
+    return rows;
+  }, [filteredFresh, search, vendorFilter, categoryFilter, locationFilter, statusFilter, sortField, sortDir, masterDb]);
 
   // ===== BULK SELECTION HELPERS (Products mode) =====
   // visibleIds = the products currently passing the filters/sort in Products mode.
@@ -3083,9 +3099,10 @@ export function UnifiedProductsPage({
         </div>
       )}
 
-        {KIOSK_ITEM_MENU && mode === "products" && highlightedRow && (() => {
-          const sel = products.find((p) => p.id === highlightedRow);
-          if (!sel) return null;
+        {KIOSK_ITEM_MENU && mode === "products" && (() => {
+          // Always shown (fixed height) so picking a row never moves the list.
+          const sel = highlightedRow ? products.find((p) => p.id === highlightedRow) : null;
+          if (!sel) return <KioskChangesStrip productId={null} productName="" notes={[]} refreshKey="" />;
           const invs = locationFilter === "ALL" ? sel.inventory : sel.inventory.filter((i) => i.locationId === locationFilter);
           return (
             <KioskChangesStrip
@@ -3410,7 +3427,8 @@ export function UnifiedProductsPage({
                                 setEditingCell(null);
                                 const product = products.find((pr) => pr.id === p.id);
                                 if (product) {
-                                  updateProduct(p.id, {
+                                  // Shows at once; saves in the background.
+                                  saveOptimistic(p.id, { bottleSizeMl: newSize ?? null, bottleSizeUnit: "ml" }, () => updateProduct(p.id, {
                                     name: product.name, type: product.type,
                                     vendorId: product.vendorId || undefined,
                                     ingredientCategory: product.ingredientCategory || undefined,
@@ -3421,7 +3439,7 @@ export function UnifiedProductsPage({
                                     casePackSize: product.casePackSize || undefined,
                                     bottleCostCents: product.bottleCostCents || undefined,
                                     locationIds: product.locationIds,
-                                  });
+                                  })).catch(() => setMarkerError("Failed to save size"));
                                 }
                               }}
                               onBlur={() => setEditingCell(null)}
@@ -3511,29 +3529,8 @@ export function UnifiedProductsPage({
                                   setEditingCell(null);
                                   return;
                                 }
-                                setEditValue(val);
-                                setEditingCell(null);
-                                const product = products.find((pr) => pr.id === p.id);
-                                if (product) {
-                                  await updateProduct(p.id, {
-                                    name: product.name, type: product.type,
-                                    vendorId: product.vendorId || undefined,
-                                    ingredientCategory: product.ingredientCategory || undefined,
-                                    bottleSizeMl: product.bottleSizeMl || undefined,
-                                    bottleSizeUnit: product.bottleSizeUnit || "ml",
-                                    yieldCount: product.yieldCount ?? null,
-                                    yieldUnit: product.yieldUnit ?? null,
-                                    casePackSize: val ? parseInt(val) : undefined,
-                                    bottleCostCents: product.bottleCostCents || undefined,
-                                    locationIds: product.locationIds,
-                                  });
-                                  // Extra scroll restores after server refresh
-                                  [0, 50, 150, 300].forEach((delay) => {
-                                    setTimeout(() => {
-                                      if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = currentScroll;
-                                    }, delay);
-                                  });
-                                }
+                                // Shows at once; saves in the background.
+                                saveEdit(p.id, "casePack", val);
                               }}
                               onBlur={() => setEditingCell(null)}
                               className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
