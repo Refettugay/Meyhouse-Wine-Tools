@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect } fr
 import Link from "next/link";
 import { searchMatcher } from "@/lib/search-normalize";
 import { useRouter, useSearchParams } from "next/navigation";
-import { updateProduct, moveProductToDatabase, moveProductToMenu, hardDeleteProduct, toggleMarkForRemoval, toggleProductTag, bulkAddProductsToLocation, bulkRemoveProductsFromLocation } from "@/lib/actions/products";
+import { updateProduct, moveProductToDatabase, moveProductToMenu, hardDeleteProduct, toggleMarkForRemoval, bulkAddProductsToLocation, bulkRemoveProductsFromLocation } from "@/lib/actions/products";
 import { saveSingleCount, saveSinglePar, updateProductStorageArea, updateProductShelf, createStorageArea, saveInProgressOrder, submitInProgressOrders } from "@/lib/actions/inventory";
 import { generateApprovedOrderEmails, sendOrderEmails, markOrdersOrdered } from "@/lib/actions/email-orders";
 import { addBottleSize } from "@/lib/actions/settings";
@@ -50,10 +50,6 @@ import {
   Star,
   Archive,
   XCircle,
-  FlaskConical,
-  GlassWater,
-  Milk,
-  Grape,
   Maximize2,
   Minimize2,
   Zap,
@@ -1999,6 +1995,9 @@ export function UnifiedProductsPage({
         // (in the picked store, or any store). Everything else lives in the
         // Master Database tab.
         if (masterDb) {
+          // Old "Move to Database" / "Inactive" products live only in the
+          // Master Database tab, even if a store link is still attached.
+          if (p.menuStatus !== "ON_MENU") return false;
           const scoped = locationFilter === "ALL" ? p.inventory : p.inventory.filter((i) => i.locationId === locationFilter);
           if (scoped.length === 0) return false;
           if (statusFilter === "pending" && !scoped.some((i) => i.markedForRemoval)) return false;
@@ -2531,37 +2530,13 @@ export function UnifiedProductsPage({
         {budget && <BudgetWidget budget={budget} />}
 
         {/* Marker toolbar — only in products mode */}
-        {mode === "products" && (() => {
+        {mode === "products" && !masterDb && (() => {
           const selected = highlightedRow ? products.find((p) => p.id === highlightedRow) : null;
           const isStorePicked = locationFilter !== "ALL";
           // Get inventory for selected store on selected product
           const selectedInv = selected && isStorePicked
             ? selected.inventory.find((i) => i.locationId === locationFilter) || null
             : null;
-
-          // Tag handler — requires a specific store (per-store tags like BTG, Craft, Well, Half, Dessert)
-          const handleMarkerClick = async (fn: () => Promise<unknown>) => {
-            setMarkerError("");
-            if (!selected) {
-              setMarkerError("Click a product row first.");
-              return;
-            }
-            if (!isStorePicked) {
-              setMarkerError("Select a specific store from the Location filter first. Tags are per-store.");
-              return;
-            }
-            if (!selectedInv) {
-              setMarkerError("This product is not assigned to the selected store.");
-              return;
-            }
-            saveScroll();
-            try {
-              await fn();
-            } catch (e) {
-              setMarkerError("Failed to save. Try again.");
-              console.error("Marker toggle error:", e);
-            }
-          };
 
           // Removal handler — Database/Delete can work on single store or ALL stores
           const handleRemovalClick = async (target: "DATABASE" | "INACTIVE") => {
@@ -2591,7 +2566,6 @@ export function UnifiedProductsPage({
             }
           };
 
-          const disabled = !isStorePicked;
           // Database/Delete buttons are never "disabled by store selection" — they work on All Locations too
           const removalDisabled = !selected;
           const btnBase = "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors border text-[10px] font-medium whitespace-nowrap";
@@ -2617,29 +2591,13 @@ export function UnifiedProductsPage({
             orange:  { idle: "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100",    active: "bg-orange-600 border-orange-700 text-white shadow-sm" },
             emerald: { idle: "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100", active: "bg-emerald-600 border-emerald-700 text-white shadow-sm" },
           };
-          const btnStyle = (color: string, active: boolean) => {
-            if (disabled) return disabledBtn;
-            return active ? COLOR_STYLES[color].active : COLOR_STYLES[color].idle;
-          };
 
           const currentStoreName = isStorePicked
             ? (locations.find((l) => l.id === locationFilter)?.name?.replace("Meyhouse ", "") || "this store")
             : "";
-          const disabledTitle = "Select a specific store first (per-store tags)";
 
           return (
             <div className="flex items-center gap-2">
-              {masterDb ? (
-                /* Master Database: one Remove button that asks which restaurants + when */
-                <button
-                  onClick={() => { if (selected) openRemoveFor(selected, isStorePicked ? locationFilter : null); else setMarkerError("Click a product row first."); }}
-                  className={`${btnBase} ${selected ? "bg-red-50 border-red-200 text-red-700 hover:bg-red-100" : disabledBtn}`}
-                  title={selected ? `Remove "${selected.name}" from…` : "Click a product row first"}
-                >
-                  <XCircle className="w-4 h-4" />
-                  <span>Remove…</span>
-                </button>
-              ) : (<>
               {/* Database — yellow (works in All Locations too) */}
               <button
                 onClick={() => handleRemovalClick("DATABASE")}
@@ -2661,43 +2619,6 @@ export function UnifiedProductsPage({
               >
                 <XCircle className="w-4 h-4" />
                 <span>Delete</span>
-              </button>
-              </>)}
-              {/* Craft Cocktail — teal */}
-              <button
-                onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "craft", !selectedInv?.isCraftCocktailIngredient))}
-                className={`${btnBase} ${btnStyle("teal", !!selectedInv?.isCraftCocktailIngredient)}`}
-                title={disabled ? disabledTitle : (selected ? (selectedInv?.isCraftCocktailIngredient ? `Unmark Craft for ${currentStoreName}` : `Tag "${selected.name}" as Craft Cocktail at ${currentStoreName}`) : "Click a product row first")}
-              >
-                <FlaskConical className="w-4 h-4" />
-                <span>Craft Cocktail</span>
-              </button>
-              {/* Well Spirit — blue */}
-              <button
-                onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "well", !selectedInv?.isWellSpirit))}
-                className={`${btnBase} ${btnStyle("blue", !!selectedInv?.isWellSpirit)}`}
-                title={disabled ? disabledTitle : (selected ? (selectedInv?.isWellSpirit ? `Unmark Well for ${currentStoreName}` : `Tag "${selected.name}" as Well Spirit at ${currentStoreName}`) : "Click a product row first")}
-              >
-                <GlassWater className="w-4 h-4" />
-                <span>Well Spirit</span>
-              </button>
-              {/* Half Bottle — orange */}
-              <button
-                onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "half", !selectedInv?.isHalfBottle))}
-                className={`${btnBase} ${btnStyle("orange", !!selectedInv?.isHalfBottle)}`}
-                title={disabled ? disabledTitle : (selected ? (selectedInv?.isHalfBottle ? `Unmark Half Bottle for ${currentStoreName}` : `Tag "${selected.name}" as Half Bottle at ${currentStoreName}`) : "Click a product row first")}
-              >
-                <Milk className="w-4 h-4" />
-                <span>Half Bottle</span>
-              </button>
-              {/* Dessert Wine — emerald */}
-              <button
-                onClick={() => handleMarkerClick(() => toggleProductTag(selected!.id, locationFilter, "dessert", !selectedInv?.isDessertWine))}
-                className={`${btnBase} ${btnStyle("emerald", !!selectedInv?.isDessertWine)}`}
-                title={disabled ? disabledTitle : (selected ? (selectedInv?.isDessertWine ? `Unmark Dessert Wine for ${currentStoreName}` : `Tag "${selected.name}" as Dessert Wine at ${currentStoreName}`) : "Click a product row first")}
-              >
-                <Grape className="w-4 h-4" />
-                <span>Dessert Wine</span>
               </button>
             </div>
           );
@@ -2774,11 +2695,6 @@ export function UnifiedProductsPage({
           <span>{removeFlash}</span>
           <button onClick={() => setRemoveFlash(null)} className="text-xs text-[var(--ink-muted)]">Dismiss</button>
         </div>
-      )}
-
-      {/* Master Database tab (its own search + filters) */}
-      {mode === "master" && masterDb && (
-        <MasterDatabaseTab products={products} locations={locations} canPermanentDelete={canPermanentDelete} />
       )}
 
       {/* Filters (Products / Inventory / Pricing — the Order tab has its own filter box) */}
@@ -3279,18 +3195,10 @@ export function UnifiedProductsPage({
                           const anyDB = relevantInvs.some((i) => i.markedForRemoval === "DATABASE");
                           const anyPending = relevantInvs.some((i) => i.markedForRemoval === "PENDING");
                           const pendingOut = relevantInvs.some((i) => i.markedForRemoval === "PENDING" && i.currentStock <= 0);
-                          const anyCraft = relevantInvs.some((i) => i.isCraftCocktailIngredient);
-                          const anyWell = relevantInvs.some((i) => i.isWellSpirit);
-                          const anyHalf = relevantInvs.some((i) => i.isHalfBottle);
-                          const anyDessert = relevantInvs.some((i) => i.isDessertWine);
                           if (anyInactive) return "bg-red-50/60";
                           if (anyDB) return "bg-yellow-50/80";
                           if (pendingOut) return "bg-rose-100";
                           if (anyPending) return "bg-amber-50/70";
-                          if (anyCraft) return "bg-teal-50/70";
-                          if (anyWell) return "bg-blue-50/70";
-                          if (anyHalf) return "bg-orange-50/70";
-                          if (anyDessert) return "bg-emerald-50/70";
                           return "";
                         })()}`}>
                         {/* Bulk-select checkbox cell — stopPropagation so clicking the
@@ -3324,10 +3232,6 @@ export function UnifiedProductsPage({
                             const anyDB = relevantInvs.some((i) => i.markedForRemoval === "DATABASE");
                             const anyPending = relevantInvs.some((i) => i.markedForRemoval === "PENDING");
                             const pendingOut = relevantInvs.some((i) => i.markedForRemoval === "PENDING" && i.currentStock <= 0);
-                            const anyCraft = relevantInvs.some((i) => i.isCraftCocktailIngredient);
-                            const anyWell = relevantInvs.some((i) => i.isWellSpirit);
-                            const anyHalf = relevantInvs.some((i) => i.isHalfBottle);
-                            const anyDessert = relevantInvs.some((i) => i.isDessertWine);
                             // For All Locations, show which stores have which markers in tooltip
                             const storeBadgeSuffix = (pred: (i: Product["inventory"][number]) => boolean) => {
                               if (!isAllLocations) return "";
@@ -3385,10 +3289,6 @@ export function UnifiedProductsPage({
                                     {relevantInvs.find((i) => i.kioskNote)?.kioskNote}
                                   </span>
                                 )}
-                                {anyCraft && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded" title={`Craft Cocktail${storeBadgeSuffix((i) => i.isCraftCocktailIngredient)}`}>CC</span>}
-                                {anyWell && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded" title={`Well Spirit${storeBadgeSuffix((i) => i.isWellSpirit)}`}>Well</span>}
-                                {anyHalf && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded" title={`Half Bottle${storeBadgeSuffix((i) => i.isHalfBottle)}`}>½</span>}
-                                {anyDessert && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded" title={`Dessert Wine${storeBadgeSuffix((i) => i.isDessertWine)}`}>🍇</span>}
                                 </span>
                               </span>
                             );
@@ -4385,10 +4285,6 @@ export function UnifiedProductsPage({
                                 const invMarkerColor =
                                   item.inv.markedForRemoval === "INACTIVE" ? "bg-red-50/60" :
                                   item.inv.markedForRemoval === "DATABASE" ? "bg-yellow-50/80" :
-                                  item.inv.isCraftCocktailIngredient ? "bg-teal-50/70" :
-                                  item.inv.isWellSpirit ? "bg-blue-50/70" :
-                                  item.inv.isHalfBottle ? "bg-orange-50/70" :
-                                  item.inv.isDessertWine ? "bg-emerald-50/70" :
                                   "";
                                 return (
                                   <tr
@@ -4408,10 +4304,6 @@ export function UnifiedProductsPage({
                                         {item.name}
                                         {item.inv.markedForRemoval === "DATABASE" && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded ml-1" title="Marked for Database">→ DB</span>}
                                         {item.inv.markedForRemoval === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1" title="Marked to Delete">→ ✕</span>}
-                                        {item.inv.isCraftCocktailIngredient && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded ml-1" title="Craft Cocktail">CC</span>}
-                                        {item.inv.isWellSpirit && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded ml-1" title="Well Spirit">Well</span>}
-                                        {item.inv.isHalfBottle && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded ml-1" title="Half Bottle">½</span>}
-                                        {item.inv.isDessertWine && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded ml-1" title="Dessert Wine">🍇</span>}
                                       </p>
                                     </td>
                                     <td className="px-2 py-2 text-[var(--ink-muted)] text-[10px]">
@@ -4603,9 +4495,6 @@ export function UnifiedProductsPage({
                         const ordMarkerColor =
                           item.inv.markedForRemoval === "INACTIVE" ? "bg-red-50/60" :
                           item.inv.markedForRemoval === "DATABASE" ? "bg-yellow-50/80" :
-                          item.inv.isCraftCocktailIngredient ? "bg-teal-50/70" :
-                          item.inv.isWellSpirit ? "bg-blue-50/70" :
-                          item.inv.isHalfBottle ? "bg-orange-50/70" :
                           "";
                         return (
                           <tr key={item.inv.id}
@@ -4624,10 +4513,6 @@ export function UnifiedProductsPage({
                                 {item.name}
                                 {item.inv.markedForRemoval === "DATABASE" && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded ml-1" title="Marked for Database">→ DB</span>}
                                 {item.inv.markedForRemoval === "INACTIVE" && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded ml-1" title="Marked to Delete">→ ✕</span>}
-                                {item.inv.isCraftCocktailIngredient && <span className="text-[9px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded ml-1" title="Craft Cocktail">CC</span>}
-                                {item.inv.isWellSpirit && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded ml-1" title="Well Spirit">Well</span>}
-                                {item.inv.isHalfBottle && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded ml-1" title="Half Bottle">½</span>}
-                                {item.inv.isDessertWine && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded ml-1" title="Dessert Wine">🍇</span>}
                               </p>
                             </td>
                             {/* Size — click to edit */}
@@ -5276,6 +5161,12 @@ export function UnifiedProductsPage({
       {mode === "pricing" && <MenuPricingReadOnly />}
 
       {mode === "transfers" && transfers && <TransfersPanel rows={transfers} locations={locations} />}
+
+      {/* Master Database tab (its own search + filters). Lives in the
+          scrollable area so long lists scroll like the other tabs. */}
+      {mode === "master" && masterDb && (
+        <MasterDatabaseTab products={products} locations={locations} canPermanentDelete={canPermanentDelete} />
+      )}
 
       <StaffLinksDrawer
         open={showStaffLinks}
