@@ -404,7 +404,7 @@ function sortBottleSizes(sizes: number[]): number[] {
 }
 
 export function UnifiedProductsPage({
-  products,
+  products: serverProducts,
   locations,
   vendors,
   categories,
@@ -547,7 +547,49 @@ export function UnifiedProductsPage({
 
   const [orderMenuFilter, setOrderMenuFilter] = useState<"onMenu" | "all">("onMenu");
   const [needsAttentionOnly, setNeedsAttentionOnly] = useState(false);
-  const [unitSaving, setUnitSaving] = useState<string | null>(null);
+
+  // ===== INSTANT EDITS (optimistic) =====
+  // An inline edit (vendor, CS/BTL, category, cost, size…) shows on screen at
+  // once; the save + page reload run in the background. A patch is dropped
+  // when fresh server data arrives after its save finished, or reverted if
+  // the save fails.
+  const [productPatches, setProductPatches] = useState<Record<string, Partial<Product>>>({});
+  const pendingSaves = useRef<Map<string, number>>(new Map());
+  const products = useMemo(
+    () => (Object.keys(productPatches).length === 0
+      ? serverProducts
+      : serverProducts.map((p) => (productPatches[p.id] ? { ...p, ...productPatches[p.id] } : p))),
+    [serverProducts, productPatches],
+  );
+  useEffect(() => {
+    setProductPatches((prev) => {
+      const keep = Object.keys(prev).filter((id) => (pendingSaves.current.get(id) ?? 0) > 0);
+      if (keep.length === Object.keys(prev).length) return prev;
+      return Object.fromEntries(keep.map((id) => [id, prev[id]]));
+    });
+  }, [serverProducts]);
+  async function saveOptimistic(productId: string, patch: Partial<Product>, save: () => Promise<unknown>): Promise<boolean> {
+    let before: Partial<Product> | undefined;
+    setProductPatches((prev) => { before = prev[productId]; return { ...prev, [productId]: { ...prev[productId], ...patch } }; });
+    pendingSaves.current.set(productId, (pendingSaves.current.get(productId) ?? 0) + 1);
+    let ok = true;
+    try {
+      const res = await save();
+      if ((res as { error?: string } | null | undefined)?.error) throw new Error((res as { error: string }).error);
+    } catch (e) {
+      ok = false;
+      // Put the cell back the way it was.
+      setProductPatches((prev) => {
+        const next = { ...prev };
+        if (before) next[productId] = before; else delete next[productId];
+        return next;
+      });
+      throw e;
+    } finally {
+      pendingSaves.current.set(productId, (pendingSaves.current.get(productId) ?? 1) - 1);
+    }
+    return ok;
+  }
   const [unitError, setUnitError] = useState<string | null>(null);
   const [showStaffLinks, setShowStaffLinks] = useState(false);
   // Order tab sub-view: count & build / review & approve / ready to email
@@ -1063,7 +1105,7 @@ export function UnifiedProductsPage({
     const product = products.find((pr) => pr.id === customSizeProductId);
     if (product) {
       if (storeUnit === "ml") addBottleSize(storeValue);
-      updateProduct(customSizeProductId, {
+      saveOptimistic(customSizeProductId, { bottleSizeMl: storeValue, bottleSizeUnit: storeUnit }, () => updateProduct(customSizeProductId, {
         name: product.name, type: product.type,
         vendorId: product.vendorId || undefined,
         ingredientCategory: product.ingredientCategory || undefined,
@@ -1072,7 +1114,7 @@ export function UnifiedProductsPage({
         casePackSize: product.casePackSize || undefined,
         bottleCostCents: product.bottleCostCents || undefined,
         locationIds: product.locationIds,
-      });
+      })).catch(() => setMarkerError("Failed to save size"));
     }
   }
 
@@ -1420,13 +1462,11 @@ export function UnifiedProductsPage({
   // Set a product's CS/BTL (product-wide, logged). null = Not set.
   async function changeProductOrderUnit(productId: string, unit: "CASE" | "BOTTLE" | null) {
     setEditingCell(null);
-    setUnitSaving(productId);
     setUnitError(null);
     saveScroll();
-    const res = await setProductOrderUnit(productId, unit);
-    setUnitSaving(null);
-    if ((res as { error?: string })?.error) setUnitError((res as { error: string }).error);
-    else router.refresh();
+    // Shows at once; the save (which reloads the page data itself) runs behind.
+    try { await saveOptimistic(productId, { orderUnit: unit }, () => setProductOrderUnit(productId, unit)); }
+    catch (e) { setUnitError((e as Error)?.message || "Couldn't save CS/BTL"); }
   }
 
   // Cart items: auto-calculated from orderCounts where count < par
@@ -2266,8 +2306,8 @@ export function UnifiedProductsPage({
     });
   }
 
-  async function saveEdit(productId: string, field: string) {
-    const newValue = editValue; // capture BEFORE any state changes
+  async function saveEdit(productId: string, field: string, valueOverride?: string) {
+    const newValue = valueOverride ?? editValue; // capture BEFORE any state changes
     saveScroll();
     setEditingCell(null);
     const product = products.find((p) => p.id === productId);
@@ -2309,25 +2349,45 @@ export function UnifiedProductsPage({
       data.yieldCount = (n && n > 0) ? n : null;
       data.yieldUnit = (n && n > 0) ? "each" : null;
     } else if (field === "location") {
-      try { await updateProductStorageArea(productId, newValue, locationFilter !== "ALL" ? locationFilter : undefined, 1); }
+      const loc = locationFilter !== "ALL" ? locationFilter : undefined;
+      const inventory = product.inventory.map((i) => (!loc || i.locationId === loc ? { ...i, storageArea: newValue || null } : i));
+      try { await saveOptimistic(productId, { inventory }, () => updateProductStorageArea(productId, newValue, loc, 1)); }
       catch (e) { console.error("updateProductStorageArea failed:", e); setMarkerError("Failed to save area"); }
       return;
     } else if (field === "shelf") {
-      try { await updateProductShelf(productId, newValue, locationFilter !== "ALL" ? locationFilter : undefined, 1); }
+      const loc = locationFilter !== "ALL" ? locationFilter : undefined;
+      const inventory = product.inventory.map((i) => (!loc || i.locationId === loc ? { ...i, shelfLocation: newValue || null } : i));
+      try { await saveOptimistic(productId, { inventory }, () => updateProductShelf(productId, newValue, loc, 1)); }
       catch (e) { console.error("updateProductShelf failed:", e); setMarkerError("Failed to save shelf"); }
       return;
     } else if (field === "location2") {
-      try { await updateProductStorageArea(productId, newValue, locationFilter !== "ALL" ? locationFilter : undefined, 2); }
-      catch (e) { console.error("updateProductStorageArea2 failed:", e); setMarkerError("Failed to save area 2"); }
+      const loc = locationFilter !== "ALL" ? locationFilter : undefined;
+      const inventory = product.inventory.map((i) => (!loc || i.locationId === loc ? { ...i, storageArea2: newValue || null } : i));
+      try { await saveOptimistic(productId, { inventory }, () => updateProductStorageArea(productId, newValue, loc, 2)); }
+      catch (e) { console.error("updateProductStorageArea failed:", e); setMarkerError("Failed to save area 2"); }
       return;
     } else if (field === "shelf2") {
-      try { await updateProductShelf(productId, newValue, locationFilter !== "ALL" ? locationFilter : undefined, 2); }
-      catch (e) { console.error("updateProductShelf2 failed:", e); setMarkerError("Failed to save shelf 2"); }
+      const loc = locationFilter !== "ALL" ? locationFilter : undefined;
+      const inventory = product.inventory.map((i) => (!loc || i.locationId === loc ? { ...i, shelfLocation2: newValue || null } : i));
+      try { await saveOptimistic(productId, { inventory }, () => updateProductShelf(productId, newValue, loc, 2)); }
+      catch (e) { console.error("updateProductShelf failed:", e); setMarkerError("Failed to save shelf 2"); }
       return;
     }
 
+    // What the row should show right now, before the server answers.
+    const patch: Partial<Product> = {
+      name: data.name,
+      vendorId: data.vendorId ?? null,
+      vendor: data.vendorId ? (vendorList.find((v) => v.id === data.vendorId)?.name ?? product.vendor) : null,
+      ingredientCategory: data.ingredientCategory ?? null,
+      bottleSizeMl: data.bottleSizeMl ?? null,
+      yieldCount: data.yieldCount,
+      yieldUnit: data.yieldUnit,
+      casePackSize: data.casePackSize ?? null,
+      bottleCostCents: data.bottleCostCents ?? null,
+    };
     try {
-      await updateProduct(productId, data);
+      await saveOptimistic(productId, patch, () => updateProduct(productId, data));
     } catch (e) {
       console.error("updateProduct failed for field:", field, "data:", data, "error:", e);
       const msg = (e as Error)?.message || "";
@@ -2361,7 +2421,8 @@ export function UnifiedProductsPage({
       locationIds: product.locationIds,
     };
     try {
-      await updateProduct(productId, data);
+      const vendor = vendorId ? (vendorList.find((v) => v.id === vendorId)?.name ?? product.vendor) : null;
+      await saveOptimistic(productId, { vendorId: vendorId || null, vendor }, () => updateProduct(productId, data));
     } catch (e) {
       console.error("assignVendorToProduct failed:", e);
       setMarkerError("Failed to assign vendor");
@@ -3414,8 +3475,7 @@ export function UnifiedProductsPage({
                                     const n = parseInt(customCaseValue);
                                     if (n > 0) {
                                       saveScroll();
-                                      setEditValue(n.toString());
-                                      await saveEdit(p.id, "casePack");
+                                      await saveEdit(p.id, "casePack", n.toString());
                                     }
                                     setCustomCaseMode(false);
                                     setCustomCaseValue("");
@@ -3426,8 +3486,7 @@ export function UnifiedProductsPage({
                                   const n = parseInt(customCaseValue);
                                   if (n > 0) {
                                     saveScroll();
-                                    setEditValue(n.toString());
-                                    await saveEdit(p.id, "casePack");
+                                    await saveEdit(p.id, "casePack", n.toString());
                                   }
                                   setCustomCaseMode(false);
                                   setCustomCaseValue("");
@@ -3532,8 +3591,8 @@ export function UnifiedProductsPage({
                           {isEd("category") ? (
                             <select
                               value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              onBlur={() => saveEdit(p.id, "category")}
+                              onChange={(e) => saveEdit(p.id, "category", e.target.value)}
+                              onBlur={() => setEditingCell(null)}
                               className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                               autoFocus
                             >
@@ -3561,9 +3620,9 @@ export function UnifiedProductsPage({
                                   setAddVendorFor(p.id);
                                   return;
                                 }
-                                setEditValue(e.target.value);
+                                saveEdit(p.id, "vendor", e.target.value); // save the moment it's picked
                               }}
-                              onBlur={() => saveEdit(p.id, "vendor")}
+                              onBlur={() => setEditingCell(null)}
                               className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                               autoFocus
                             >
@@ -4629,7 +4688,6 @@ export function UnifiedProductsPage({
                               ) : (
                                 <button
                                   type="button"
-                                  disabled={unitSaving === item.id}
                                   onClick={() => startEdit(rowKey, "unit", "")}
                                   title={
                                     unit === null
@@ -4644,9 +4702,7 @@ export function UnifiedProductsPage({
                                       : "px-1.5 py-0.5 rounded text-[var(--ink-muted)] hover:text-[var(--brand-olive)]"
                                   }
                                 >
-                                  {unitSaving === item.id
-                                    ? "…"
-                                    : unit === "CASE"
+                                  {unit === "CASE"
                                       ? `CS · ${item.casePackSize}`
                                       : unit === "BOTTLE"
                                         ? item.casePackSize === CASE_KEG ? "Keg" : "BTL"
@@ -4665,9 +4721,9 @@ export function UnifiedProductsPage({
                                       setAddVendorFor(item.id);
                                       return;
                                     }
-                                    setEditValue(e.target.value);
+                                    saveEdit(item.id, "vendor", e.target.value); // save the moment it's picked
                                   }}
-                                  onBlur={() => saveEdit(item.id, "vendor")}
+                                  onBlur={() => setEditingCell(null)}
                                   className="w-full px-1 py-0.5 bg-[#FAF7F1] border border-[var(--brand-olive)] rounded text-[10px] focus:outline-none"
                                   autoFocus
                                 >
