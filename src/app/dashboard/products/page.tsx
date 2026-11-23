@@ -18,7 +18,9 @@ export default async function ProductsPage() {
 
   const [allProducts, locations, vendors, org] = await Promise.all([
     prisma.ingredient.findMany({
-      where: { organizationId: orgId, isActive: true },
+      // RECIPE_PLACEHOLDER ("Desired Bourbon"…) only tells the bartender a
+      // recipe takes a spirit of the guest's choice — never a product here.
+      where: { organizationId: orgId, isActive: true, OR: [{ productType: null }, { productType: { not: "RECIPE_PLACEHOLDER" } }] },
       orderBy: { name: "asc" },
       include: {
         vendorRef: true,
