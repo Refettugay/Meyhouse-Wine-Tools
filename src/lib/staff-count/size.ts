@@ -18,6 +18,7 @@ const NAMED_ML: Record<number, string> = {
 };
 
 export function formatBottleSize(value: number | null | undefined, unit: string | null | undefined): string | null {
+  if (unit === "each") return "Each"; // sold / counted by the piece (ice cubes…)
   if (!value || value <= 0) return null;
   switch (unit) {
     case "g":

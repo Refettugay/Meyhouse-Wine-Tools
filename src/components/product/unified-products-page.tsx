@@ -351,6 +351,16 @@ function formatSize(value: number, unit: string): string {
   return formatSizeMl(value);
 }
 
+// Size cell label. "Each" = sold/counted by the piece (ice cubes, etc.) — no ml stored.
+const SIZE_EACH = "each";
+function sizeLabel(p: { bottleSizeMl: number | null; bottleSizeUnit?: string | null }): string {
+  if (p.bottleSizeUnit === SIZE_EACH) return "Each";
+  return p.bottleSizeMl ? formatSize(p.bottleSizeMl, p.bottleSizeUnit || "ml") : "—";
+}
+function sizeEditValue(p: { bottleSizeMl: number | null; bottleSizeUnit?: string | null }): string {
+  return p.bottleSizeUnit === SIZE_EACH ? SIZE_EACH : p.bottleSizeMl?.toString() || "";
+}
+
 function formatSizeMl(ml: number): string {
   const NAMED_SIZES: Record<number, string> = {
     148: "5oz (148ml)",
@@ -3432,19 +3442,21 @@ export function UnifiedProductsPage({
                                   return;
                                 }
                                 const newVal = e.target.value;
-                                const newSize = newVal ? Number(newVal) : undefined;
+                                const isEach = newVal === SIZE_EACH;
+                                const newSize = newVal && !isEach ? Number(newVal) : undefined;
+                                const newUnit = isEach ? SIZE_EACH : "ml";
                                 saveScroll();
                                 setEditValue(newVal);
                                 setEditingCell(null);
                                 const product = products.find((pr) => pr.id === p.id);
                                 if (product) {
                                   // Shows at once; saves in the background.
-                                  saveOptimistic(p.id, { bottleSizeMl: newSize ?? null, bottleSizeUnit: "ml" }, () => updateProduct(p.id, {
+                                  saveOptimistic(p.id, { bottleSizeMl: newSize ?? null, bottleSizeUnit: newUnit }, () => updateProduct(p.id, {
                                     name: product.name, type: product.type,
                                     vendorId: product.vendorId || undefined,
                                     ingredientCategory: product.ingredientCategory || undefined,
                                     bottleSizeMl: newSize,
-                                    bottleSizeUnit: "ml",
+                                    bottleSizeUnit: newUnit,
                                     yieldCount: product.yieldCount ?? null,
                                     yieldUnit: product.yieldUnit ?? null,
                                     casePackSize: product.casePackSize || undefined,
@@ -3458,6 +3470,7 @@ export function UnifiedProductsPage({
                               autoFocus
                             >
                               <option value="">—</option>
+                              <option value={SIZE_EACH}>Each (per piece)</option>
                               {(() => {
                                 const sorted = sortBottleSizes(bottleSizes);
                                 const groups: Record<SizeGroup, number[]> = { ml: [], oz: [], weight: [], keg: [] };
@@ -3479,9 +3492,9 @@ export function UnifiedProductsPage({
                           ) : (
                             <span
                               className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)]"
-                              onClick={() => startEdit(p.id, "bottleSize", p.bottleSizeMl?.toString() || "")}
+                              onClick={() => startEdit(p.id, "bottleSize", sizeEditValue(p))}
                             >
-                              {p.bottleSizeMl ? formatSize(p.bottleSizeMl, p.bottleSizeUnit) : "—"}
+                              {sizeLabel(p)}
                             </span>
                           )}
                         </td>
@@ -3559,6 +3572,8 @@ export function UnifiedProductsPage({
                               <option value="20">20-Pack</option>
                               <option value="24">24-Pack</option>
                               <option value="48">48-Pack</option>
+                              <option value="50">50-Pack</option>
+                              <option value="100">100-Pack</option>
                               <option value="__custom__">Custom...</option>
                             </select>
                           ) : (
@@ -4400,7 +4415,7 @@ export function UnifiedProductsPage({
                                       </p>
                                     </td>
                                     <td className="px-2 py-2 text-[var(--ink-muted)] text-[10px]">
-                                      {item.bottleSizeMl ? formatSize(item.bottleSizeMl, item.bottleSizeUnit || "ml") : "—"}
+                                      {sizeLabel(item)}
                                     </td>
                                     <td className="px-2 py-2 text-[var(--ink-muted)] text-[10px] truncate max-w-[70px]">
                                       {item.vendor || "—"}
@@ -4622,19 +4637,21 @@ export function UnifiedProductsPage({
                                   value={editValue}
                                   onChange={(e) => {
                                     saveScroll();
-                                    const newSize = e.target.value ? Number(e.target.value) : undefined;
+                                    const isEach = e.target.value === SIZE_EACH;
+                                    const newSize = e.target.value && !isEach ? Number(e.target.value) : undefined;
+                                    const newUnit = isEach ? SIZE_EACH : "ml";
                                     setEditValue(e.target.value);
                                     setEditingCell(null);
                                     const product = products.find((pr) => pr.id === item.id);
                                     if (product) {
                                       // Shows at once; saves in the background.
-                                      saveOptimistic(item.id, { bottleSizeMl: newSize ?? null, bottleSizeUnit: "ml" }, () => updateProduct(item.id, {
+                                      saveOptimistic(item.id, { bottleSizeMl: newSize ?? null, bottleSizeUnit: newUnit }, () => updateProduct(item.id, {
                                         name: product.name,
                                         type: product.type,
                                         vendorId: product.vendorId || undefined,
                                         ingredientCategory: product.ingredientCategory || undefined,
                                         bottleSizeMl: newSize,
-                                        bottleSizeUnit: "ml",
+                                        bottleSizeUnit: newUnit,
                                         yieldCount: product.yieldCount ?? null,
                                         yieldUnit: product.yieldUnit ?? null,
                                         casePackSize: product.casePackSize || undefined,
@@ -4648,6 +4665,7 @@ export function UnifiedProductsPage({
                                   autoFocus
                                 >
                                   <option value="">—</option>
+                                  <option value={SIZE_EACH}>Each (per piece)</option>
                                   {(() => {
                                     const sorted = sortBottleSizes(bottleSizes);
                                     const groups: Record<SizeGroup, number[]> = { ml: [], oz: [], weight: [], keg: [] };
@@ -4667,9 +4685,9 @@ export function UnifiedProductsPage({
                               ) : (
                                 <span
                                   className="text-[10px] text-[var(--ink-muted)] cursor-pointer hover:text-[var(--brand-olive)]"
-                                  onClick={() => startEdit(rowKey, "bottleSize", item.bottleSizeMl?.toString() || "")}
+                                  onClick={() => startEdit(rowKey, "bottleSize", sizeEditValue(item))}
                                 >
-                                  {item.bottleSizeMl ? formatSize(item.bottleSizeMl, item.bottleSizeUnit || "ml") : "—"}
+                                  {sizeLabel(item)}
                                 </span>
                               )}
                             </td>
